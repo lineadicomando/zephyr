@@ -76,7 +76,7 @@ if [[ "$current_version" == "$version" ]]; then
   exit 1
 fi
 
-perl -0pi -e 's/^\$appVersion = "[^"]+";/$appVersion = "'"${version}"'";/m' config/app.php
+sed -E -i 's|^\$appVersion = "[^"]+";|$appVersion = "'"${version}"'";|' config/app.php
 
 if git diff --quiet -- config/app.php; then
   echo "Error: no changes applied to config/app.php."
