@@ -3,8 +3,9 @@
 An open-source IT asset management system built with Laravel and Filament.
 
 [![License](https://img.shields.io/badge/license-AGPLv3-green.svg)](LICENSE)
-[![Version](https://img.shields.io/github/v/tag/lineadicommando/zephyr?sort=semver&label=version)](https://github.com/lineadicommando/zephyr/tags)
-[![Issues](https://img.shields.io/github/issues/lineadicommando/zephyr)](https://github.com/lineadicommando/zephyr/issues)
+[![Version](https://img.shields.io/github/v/tag/lineadicomando/zephyr?sort=semver&label=version)](https://github.com/lineadicomando/zephyr/tags)
+[![Issues](https://img.shields.io/github/issues/lineadicomando/zephyr)](https://github.com/lineadicomando/zephyr/issues)
+[![CI](https://github.com/lineadicomando/zephyr/actions/workflows/tests.yml/badge.svg)](https://github.com/lineadicomando/zephyr/actions/workflows/tests.yml)
 
 ## Features
 
@@ -38,7 +39,7 @@ An open-source IT asset management system built with Laravel and Filament.
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/lineadicommando/zephyr.git
+git clone https://github.com/lineadicomando/zephyr.git
 cd zephyr
 composer install
 npm install
