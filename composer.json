@@ -60,6 +60,9 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "release:version": [
+            "bash scripts/release-version.sh"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",

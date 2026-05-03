@@ -1,5 +1,7 @@
 <?php
 
+$appVersion = "v0.1.0";
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -124,16 +126,19 @@ return [
         "store" => env("APP_MAINTENANCE_STORE", "database"),
     ],
 
-    "ver" => env("APP_VER", "0.14b"),
+    "ver" => $appVersion,
     "projectName" => env("APP_PROJECT_NAME", "Zephyr"),
     "diagnostics_enabled" => env("APP_DIAGNOSTICS_ENABLED", false),
 
-    "project" => (static function (): array {
+    "project" => (static function () use ($appVersion): array {
         $composer = [];
         $composerPath = base_path("composer.json");
 
         if (is_file($composerPath)) {
-            $decoded = json_decode((string) file_get_contents($composerPath), true);
+            $decoded = json_decode(
+                (string) file_get_contents($composerPath),
+                true,
+            );
 
             if (is_array($decoded)) {
                 $composer = $decoded;
@@ -151,7 +156,12 @@ return [
         $authorsPath = base_path("AUTHORS.md");
 
         if (is_file($authorsPath)) {
-            $lines = preg_split("/\r\n|\r|\n/", (string) file_get_contents($authorsPath)) ?: [];
+            $lines =
+                preg_split(
+                    "/\r\n|\r|\n/",
+                    (string) file_get_contents($authorsPath),
+                ) ?:
+                [];
 
             foreach ($lines as $line) {
                 $line = trim($line);
@@ -169,14 +179,14 @@ return [
             }
         }
 
-        if (preg_match('/<([^>]+@[^>]+)>/', $authorName, $matches) === 1) {
+        if (preg_match("/<([^>]+@[^>]+)>/", $authorName, $matches) === 1) {
             $authorEmail = $matches[1];
             $authorName = trim(str_replace($matches[0], "", $authorName));
         }
 
         return [
             "name" => env("APP_PROJECT_NAME", "Zephyr"),
-            "version" => env("APP_VER", "0.14b"),
+            "version" => $appVersion,
             "license" => (string) $license,
             "author_name" => $authorName,
             "author_email" => $authorEmail,

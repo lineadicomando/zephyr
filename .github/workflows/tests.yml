@@ -5,9 +5,40 @@ on:
     branches:
       - main
       - master
+    tags:
+      - 'v*'
   pull_request:
 
 jobs:
+  version-alignment:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify app.php version matches Git tag
+        run: |
+          set -euo pipefail
+          if ! grep -Eq '"ver"\s*=>\s*"[^"]+"' config/app.php; then
+            echo "Hardcoded app version not found in config/app.php"
+            exit 1
+          fi
+
+          app_ver="$(grep -Eo '"ver"\s*=>\s*"[^"]+"' config/app.php | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')"
+          tag_ver="${GITHUB_REF_NAME}"
+          app_norm="${app_ver#v}"
+          tag_norm="${tag_ver#v}"
+
+          echo "APP_VERSION=${app_ver}"
+          echo "TAG=${tag_ver}"
+
+          if [ "${app_norm}" != "${tag_norm}" ]; then
+            echo "Version mismatch: app.php (${app_ver}) != tag (${tag_ver})"
+            exit 1
+          fi
+
   pest:
     runs-on: ubuntu-latest
     env:
