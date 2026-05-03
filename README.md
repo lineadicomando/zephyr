@@ -3,6 +3,8 @@
 An open-source IT asset management system built with Laravel and Filament.
 
 [![License](https://img.shields.io/badge/license-AGPLv3-green.svg)](LICENSE)
+[![Version](https://img.shields.io/github/v/tag/lineadicommando/zephyr?sort=semver&label=version)](https://github.com/lineadicommando/zephyr/tags)
+[![Issues](https://img.shields.io/github/issues/lineadicommando/zephyr)](https://github.com/lineadicommando/zephyr/issues)
 
 ## Features
 
@@ -72,6 +74,11 @@ composer run dev
 ```bash
 composer test
 ```
+
+## Versioning
+
+- The only source of truth for project version is Git tags.
+- Do not maintain version numbers in application files or docs; releases are identified by tags (for example `v1.2.0`).
 
 ## Global Scopes (v1)
 
