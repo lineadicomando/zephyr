@@ -1,6 +1,6 @@
 <?php
 
-$appVersion = "v0.1.0";
+ = "0.1.1";
 
 return [
     /*
