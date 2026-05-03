@@ -21,12 +21,12 @@ jobs:
       - name: Verify app.php version matches Git tag
         run: |
           set -euo pipefail
-          if ! grep -Eq '"ver"\s*=>\s*"[^"]+"' config/app.php; then
-            echo "Hardcoded app version not found in config/app.php"
+          if ! grep -Eq '^\$appVersion = "[^"]+";' config/app.php; then
+            echo 'Hardcoded $appVersion not found in config/app.php'
             exit 1
           fi
 
-          app_ver="$(grep -Eo '"ver"\s*=>\s*"[^"]+"' config/app.php | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')"
+          app_ver="$(grep -E '^\$appVersion = "[^"]+";' config/app.php | head -n1 | sed -E 's/^\$appVersion = "([^"]+)";/\1/')"
           tag_ver="${GITHUB_REF_NAME}"
           app_norm="${app_ver#v}"
           tag_norm="${tag_ver#v}"
