@@ -39,16 +39,7 @@
   <defs
      id="defs5" />
   <title
-     id="title1">Zephyr logo esteso</title>
-  <desc
-     id="desc1">Logo orizzontale di Zephyr: icona circolare azzurra con la lettera Z seguita dal wordmark &quot;Zephyr&quot;</desc>
-  <!-- Icon: circle -->
-  <!-- Z shape: bold geometric Z -->
-  <!-- top bar -->
-  <!-- 3 cerchi lungo la diagonale da (138,76) a (62,124) -->
-  <!-- bottom bar -->
-  <!-- Wordmark -->
-  <!-- Tagline -->
+     id="title1">Zephyr logo</title>
   <g
      id="g1"
      transform="matrix(0.81516448,0,0,0.81516448,-17.285305,-10.597139)">
@@ -87,7 +78,7 @@
     <rdf:RDF>
       <cc:Work
          rdf:about="">
-        <dc:title>Zephyr logo esteso</dc:title>
+        <dc:title>Zephyr logo</dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
