@@ -15,13 +15,13 @@ class ListProducts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('inventory')
-                ->translateLabel()
-                ->hidden(fn () => !auth()->user()->can('view', Inventory::class))
-                ->icon('heroicon-o-archive-box')
-                ->label('Inventory')
-                ->url(fn (): string => InventoryResource::getUrl()),
-            Actions\CreateAction::make()->icon('heroicon-o-plus'),
+            // Actions\Action::make('inventory')
+            //     ->translateLabel()
+            //     ->hidden(fn () => !auth()->user()->can('view', Inventory::class))
+            //     ->icon('heroicon-o-archive-box')
+            //     ->label('Inventory')
+            //     ->url(fn (): string => InventoryResource::getUrl()),
+            Actions\CreateAction::make()->icon("heroicon-o-plus"),
         ];
     }
 }
