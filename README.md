@@ -1,4 +1,6 @@
-# Zephyr 
+<p align="center">
+  <img src="public/images/logo.svg" alt="Zephyr" width="280" />
+</p>
 
 An open-source IT asset management system built with Laravel and Filament.
 
@@ -20,7 +22,7 @@ An open-source IT asset management system built with Laravel and Filament.
 
 ## Stack
 
-- PHP 8.3 / Laravel 13
+- PHP 8.5 / Laravel 13
 - Filament 5 (admin panel)
 - Vite + Tailwind CSS 4
 - Pest (testing)
@@ -29,7 +31,7 @@ An open-source IT asset management system built with Laravel and Filament.
 
 ### Requirements
 
-- PHP 8.3+
+- PHP 8.5+
 - Composer 2
 - Node.js 20+ and npm
 - MariaDB/MySQL (or SQLite for quick local tests)
@@ -69,6 +71,74 @@ composer run dev
 `composer run setup` is the non-interactive bootstrap script: it installs dependencies, creates `.env` if missing, generates the app key, runs migrations, and builds frontend assets.
 
 `composer run dev` starts the Laravel server, queue worker, log viewer, and Vite dev server concurrently.
+
+## Docker Deploy
+
+The repository ships a `docker-compose.yml` with six services: `app` (PHP-FPM 8.5), `nginx`, `db` (MariaDB 11), `redis`, `queue`, and `scheduler`. On first boot the `app` container runs migrations and seeds the database; subsequent restarts only apply pending migrations and skip seeding.
+
+### Requirements
+
+- Docker 23+ (or Podman with `podman-compose`)
+- BuildKit enabled (default in Docker 23+)
+
+### First-time setup
+
+```bash
+# 1. Create the environment file from the Docker template
+cp .env.docker .env
+
+# 2. Generate an application key and paste the output as APP_KEY in .env
+php artisan key:generate --show
+# or, without PHP:
+echo "base64:$(openssl rand -base64 32)"
+
+# 3. Edit .env: set strong passwords and update APP_URL if needed
+#    DB_PASSWORD, DB_ROOT_PASSWORD, BOOTSTRAP_ADMIN_PASSWORD
+#    APP_URL=http://your-host:8080
+#    SEED_DEMO_DATA=true  # set to true to load demo data on first boot
+
+# 4. Build and start all services
+docker compose up -d --build
+```
+
+The first build takes 5–10 minutes (PHP extension compilation, npm install, composer install). Subsequent builds use cached layers and are much faster.
+
+Once the `app` container is healthy, visit `http://localhost:8080` (or the URL set in `APP_URL`) and log in with the credentials set in `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD`.
+
+### Useful commands
+
+```bash
+# Follow application logs
+docker compose logs -f app
+
+# Run an Artisan command inside the container
+docker compose exec app php artisan tinker
+
+# Stop all services (data volumes are preserved)
+docker compose down
+
+# Stop and destroy all data volumes
+docker compose down -v
+```
+
+### Configuration notes
+
+- `DB_HOST` must be `db` and `REDIS_HOST` must be `redis` (the Compose service names).
+- `CACHE_STORE`, `SESSION_DRIVER`, and `QUEUE_CONNECTION` are set to `redis` in `.env.docker` — do not change them to `file`/`sync` in production.
+- The default port is `8080` (set via `APP_PORT` in `.env`). Change it to any free port and update `APP_URL` accordingly.
+- Persistent data is stored in named Docker volumes (`db`, `redis`, `storage`); back them up before running `docker compose down -v`.
+
+### Loading demo data manually
+
+The image is built without dev dependencies (`composer install --no-dev`), so demo seeders that rely on Faker are not available by default. To load demo data into a running container without rebuilding:
+
+```bash
+# temporarily install dev dependencies (ephemeral — lost on container restart)
+docker compose exec -u root app composer install
+
+# run the demo seeder
+docker compose exec app php artisan migrate:seed_demo
+```
 
 ## Testing
 
