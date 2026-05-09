@@ -7,14 +7,14 @@ use App\Filament\Resources\TaskResource\Pages\CalendarTask;
 
 class TaskCalendarResource extends TaskResource
 {
-
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string|\BackedEnum|null $navigationIcon = "heroicon-o-calendar-days";
 
     // Nav top bar sorting
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
 
-    public static function getGlobalSearchResults(string $search): \Illuminate\Support\Collection
-    {
+    public static function getGlobalSearchResults(
+        string $search,
+    ): \Illuminate\Support\Collection {
         return new \Illuminate\Support\Collection();
     }
 
@@ -25,18 +25,18 @@ class TaskCalendarResource extends TaskResource
 
     public static function getModelLabel(): string
     {
-        return (__('Calendar'));
+        return __("Calendar");
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Calendar'));
+        return __("Calendar");
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => CalendarTask::route('/'),
+            "index" => CalendarTask::route("/"),
         ];
     }
 }
