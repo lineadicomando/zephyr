@@ -2,24 +2,25 @@
 
 namespace App\Filament\Resources;
 
-use App\Contracts\ScopeContext;
 use App\Filament\Resources\ReorderResource\Pages;
-use App\Filament\Resources\ReorderResource\RelationManagers;
 use App\Models\Reorder;
 use App\Models\Stock;
 use App\Services\Reorders\ReorderProposalService;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ReorderResource extends Resource
 {
@@ -34,12 +35,12 @@ class ReorderResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return (__('Reorder'));
+        return __('Reorder');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Reorders'));
+        return __('Reorders');
     }
 
     public static function getNavigationBadgeColor(): string|array|null
@@ -50,20 +51,20 @@ class ReorderResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         $stockTable = app(Stock::class)->getTable();
-        $query =  static::getModel()::join($stockTable, $stockTable . '.id', '=', 'stock_id')
+        $query = static::getModel()::join($stockTable, $stockTable.'.id', '=', 'stock_id')
             ->whereColumn("{$stockTable}.stock", '<', 'reorder_point');
 
         $count = $query->count();
+
         return $count > 0 ? $count : null;
     }
-
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
                 Hidden::make('scope_id')
-                    ->default(fn (): ?int => app(ScopeContext::class)->activeScopeId())
+                    ->default(fn (): ?int => filament()->getTenant()?->id)
                     ->dehydrated(),
                 Select::make('stock_id')
                     ->translateLabel()
@@ -99,29 +100,31 @@ class ReorderResource extends Resource
                     ->translateLabel(),
                 TextColumn::make('stock.stock')
                     ->badge()
-                    ->icon(function (String $state, Reorder $reorder): String {
+                    ->icon(function (string $state, Reorder $reorder): string {
                         if ($state < $reorder->reorder_point) {
-                            return "heroicon-o-exclamation-triangle";
+                            return 'heroicon-o-exclamation-triangle';
                         }
                         if ($state == $reorder->reorder_point) {
-                            return "heroicon-o-bell-alert";
+                            return 'heroicon-o-bell-alert';
                         }
                         if ($state > $reorder->reorder_point) {
-                            return "heroicon-o-check-circle";
+                            return 'heroicon-o-check-circle';
                         }
-                        return "heroicon-o-rectangle-stack";
+
+                        return 'heroicon-o-rectangle-stack';
                     })
-                    ->color(function (String $state, Reorder $reorder): String {
+                    ->color(function (string $state, Reorder $reorder): string {
                         if ($state < $reorder->reorder_point) {
-                            return "danger";
+                            return 'danger';
                         }
                         if ($state == $reorder->reorder_point) {
-                            return "warning";
+                            return 'warning';
                         }
                         if ($state > $reorder->reorder_point) {
-                            return "success";
+                            return 'success';
                         }
-                        return "gray";
+
+                        return 'gray';
                     })
                     ->label('Stock')
                     ->sortable()
@@ -155,14 +158,15 @@ class ReorderResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         $stockTable = app(Stock::class)->getTable();
+
                         return match ($data['value'] ?? null) {
-                            'critical' => $query->join($stockTable, $stockTable . '.id', '=', 'stock_id')
+                            'critical' => $query->join($stockTable, $stockTable.'.id', '=', 'stock_id')
                                 ->whereColumn("{$stockTable}.stock", '<', 'reorder_point')
                                 ->select('reorders.*'),
-                            'warning' => $query->join($stockTable, $stockTable . '.id', '=', 'stock_id')
+                            'warning' => $query->join($stockTable, $stockTable.'.id', '=', 'stock_id')
                                 ->whereColumn("{$stockTable}.stock", '=', 'reorder_point')
                                 ->select('reorders.*'),
-                            'ok' => $query->join($stockTable, $stockTable . '.id', '=', 'stock_id')
+                            'ok' => $query->join($stockTable, $stockTable.'.id', '=', 'stock_id')
                                 ->whereColumn("{$stockTable}.stock", '>', 'reorder_point')
                                 ->select('reorders.*'),
                             default => $query,
@@ -171,7 +175,7 @@ class ReorderResource extends Resource
             ])
             ->persistFiltersInSession()
             ->headerActions([
-                \Filament\Actions\Action::make('generateCriticalProposal')
+                Action::make('generateCriticalProposal')
                     ->label(__('Generate proposal'))
                     ->icon('heroicon-o-plus')
                     ->action(function () {
@@ -186,15 +190,16 @@ class ReorderResource extends Resource
                 if (auth()->user()->can('update', Reorder::class)) {
                     return Pages\EditReorder::getUrl([$record->id]);
                 }
+
                 return Pages\ViewReorder::getUrl([$record->id]);
             })
             ->actions([
-                \Filament\Actions\ViewAction::make(),
-                \Filament\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

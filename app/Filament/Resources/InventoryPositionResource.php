@@ -2,32 +2,31 @@
 
 namespace App\Filament\Resources;
 
-use App\Contracts\ScopeContext;
 use App\Filament\Resources\InventoryPositionResource\Pages;
-use App\Filament\Resources\InventoryPositionResource\RelationManagers;
-use App\Models\InventoryLocation;
 use App\Models\InventoryPosition;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Validation\Rule;
 
 class InventoryPositionResource extends Resource
 {
     protected static ?string $model = InventoryPosition::class;
+
     //
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     // protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
     protected static ?string $recordTitleAttribute = 'name';
-    protected static string|\UnitEnum|null $navigationGroup = "Inventory";
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Inventory';
 
     public static function canViewAny(): bool
     {
@@ -41,12 +40,12 @@ class InventoryPositionResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return (__('Inventory position'));
+        return __('Inventory position');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Inventory positions'));
+        return __('Inventory positions');
     }
 
     public static function getFormDefinition()
@@ -62,7 +61,7 @@ class InventoryPositionResource extends Resource
                 ->translateLabel()
                 ->rule(function (Get $get, ?InventoryPosition $record) {
                     return Rule::unique('inventory_positions', 'name')
-                        ->where('scope_id', app(ScopeContext::class)->activeScopeId())
+                        ->where('scope_id', filament()->getTenant()?->id)
                         ->where('inventory_location_id', $get('inventory_location_id'))
                         ->ignore($record?->id);
                 }),
@@ -102,11 +101,11 @@ class InventoryPositionResource extends Resource
                 //
             ])
             ->actions([
-                \Filament\Actions\EditAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

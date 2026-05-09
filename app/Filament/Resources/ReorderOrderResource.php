@@ -2,12 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Contracts\ScopeContext;
 use App\Filament\Resources\ReorderOrderResource\Pages;
 use App\Filament\Resources\ReorderOrderResource\RelationManagers\ItemsRelationManager;
 use App\Models\ReorderOrder;
 use App\Services\Reorders\ReorderOrderService;
 use App\Services\Reorders\ReorderProposalService;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
@@ -38,7 +42,7 @@ class ReorderOrderResource extends Resource
     {
         return $schema->schema([
             Hidden::make('scope_id')
-                ->default(fn (): ?int => app(ScopeContext::class)->activeScopeId())
+                ->default(fn (): ?int => filament()->getTenant()?->id)
                 ->dehydrated(),
             Textarea::make('notes')->translateLabel()->columnSpanFull(),
         ]);
@@ -64,7 +68,7 @@ class ReorderOrderResource extends Resource
                     ->options(array_combine(ReorderOrder::statuses(), ReorderOrder::statuses())),
             ])
             ->headerActions([
-                \Filament\Actions\Action::make('generateCriticalProposal')
+                Action::make('generateCriticalProposal')
                     ->label(__('Generate proposal'))
                     ->icon('heroicon-o-plus')
                     ->action(function () {
@@ -80,28 +84,28 @@ class ReorderOrderResource extends Resource
                 return Pages\ViewReorderOrder::getUrl([$record->id]);
             })
             ->actions([
-                \Filament\Actions\ViewAction::make(),
-                \Filament\Actions\EditAction::make()
+                ViewAction::make(),
+                EditAction::make()
                     ->visible(fn (ReorderOrder $record): bool => static::canEdit($record)),
-                \Filament\Actions\Action::make('request')
+                Action::make('request')
                     ->label(__('Request'))
                     ->icon('heroicon-o-paper-airplane')
                     ->visible(fn (ReorderOrder $record): bool => $record->status === ReorderOrder::STATUS_DRAFT)
                     ->action(fn (ReorderOrder $record) => app(ReorderOrderService::class)->request($record, auth()->id()))
                     ->requiresConfirmation(),
-                \Filament\Actions\Action::make('markOrdered')
+                Action::make('markOrdered')
                     ->label(__('Mark ordered'))
                     ->icon('heroicon-o-truck')
                     ->visible(fn (ReorderOrder $record): bool => $record->status === ReorderOrder::STATUS_REQUESTED)
                     ->action(fn (ReorderOrder $record) => app(ReorderOrderService::class)->markOrdered($record, auth()->id()))
                     ->requiresConfirmation(),
-                \Filament\Actions\Action::make('markReceived')
+                Action::make('markReceived')
                     ->label(__('Mark received'))
                     ->icon('heroicon-o-check-circle')
                     ->visible(fn (ReorderOrder $record): bool => $record->status === ReorderOrder::STATUS_ORDERED)
                     ->action(fn (ReorderOrder $record) => app(ReorderOrderService::class)->markReceived($record, auth()->id()))
                     ->requiresConfirmation(),
-                \Filament\Actions\Action::make('cancel')
+                Action::make('cancel')
                     ->label(__('Cancel'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
@@ -114,8 +118,8 @@ class ReorderOrderResource extends Resource
                     ->requiresConfirmation(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

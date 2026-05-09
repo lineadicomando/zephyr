@@ -2,31 +2,24 @@
 
 namespace App\Filament\Resources;
 
-use App\Contracts\ScopeContext;
-use App\Filament\Resources\InventoryLocationResource;
-use App\Filament\Resources\InventoryPositionResource;
 use App\Filament\Resources\MovementItemResource\Pages\ListMovementItems;
 use App\Filament\Resources\MovementResource\Pages;
-use App\Filament\Resources\MovementResource\RelationManagers;
 use App\Filament\Resources\MovementResource\RelationManagers\MovementItemsRelationManager;
 use App\Models\Movement;
-use Filament\Forms;
-use Filament\Forms\Components\DatePicker;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class MovementResource extends Resource
 {
@@ -47,21 +40,22 @@ class MovementResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return (__('Movement'));
+        return __('Movement');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Movements'));
+        return __('Movements');
     }
 
     public static function form(Schema $schema): Schema
     {
         $userIsAdmin = auth()->user()?->isAdmin();
+
         return $schema
             ->schema([
                 Hidden::make('scope_id')
-                    ->default(fn (): ?int => app(ScopeContext::class)->activeScopeId())
+                    ->default(fn (): ?int => filament()->getTenant()?->id)
                     ->dehydrated(),
                 DateTimePicker::make('date')
                     ->required()
@@ -76,7 +70,7 @@ class MovementResource extends Resource
                     ->relationship('movement_type', 'name'),
                 Select::make('from_inventory_position_id')
                     ->label('Origin position')
-                    ->disabled(fn ($record) => !is_null($record))
+                    ->disabled(fn ($record) => ! is_null($record))
                     ->requiredWithout('to_inventory_position_id')
                     ->translateLabel()
                     ->searchable()
@@ -87,7 +81,7 @@ class MovementResource extends Resource
                 Select::make('to_inventory_position_id')
                     ->requiredWithout('from_inventory_position_id')
                     ->label('Destination position')
-                    ->disabled(fn ($record) => !is_null($record))
+                    ->disabled(fn ($record) => ! is_null($record))
                     ->translateLabel()
                     ->searchable()
                     ->preload()
@@ -195,15 +189,16 @@ class MovementResource extends Resource
                 if (auth()->user()->can('update', Movement::class)) {
                     return Pages\EditMovement::getUrl([$record->id]);
                 }
+
                 return Pages\ViewMovement::getUrl([$record->id]);
             })
             ->actions([
-                \Filament\Actions\ViewAction::make(),
-                \Filament\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -211,7 +206,7 @@ class MovementResource extends Resource
     public static function getRelations(): array
     {
         return [
-            MovementItemsRelationManager::class
+            MovementItemsRelationManager::class,
         ];
     }
 

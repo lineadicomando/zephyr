@@ -2,19 +2,20 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProductBrandResource;
-use App\Filament\Resources\ProductModelResource;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
 use App\Models\ProductModel;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -24,11 +25,13 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
+    protected static bool $isScopedToTenant = false;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
     protected static bool $shouldRegisterNavigation = true;
 
-    protected static string|\UnitEnum|null $navigationGroup = "Products";
+    protected static string|\UnitEnum|null $navigationGroup = 'Products';
 
     public static function getNavigationGroup(): ?string
     {
@@ -43,17 +46,18 @@ class ProductResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return (__('Product'));
+        return __('Product');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Products'));
+        return __('Products');
     }
 
     public static function getFormDefinition()
     {
         $userIsAdmin = auth()->user()?->isAdmin();
+
         return [
             Select::make('product_group_id')
                 ->label('Group')
@@ -131,36 +135,36 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("id")
+                TextColumn::make('id')
                     ->label('#')
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make("product_group.name")
+                TextColumn::make('product_group.name')
                     ->label('Group')
                     ->translateLabel()
                     ->searchable()
                     ->sortable(),
-                TextColumn::make("product_type.name")
+                TextColumn::make('product_type.name')
                     ->label('Type')
                     ->translateLabel()
                     ->searchable()
                     ->sortable(),
-                TextColumn::make("product_brand.name")
+                TextColumn::make('product_brand.name')
                     ->label('Brand')
                     ->translateLabel()
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make("product_model.name")
+                TextColumn::make('product_model.name')
                     ->label('Model')
                     ->translateLabel()
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make("code")
+                TextColumn::make('code')
                     ->translateLabel()
                     ->searchable()
                     ->sortable(),
-                TextColumn::make("name")
+                TextColumn::make('name')
                     ->translateLabel()
                     ->searchable()
                     ->sortable(),
@@ -210,15 +214,16 @@ class ProductResource extends Resource
                 if (auth()->user()->can('update', $record)) {
                     return Pages\EditProduct::getUrl([$record->id]);
                 }
+
                 return Pages\ViewProduct::getUrl([$record->id]);
             })
             ->actions([
-                \Filament\Actions\ViewAction::make(),
-                \Filament\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

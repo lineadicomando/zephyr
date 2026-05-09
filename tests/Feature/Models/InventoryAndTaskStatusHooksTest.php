@@ -6,6 +6,7 @@ use App\Models\ProductBrand;
 use App\Models\ProductGroup;
 use App\Models\ProductModel;
 use App\Models\ProductType;
+use App\Models\Scope;
 use App\Models\TaskStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -32,9 +33,11 @@ it('auto assigns inventory number and syncs inventory summary on save', function
     putenv('INVENTORY_NUMBER_ZERO_FILL=6');
 
     $suffix = (string) str()->uuid();
+    $scope = Scope::factory()->create();
     $product = makeProductForInventoryHooks($suffix);
 
-    $inventory = Inventory::query()->create([
+    $inventory = Inventory::factory()->create([
+        'scope_id' => $scope->id,
         'product_id' => $product->id,
         'serial_number' => 'SN-42',
         'description' => 'Desk station',

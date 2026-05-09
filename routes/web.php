@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Web\ScopeSwitchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,8 +16,3 @@ use Illuminate\Support\Facades\Route;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
-
-Route::middleware('auth')->group(function (): void {
-    Route::post('/scopes/{scope}/switch', ScopeSwitchController::class)
-        ->name('scopes.switch');
-});

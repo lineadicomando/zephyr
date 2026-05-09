@@ -9,6 +9,7 @@ use App\Models\ProductGroup;
 use App\Models\ProductModel;
 use App\Models\ProductType;
 use App\Models\Reorder;
+use App\Models\Scope;
 use App\Models\Stock;
 use App\Services\Reorders\ReorderEvaluatorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,6 +19,7 @@ uses(RefreshDatabase::class);
 function makeRuleWithStockLevel(int $stockQty, int $point): Reorder
 {
     $suffix = (string) str()->uuid();
+    $scope = Scope::factory()->create();
 
     $brand = ProductBrand::query()->create(['name' => "Brand {$suffix}"]);
     $model = ProductModel::query()->create(['name' => "Model {$suffix}", 'product_brand_id' => $brand->id]);
@@ -32,20 +34,23 @@ function makeRuleWithStockLevel(int $stockQty, int $point): Reorder
         'name' => "Product {$suffix}",
     ]);
 
-    $location = InventoryLocation::query()->create(['name' => "L {$suffix}"]);
-    $position = InventoryPosition::query()->create([
+    $location = InventoryLocation::factory()->create(['scope_id' => $scope->id, 'name' => "L {$suffix}"]);
+    $position = InventoryPosition::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_location_id' => $location->id,
         'name' => "P {$suffix}",
     ]);
 
-    $inventory = Inventory::query()->create(['product_id' => $product->id]);
-    $stock = Stock::query()->create([
+    $inventory = Inventory::factory()->create(['scope_id' => $scope->id, 'product_id' => $product->id]);
+    $stock = Stock::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_id' => $inventory->id,
         'inventory_position_id' => $position->id,
         'stock' => $stockQty,
     ]);
 
-    return Reorder::query()->create([
+    return Reorder::factory()->create([
+        'scope_id' => $scope->id,
         'stock_id' => $stock->id,
         'reorder_point' => $point,
         'reorder_quantity' => 1,

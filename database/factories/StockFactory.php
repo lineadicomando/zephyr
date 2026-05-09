@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Inventory;
 use App\Models\InventoryPosition;
+use App\Models\Scope;
 use App\Models\Stock;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,9 +14,10 @@ class StockFactory extends Factory
     public function definition(): array
     {
         return [
-            'inventory_id'          => Inventory::factory(),
+            'scope_id' => Scope::factory(),
+            'inventory_id' => Inventory::factory(),
             'inventory_position_id' => InventoryPosition::factory(),
-            'stock'                 => 1,
+            'stock' => 1,
         ];
     }
 }

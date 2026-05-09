@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\HasCurrentTenantLabel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use LogicException;
 
-class Scope extends Model
+class Scope extends Model implements HasCurrentTenantLabel
 {
     use HasFactory;
 
@@ -35,6 +36,11 @@ class Scope extends Model
         static::deleting(function (Scope $scope): bool {
             return $scope->scheduleDeletionRequestOnDelete();
         });
+    }
+
+    public function getCurrentTenantLabel(): string
+    {
+        return __('Active scope');
     }
 
     public function users(): BelongsToMany

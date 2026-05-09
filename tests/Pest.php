@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Scope;
+use Filament\Resources\Resource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +49,28 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Activate Filament's native tenancy for tests without booting the full panel.
+ *
+ * Booting the full panel registers global scopes on every resource including
+ * vendor resources that do not have a 'scope' relationship (e.g. FilamentShield
+ * RoleResource), which causes a LogicException. This helper registers the
+ * tenancy global scope only for the provided resource classes, then sets the
+ * current panel and tenant so Filament resolves tenant-scoped queries correctly.
+ *
+ * @param  array<class-string<Filament\Resources\Resource>>  $resources
+ */
+function activateFilamentTenant(Scope $scope, array $resources = []): void
+{
+    $panel = Filament\Facades\Filament::getPanel('app');
+
+    Filament\Facades\Filament::setCurrentPanel($panel);
+
+    foreach ($resources as $resource) {
+        $resource::registerTenancyModelGlobalScope($panel);
+    }
+
+    Filament\Facades\Filament::setTenant($scope);
 }

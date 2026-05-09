@@ -2,40 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use App\Contracts\ScopeContext;
-use Filament\Forms;
-use Filament\Tables;
-use App\Models\Product;
+use App\Filament\Resources\InventoryResource\Pages;
+use App\Filament\Resources\InventoryResource\RelationManagers\MovementsRelationManager;
+use App\Filament\Resources\InventoryResource\RelationManagers\StocksRelationManager;
+use App\Filament\Resources\InventoryResource\RelationManagers\TasksRelationManager;
+use App\Filament\Resources\ProductResource\Pages\ListProducts;
+use App\Filament\Resources\StockResource\Pages\ListStocks;
+use App\Models\Inventory;
+use App\Models\InventoryPosition;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use App\Models\Inventory;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use App\Models\InventoryPosition;
-use Filament\Tables\Filters\Filter;
-use Illuminate\Support\Facades\Log;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\TextInput;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TernaryFilter;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Resources\RelationManagers\RelationGroup;
-use App\Filament\Resources\InventoryResource\Pages;
-use App\Filament\Resources\InventoryLocationResource;
-use App\Filament\Resources\InventoryPositionResource;
-use App\Filament\Resources\StockResource\Pages\ListStocks;
-use App\Filament\Resources\InventoryResource\RelationManagers;
-use App\Filament\Resources\ProductResource\Pages\ListProducts;
-use App\Filament\Resources\InventoryResource\RelationManagers\TasksRelationManager;
-
-use App\Filament\Resources\InventoryResource\RelationManagers\StocksRelationManager;
-use App\Filament\Resources\InventoryResource\RelationManagers\MovementsRelationManager;
-
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class InventoryResource extends Resource
 {
@@ -60,12 +50,12 @@ class InventoryResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return (__('Inventory'));
+        return __('Inventory');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Inventory'));
+        return __('Inventory');
     }
 
     public static function InventoryLocationAfterStateUpdated(string $positionField, Set &$set, ?string $state)
@@ -78,6 +68,7 @@ class InventoryResource extends Resource
         if ($activeSelection) {
             return __('Active selection.');
         }
+
         return '';
     }
 
@@ -85,26 +76,29 @@ class InventoryResource extends Resource
     {
         $inventoryLocationId = $get($locationField);
         $inventoryPositionId = $get($positionField);
-        if (!empty($inventoryLocationId) && empty($inventoryPositionId)) {
+        if (! empty($inventoryLocationId) && empty($inventoryPositionId)) {
             $activeSelection = true;
+
             return $query->where('inventory_location_id', $inventoryLocationId);
         }
-        if (!empty($inventoryPositionId)) {
+        if (! empty($inventoryPositionId)) {
             $inventoryPosition = InventoryPosition::find($inventoryPositionId);
             if ($inventoryPosition) {
                 $set($locationField, $inventoryPosition->inventory_location_id);
             }
         }
         $activeSelection = false;
+
         return $query;
     }
 
     public static function getFormDefinition()
     {
         $userIsAdmin = auth()->user()?->isAdmin();
+
         return [
             Hidden::make('scope_id')
-                ->default(fn (): ?int => app(ScopeContext::class)->activeScopeId())
+                ->default(fn (): ?int => filament()->getTenant()?->id)
                 ->dehydrated(),
             TextInput::make('inventory_number')
                 ->unique(ignoreRecord: true)
@@ -137,7 +131,6 @@ class InventoryResource extends Resource
                 ->disabled(),
         ];
     }
-
 
     public static function form(Schema $schema): Schema
     {
@@ -228,17 +221,17 @@ class InventoryResource extends Resource
             ->filtersFormColumns(2)
             ->filters([
                 TernaryFilter::make('non_zero_stocks')
-                ->columnSpanFull()
-                ->translateLabel()
-                ->label('Availability')
-                ->placeholder(__('All'))
-                ->trueLabel(__('Available'))
-                ->falseLabel(__('Not available'))
-                ->queries(
-                    true: fn (Builder $query) => $query->has('non_zero_stocks'),
-                    false: fn (Builder $query) => $query->doesntHave('non_zero_stocks'),
-                    blank: fn (Builder $query) => $query, // In this example, we do not want to filter the query when it is blank.
-                ),
+                    ->columnSpanFull()
+                    ->translateLabel()
+                    ->label('Availability')
+                    ->placeholder(__('All'))
+                    ->trueLabel(__('Available'))
+                    ->falseLabel(__('Not available'))
+                    ->queries(
+                        true: fn (Builder $query) => $query->has('non_zero_stocks'),
+                        false: fn (Builder $query) => $query->doesntHave('non_zero_stocks'),
+                        blank: fn (Builder $query) => $query, // In this example, we do not want to filter the query when it is blank.
+                    ),
                 $locationFilter = SelectFilter::make('location')
                     ->label('Location')
                     ->translateLabel()
@@ -252,9 +245,10 @@ class InventoryResource extends Resource
                     ->preload()
                     ->relationship('non_zero_stocks.inventory_position', 'path', function (Builder $query) use (&$locationFilter) {
                         $locationState = $locationFilter->getState();
-                        if (!empty($locationState['value'])) {
+                        if (! empty($locationState['value'])) {
                             return $query->where('inventory_location_id', $locationState['value']);
                         }
+
                         return $query;
                     }),
                 SelectFilter::make('product_group_id')
@@ -282,22 +276,24 @@ class InventoryResource extends Resource
                     ->preload()
                     ->relationship('product.product_model', 'name', function (Builder $query) use (&$brandFilter) {
                         $brandeState = $brandFilter->getState();
-                        if (!empty($brandeState['value'])) {
+                        if (! empty($brandeState['value'])) {
                             return $query->where('product_brand_id', $brandeState['value']);
                         }
+
                         return $query;
-                    })
+                    }),
             ])
             ->persistFiltersInSession()
-            ->recordUrl(function ($record) use ($table) {
+            ->recordUrl(function ($record) {
                 if (auth()->user()->can('update', Inventory::class)) {
                     return Pages\EditInventory::getUrl([$record->id]);
                 }
+
                 return Pages\ViewInventory::getUrl([$record->id]);
             })
             ->actions([
-                \Filament\Actions\ViewAction::make(),
-                \Filament\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
                 // \Filament\Actions\BulkActionGroup::make([

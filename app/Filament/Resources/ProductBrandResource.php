@@ -3,27 +3,30 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductBrandResource\Pages;
-use App\Filament\Resources\ProductBrandResource\RelationManagers;
 use App\Filament\Resources\ProductBrandResource\RelationManagers\ProductModelsRelationManager;
 use App\Models\ProductBrand;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProductBrandResource extends Resource
 {
     protected static ?string $model = ProductBrand::class;
 
+    protected static bool $isScopedToTenant = false;
+
     // protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-hashtag';
+
     protected static ?string $recordTitleAttribute = 'name';
-    protected static string|\UnitEnum|null $navigationGroup = "Products";
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Products';
 
     // protected static ?int $navigationSort = 3;
 
@@ -35,13 +38,13 @@ class ProductBrandResource extends Resource
     public static function getModelLabel(): string
     {
         // return (__('Product brand'));
-        return (__('Brand') . ' / ' . __('Models'));
+        return __('Brand').' / '.__('Models');
     }
 
     public static function getPluralModelLabel(): string
     {
         // return (__('Product brands'));
-        return (__('Brands') . ' / ' . __('Models'));
+        return __('Brands').' / '.__('Models');
     }
 
     public static function getFormDefinition()
@@ -86,15 +89,16 @@ class ProductBrandResource extends Resource
                 if (auth()->user()->can('update', ProductBrand::class)) {
                     return Pages\EditProductBrand::getUrl([$record->id]);
                 }
+
                 return Pages\ViewProductBrand::getUrl([$record->id]);
             })
             ->actions([
-                \Filament\Actions\ViewAction::make(),
-                \Filament\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -102,7 +106,7 @@ class ProductBrandResource extends Resource
     public static function getRelations(): array
     {
         return [
-            ProductModelsRelationManager::class
+            ProductModelsRelationManager::class,
         ];
     }
 

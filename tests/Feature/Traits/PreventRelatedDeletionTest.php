@@ -6,6 +6,7 @@ use App\Models\ProductBrand;
 use App\Models\ProductGroup;
 use App\Models\ProductModel;
 use App\Models\ProductType;
+use App\Models\Scope;
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\TaskType;
@@ -17,6 +18,7 @@ uses(RefreshDatabase::class);
 function makeInventoryForDeletionTest(): Inventory
 {
     $suffix = (string) str()->uuid();
+    $scope = Scope::factory()->create();
 
     $brand = ProductBrand::query()->create(['name' => "Brand {$suffix}"]);
     $model = ProductModel::query()->create(['name' => "Model {$suffix}", 'product_brand_id' => $brand->id]);
@@ -31,7 +33,8 @@ function makeInventoryForDeletionTest(): Inventory
         'name' => "Product {$suffix}",
     ]);
 
-    return Inventory::query()->create([
+    return Inventory::factory()->create([
+        'scope_id' => $scope->id,
         'product_id' => $product->id,
         'description' => 'Deletion test inventory',
     ]);

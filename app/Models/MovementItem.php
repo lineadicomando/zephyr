@@ -51,13 +51,18 @@ class MovementItem extends Model
     //     return Stock::find($stockId);
     // }
 
-    public static function findStockId(int $inventoryId, ?int $positionId)
+    public static function findStockId(int $inventoryId, ?int $positionId, ?int $scopeId = null)
     {
         $stockRecord = [
             'inventory_id' => $inventoryId,
             // 'inventory_location_id' => $locationId,
             'inventory_position_id' => $positionId,
         ];
+
+        if ($scopeId !== null) {
+            $stockRecord['scope_id'] = $scopeId;
+        }
+
         $stock = Stock::firstOrCreate($stockRecord);
         if ($stock) {
             return $stock->id;
@@ -68,11 +73,14 @@ class MovementItem extends Model
 
     public function syncStocks()
     {
+        $scopeId = $this->scope_id ?? $this->movement?->scope_id ?? null;
+
         $outcomingStockId = null;
         if (! empty($this->movement->from_inventory_location_id)) {
             $outcomingStockId = self::findStockId(
                 inventoryId: $this->inventory_id,
-                positionId: $this->movement->from_inventory_position_id
+                positionId: $this->movement->from_inventory_position_id,
+                scopeId: $scopeId
             );
         }
         if (! empty($this->outcoming_stock_id) && $outcomingStockId != $this->outcoming_stock_id) {
@@ -84,7 +92,8 @@ class MovementItem extends Model
         if (! empty($this->movement->to_inventory_location_id)) {
             $incomingStockId = self::findStockId(
                 inventoryId: $this->inventory_id,
-                positionId: $this->movement->to_inventory_position_id
+                positionId: $this->movement->to_inventory_position_id,
+                scopeId: $scopeId
             );
         }
         if (! empty($this->incoming_stock_id) && $incomingStockId != $this->incoming_stock_id) {

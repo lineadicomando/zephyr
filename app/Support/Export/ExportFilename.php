@@ -2,8 +2,6 @@
 
 namespace App\Support\Export;
 
-use App\Contracts\ScopeContext;
-use App\Models\Scope;
 use Illuminate\Support\Str;
 
 final class ExportFilename
@@ -19,13 +17,7 @@ final class ExportFilename
 
     private static function activeScopeName(): string
     {
-        $scopeId = app(ScopeContext::class)->activeScopeId();
-
-        if (! is_int($scopeId)) {
-            return 'no-scope';
-        }
-
-        $scopeName = Scope::query()->whereKey($scopeId)->value('name');
+        $scopeName = filament()->getTenant()?->name;
 
         if (! is_string($scopeName) || $scopeName === '') {
             return 'no-scope';
@@ -41,4 +33,3 @@ final class ExportFilename
         return $normalized !== '' ? $normalized : 'na';
     }
 }
-

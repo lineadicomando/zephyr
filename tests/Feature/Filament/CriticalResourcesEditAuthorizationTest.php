@@ -10,19 +10,20 @@ use App\Models\ProductBrand;
 use App\Models\ProductGroup;
 use App\Models\ProductModel;
 use App\Models\ProductType;
+use App\Models\Reorder;
+use App\Models\Scope;
+use App\Models\Stock;
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\TaskType;
 use App\Models\User;
-use App\Models\Reorder;
-use App\Models\Stock;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    (new RolesAndPermissionsSeeder())->run();
+    (new RolesAndPermissionsSeeder)->run();
 });
 
 function makeProductForAuthTest(string $suffix): Product
@@ -41,31 +42,38 @@ function makeProductForAuthTest(string $suffix): Product
     ]);
 }
 
-function makeInventoryForAuthTest(string $suffix): Inventory
+function makeInventoryForAuthTest(string $suffix, Scope $scope): Inventory
 {
     $product = makeProductForAuthTest($suffix);
 
-    return Inventory::query()->create([
+    return Inventory::factory()->create([
+        'scope_id' => $scope->id,
         'product_id' => $product->id,
         'description' => "Inventory {$suffix}",
     ]);
 }
 
-function makeMovementForAuthTest(string $suffix): Movement
+function makeMovementForAuthTest(string $suffix, Scope $scope): Movement
 {
-    $location = InventoryLocation::query()->create(['name' => "L {$suffix}"]);
-    $position = InventoryPosition::query()->create([
+    $location = InventoryLocation::factory()->create([
+        'scope_id' => $scope->id,
+        'name' => "L {$suffix}",
+    ]);
+    $position = InventoryPosition::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_location_id' => $location->id,
         'name' => "P {$suffix}",
     ]);
 
-    $movementType = MovementType::query()->create([
+    $movementType = MovementType::factory()->create([
+        'scope_id' => $scope->id,
         'name' => "Move {$suffix}",
         'chart' => false,
         'chart_color' => '#ffffff',
     ]);
 
-    return Movement::query()->create([
+    return Movement::factory()->create([
+        'scope_id' => $scope->id,
         'date' => now(),
         'movement_type_id' => $movementType->id,
         'from_inventory_position_id' => $position->id,
@@ -74,7 +82,7 @@ function makeMovementForAuthTest(string $suffix): Movement
     ]);
 }
 
-function makeTaskForAuthTest(string $suffix): Task
+function makeTaskForAuthTest(string $suffix, Scope $scope): Task
 {
     $status = TaskStatus::query()->create([
         'name' => "Status {$suffix}",
@@ -91,7 +99,8 @@ function makeTaskForAuthTest(string $suffix): Task
 
     $owner = User::factory()->create();
 
-    return Task::query()->create([
+    return Task::factory()->create([
+        'scope_id' => $scope->id,
         'starts_at' => now(),
         'task_type_id' => $type->id,
         'task_status_id' => $status->id,
@@ -100,22 +109,28 @@ function makeTaskForAuthTest(string $suffix): Task
     ]);
 }
 
-function makeReorderForAuthTest(string $suffix): Reorder
+function makeReorderForAuthTest(string $suffix, Scope $scope): Reorder
 {
-    $inventory = makeInventoryForAuthTest($suffix);
-    $location = InventoryLocation::query()->create(['name' => "RL {$suffix}"]);
-    $position = InventoryPosition::query()->create([
+    $inventory = makeInventoryForAuthTest($suffix, $scope);
+    $location = InventoryLocation::factory()->create([
+        'scope_id' => $scope->id,
+        'name' => "RL {$suffix}",
+    ]);
+    $position = InventoryPosition::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_location_id' => $location->id,
         'name' => "RP {$suffix}",
     ]);
 
-    $stock = Stock::query()->create([
+    $stock = Stock::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_id' => $inventory->id,
         'inventory_position_id' => $position->id,
         'stock' => 1,
     ]);
 
-    return Reorder::query()->create([
+    return Reorder::factory()->create([
+        'scope_id' => $scope->id,
         'stock_id' => $stock->id,
         'reorder_point' => 2,
         'reorder_quantity' => 5,
@@ -124,16 +139,17 @@ function makeReorderForAuthTest(string $suffix): Reorder
 
 it('forbids edit and allows view for read-only users on critical resources', function (string $resourceKey, string $viewAnyPerm, string $viewPerm) {
     $suffix = (string) str()->uuid();
+    $scope = Scope::factory()->create();
 
     $record = match ($resourceKey) {
         'product' => makeProductForAuthTest($suffix),
-        'inventory' => makeInventoryForAuthTest($suffix),
-        'movement' => makeMovementForAuthTest($suffix),
-        'task' => makeTaskForAuthTest($suffix),
-        'inventory-location' => InventoryLocation::query()->create(['name' => "Location {$suffix}"]),
-        'movement-type' => MovementType::query()->create(['name' => "MType {$suffix}", 'chart' => false, 'chart_color' => '#ffffff']),
+        'inventory' => makeInventoryForAuthTest($suffix, $scope),
+        'movement' => makeMovementForAuthTest($suffix, $scope),
+        'task' => makeTaskForAuthTest($suffix, $scope),
+        'inventory-location' => InventoryLocation::factory()->create(['scope_id' => $scope->id, 'name' => "Location {$suffix}"]),
+        'movement-type' => MovementType::factory()->create(['scope_id' => $scope->id, 'name' => "MType {$suffix}", 'chart' => false, 'chart_color' => '#ffffff']),
         'product-brand' => ProductBrand::query()->create(['name' => "Brand {$suffix}"]),
-        'reorder' => makeReorderForAuthTest($suffix),
+        'reorder' => makeReorderForAuthTest($suffix, $scope),
         'task-status' => TaskStatus::query()->create(['name' => "Status {$suffix}", 'color' => 'info']),
         'task-type' => TaskType::query()->create(['name' => "Type {$suffix}", 'chart' => false, 'chart_color' => '#ffffff']),
         'user' => User::factory()->create(),
@@ -143,8 +159,11 @@ it('forbids edit and allows view for read-only users on critical resources', fun
     $user->syncRoles([]);
     $user->givePermissionTo($viewAnyPerm);
     $user->givePermissionTo($viewPerm);
+    $user->scopes()->attach($scope->id);
 
     $this->actingAs($user);
+
+    $slug = $scope->slug;
 
     $basePath = match ($resourceKey) {
         'product' => 'products',
@@ -160,8 +179,8 @@ it('forbids edit and allows view for read-only users on critical resources', fun
         'user' => 'users',
     };
 
-    $this->get("/{$basePath}/{$record->id}/view")->assertOk();
-    $this->get("/{$basePath}/{$record->id}/edit")->assertForbidden();
+    $this->get("/{$slug}/{$basePath}/{$record->id}/view")->assertOk();
+    $this->get("/{$slug}/{$basePath}/{$record->id}/edit")->assertForbidden();
 })->with([
     ['product', 'view_any_product', 'view_product'],
     ['inventory', 'view_any_inventory', 'view_inventory'],

@@ -1,18 +1,19 @@
 <?php
 
+use App\Filament\Resources\ReorderOrderResource;
 use App\Filament\Resources\ReorderOrderResource\Pages\ListReorderOrders;
 use App\Models\ReorderOrder;
+use App\Models\Scope;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    (new RolesAndPermissionsSeeder())->run();
+    (new RolesAndPermissionsSeeder)->run();
 });
 
 function superAdminForReorderResource(): User
@@ -23,39 +24,32 @@ function superAdminForReorderResource(): User
     return $user;
 }
 
-function setActiveScopeFor(User $user): int
+function setActiveScopeFor(User $user): Scope
 {
-    $scopeId = DB::table('scopes')->insertGetId([
-        'name' => 'Scope Reorder ' . str()->uuid(),
-        'slug' => 'scope-reorder-' . str()->lower((string) str()->ulid()),
+    $scope = Scope::factory()->create([
+        'name' => 'Scope Reorder '.str()->uuid(),
+        'slug' => 'scope-reorder-'.str()->lower((string) str()->ulid()),
         'type' => 'company',
         'is_active' => true,
-        'created_at' => now(),
-        'updated_at' => now(),
     ]);
 
-    DB::table('scope_user')->insert([
-        'scope_id' => $scopeId,
-        'user_id' => $user->id,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    $user->scopes()->attach($scope);
 
-    test()->withSession(['active_scope_id' => $scopeId]);
+    activateFilamentTenant($scope, [ReorderOrderResource::class]);
 
-    return $scopeId;
+    return $scope;
 }
 
 it('shows reorder table actions according to order status', function () {
     $user = superAdminForReorderResource();
-    $scopeId = setActiveScopeFor($user);
     $this->actingAs($user);
+    $scope = setActiveScopeFor($user);
 
-    $draft = ReorderOrder::query()->create(['scope_id' => $scopeId, 'status' => ReorderOrder::STATUS_DRAFT]);
-    $requested = ReorderOrder::query()->create(['scope_id' => $scopeId, 'status' => ReorderOrder::STATUS_REQUESTED]);
-    $ordered = ReorderOrder::query()->create(['scope_id' => $scopeId, 'status' => ReorderOrder::STATUS_ORDERED]);
-    $received = ReorderOrder::query()->create(['scope_id' => $scopeId, 'status' => ReorderOrder::STATUS_RECEIVED]);
-    $cancelled = ReorderOrder::query()->create(['scope_id' => $scopeId, 'status' => ReorderOrder::STATUS_CANCELLED]);
+    $draft = ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => ReorderOrder::STATUS_DRAFT]);
+    $requested = ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => ReorderOrder::STATUS_REQUESTED]);
+    $ordered = ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => ReorderOrder::STATUS_ORDERED]);
+    $received = ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => ReorderOrder::STATUS_RECEIVED]);
+    $cancelled = ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => ReorderOrder::STATUS_CANCELLED]);
 
     Livewire::test(ListReorderOrders::class)
         ->assertCanSeeTableRecords([$draft, $requested, $ordered, $received, $cancelled])
@@ -79,40 +73,36 @@ it('shows view action to a read-only user and edit action to an update-capable u
 
     $readOnly = User::factory()->create();
     $readOnly->syncRoles([]);
-    $scopeId = setActiveScopeFor($readOnly);
+    $this->actingAs($readOnly);
+    $scope = setActiveScopeFor($readOnly);
 
-    $order = ReorderOrder::query()->create(['scope_id' => $scopeId, 'status' => ReorderOrder::STATUS_DRAFT]);
+    $order = ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => ReorderOrder::STATUS_DRAFT]);
 
     $readOnly->givePermissionTo('view_any_reorder_order');
     $readOnly->givePermissionTo('view_reorder_order');
     expect($readOnly->can('update', $order))->toBeFalse();
 
-    $this->actingAs($readOnly);
     Livewire::test(ListReorderOrders::class)
         ->assertCanSeeTableRecords([$order])
         ->assertTableActionVisible('view', $order)
         ->assertTableActionHidden('edit', $order);
 
-    $this->get("/reorder-orders/{$order->id}/view")->assertOk();
-    $this->get("/reorder-orders/{$order->id}/edit")->assertForbidden();
+    $slug = $scope->slug;
+    $this->get("/{$slug}/reorder-orders/{$order->id}/view")->assertOk();
+    $this->get("/{$slug}/reorder-orders/{$order->id}/edit")->assertForbidden();
 
     $updater = User::factory()->create();
     $updater->syncRoles([]);
-    DB::table('scope_user')->insert([
-        'scope_id' => $scopeId,
-        'user_id' => $updater->id,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    $updater->scopes()->attach($scope->id);
     $updater->givePermissionTo('view_any_reorder_order');
     $updater->givePermissionTo('view_reorder_order');
     $updater->givePermissionTo('update_reorder_order');
 
     $this->actingAs($updater);
-    $this->withSession(['active_scope_id' => $scopeId]);
+    activateFilamentTenant($scope, [ReorderOrderResource::class]);
     Livewire::test(ListReorderOrders::class)
         ->assertCanSeeTableRecords([$order])
         ->assertTableActionVisible('edit', $order);
 
-    $this->get("/reorder-orders/{$order->id}/edit")->assertOk();
+    $this->get("/{$slug}/reorder-orders/{$order->id}/edit")->assertOk();
 });

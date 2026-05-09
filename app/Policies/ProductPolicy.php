@@ -4,17 +4,20 @@ namespace App\Policies;
 
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Scope\ScopeAccessResolver;
 
 class ProductPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_product');
+        return $user->can('view_any_product')
+            && app(ScopeAccessResolver::class)->userHasAssignedScopes($user);
     }
 
-    public function view(User $user, Product|null $model = null): bool
+    public function view(User $user, ?Product $model = null): bool
     {
-        return $user->can('view_product');
+        return $user->can('view_product')
+            && app(ScopeAccessResolver::class)->userHasAssignedScopes($user);
     }
 
     public function create(User $user): bool
@@ -22,7 +25,7 @@ class ProductPolicy
         return $user->can('create_product');
     }
 
-    public function update(User $user, Product|null $model = null): bool
+    public function update(User $user, ?Product $model = null): bool
     {
         return $user->can('update_product');
     }
@@ -32,7 +35,7 @@ class ProductPolicy
         return $user->can('delete_any_product');
     }
 
-    public function delete(User $user, Product|null $model = null): bool
+    public function delete(User $user, ?Product $model = null): bool
     {
         return $user->can('delete_product');
     }
@@ -42,7 +45,7 @@ class ProductPolicy
         return $user->can('restore_any_product');
     }
 
-    public function restore(User $user, Product|null $model = null): bool
+    public function restore(User $user, ?Product $model = null): bool
     {
         return $user->can('restore_product');
     }
@@ -52,7 +55,7 @@ class ProductPolicy
         return $user->can('force_delete_any_product');
     }
 
-    public function forceDelete(User $user, Product|null $model = null): bool
+    public function forceDelete(User $user, ?Product $model = null): bool
     {
         return $user->can('force_delete_product');
     }

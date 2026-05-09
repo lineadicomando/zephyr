@@ -10,6 +10,7 @@ use App\Models\ProductModel;
 use App\Models\ProductType;
 use App\Models\Reorder;
 use App\Models\ReorderOrder;
+use App\Models\Scope;
 use App\Models\Stock;
 use App\Models\User;
 use App\Services\Reorders\ReorderOrderService;
@@ -22,6 +23,7 @@ uses(RefreshDatabase::class);
 function makeRuleForOrderFlow(int $stockQty = 0, int $point = 2, ?int $qty = 3): Reorder
 {
     $suffix = (string) str()->uuid();
+    $scope = Scope::factory()->create();
 
     $brand = ProductBrand::query()->create(['name' => "Brand {$suffix}"]);
     $model = ProductModel::query()->create(['name' => "Model {$suffix}", 'product_brand_id' => $brand->id]);
@@ -36,23 +38,27 @@ function makeRuleForOrderFlow(int $stockQty = 0, int $point = 2, ?int $qty = 3):
         'name' => "Product {$suffix}",
     ]);
 
-    $location = InventoryLocation::query()->create(['name' => "L {$suffix}"]);
-    $position = InventoryPosition::query()->create([
+    $location = InventoryLocation::factory()->create(['scope_id' => $scope->id, 'name' => "L {$suffix}"]);
+    $position = InventoryPosition::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_location_id' => $location->id,
         'name' => "P {$suffix}",
     ]);
 
-    $inventory = Inventory::query()->create(['product_id' => $product->id]);
-    $stock = Stock::query()->create([
+    $inventory = Inventory::factory()->create(['scope_id' => $scope->id, 'product_id' => $product->id]);
+    $stock = Stock::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_id' => $inventory->id,
         'inventory_position_id' => $position->id,
         'stock' => $stockQty,
     ]);
 
-    return Reorder::query()->create([
+    return Reorder::factory()->create([
+        'scope_id' => $scope->id,
         'stock_id' => $stock->id,
         'reorder_point' => $point,
         'reorder_quantity' => $qty,
+        'last_reorder_date' => null,
     ]);
 }
 

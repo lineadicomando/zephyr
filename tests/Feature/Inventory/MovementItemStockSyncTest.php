@@ -11,6 +11,7 @@ use App\Models\ProductBrand;
 use App\Models\ProductGroup;
 use App\Models\ProductModel;
 use App\Models\ProductType;
+use App\Models\Scope;
 use App\Models\Stock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -19,6 +20,7 @@ uses(RefreshDatabase::class);
 function makeMovementDomain(): array
 {
     $suffix = (string) str()->uuid();
+    $scope = Scope::factory()->create();
 
     $brand = ProductBrand::query()->create(['name' => "Brand {$suffix}"]);
     $model = ProductModel::query()->create(['name' => "Model {$suffix}", 'product_brand_id' => $brand->id]);
@@ -33,32 +35,39 @@ function makeMovementDomain(): array
         'name' => "Product {$suffix}",
     ]);
 
-    $locationA = InventoryLocation::query()->create(['name' => "A {$suffix}"]);
-    $locationB = InventoryLocation::query()->create(['name' => "B {$suffix}"]);
+    $locationA = InventoryLocation::factory()->create(['scope_id' => $scope->id, 'name' => "A {$suffix}"]);
+    $locationB = InventoryLocation::factory()->create(['scope_id' => $scope->id, 'name' => "B {$suffix}"]);
 
-    $positionA = InventoryPosition::query()->create([
+    $positionA = InventoryPosition::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_location_id' => $locationA->id,
         'name' => "P-A {$suffix}",
     ]);
 
-    $positionB = InventoryPosition::query()->create([
+    $positionB = InventoryPosition::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_location_id' => $locationB->id,
         'name' => "P-B {$suffix}",
     ]);
 
-    $inventory = Inventory::query()->create(['product_id' => $product->id]);
+    $inventory = Inventory::factory()->create([
+        'scope_id' => $scope->id,
+        'product_id' => $product->id,
+    ]);
 
-    $movementType = MovementType::query()->create([
+    $movementType = MovementType::factory()->create([
+        'scope_id' => $scope->id,
         'name' => "Move {$suffix}",
         'chart' => false,
         'chart_color' => '#ffffff',
     ]);
 
-    return compact('inventory', 'locationA', 'locationB', 'positionA', 'positionB', 'movementType');
+    return compact('scope', 'inventory', 'locationA', 'locationB', 'positionA', 'positionB', 'movementType');
 }
 
 it('recomputes stock totals when movement item is created updated and deleted', function () {
     [
+        'scope' => $scope,
         'inventory' => $inventory,
         'locationA' => $locationA,
         'locationB' => $locationB,
@@ -67,7 +76,8 @@ it('recomputes stock totals when movement item is created updated and deleted', 
         'movementType' => $movementType,
     ] = makeMovementDomain();
 
-    $movement = Movement::query()->create([
+    $movement = Movement::factory()->create([
+        'scope_id' => $scope->id,
         'date' => now(),
         'movement_type_id' => $movementType->id,
         'from_inventory_location_id' => $locationA->id,
@@ -78,6 +88,7 @@ it('recomputes stock totals when movement item is created updated and deleted', 
     ]);
 
     $item = MovementItem::query()->create([
+        'scope_id' => $movement->scope_id,
         'movement_id' => $movement->id,
         'inventory_id' => $inventory->id,
         'stock' => 5,

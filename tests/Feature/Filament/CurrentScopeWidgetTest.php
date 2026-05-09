@@ -1,40 +1,32 @@
 <?php
 
-use App\Models\User;
 use App\Filament\Widgets\CurrentScopeWidget;
+use App\Models\Scope;
+use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    (new RolesAndPermissionsSeeder())->run();
+    (new RolesAndPermissionsSeeder)->run();
 });
 
 it('shows current scope and type in dashboard widget', function () {
-    $scopeId = DB::table('scopes')->insertGetId([
+    $scope = Scope::factory()->create([
         'name' => 'Scope Widget',
         'slug' => 'scope-widget',
         'type' => 'company',
         'is_active' => true,
-        'created_at' => now(),
-        'updated_at' => now(),
     ]);
 
     $user = User::factory()->create();
     $user->assignRole('super_admin');
+    $user->scopes()->attach($scope);
 
-    DB::table('scope_user')->insert([
-        'scope_id' => $scopeId,
-        'user_id' => $user->id,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-
-    $this->actingAs($user)
-        ->withSession(['active_scope_id' => $scopeId]);
+    $this->actingAs($user);
+    activateFilamentTenant($scope);
 
     Livewire::test(CurrentScopeWidget::class)
         ->assertSee('Scope Widget')

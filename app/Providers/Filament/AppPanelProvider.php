@@ -2,13 +2,12 @@
 
 namespace App\Providers\Filament;
 
-use App\Contracts\ScopeContext;
-use App\Http\Middleware\EnsureActiveScope;
 use App\Filament\Resources\MovementResource\Widgets\MovementChart;
+use App\Filament\Resources\RoleResource;
 use App\Filament\Resources\TaskResource\Widgets\TaskChart;
 use App\Filament\Widgets\CurrentScopeWidget;
 use App\Filament\Widgets\StatsOverview;
-use App\Models\User;
+use App\Models\Scope;
 use App\View\Components\CreditsDialog;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Actions\Action;
@@ -21,7 +20,6 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -46,6 +44,7 @@ class AppPanelProvider extends PanelProvider
             ->defaultThemeMode(ThemeMode::Dark)
             ->sidebarCollapsibleOnDesktop()
             ->profile()
+            ->tenant(Scope::class, slugAttribute: 'slug', ownershipRelationship: 'scope')
             ->favicon(asset(env('APP_FAVICON')))
             ->brandLogo(asset(env('APP_LOGO')))
             ->brandLogoHeight('2rem')
@@ -71,33 +70,14 @@ class AppPanelProvider extends PanelProvider
                     ->label(__('Tasks'))
                     ->collapsed(),
             ])
+            ->resources([
+                RoleResource::class,
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->renderHook('panels::global-search.after', function (): View|string {
-                $user = auth()->user();
-
-                if (! ($user instanceof User)) {
-                    return '';
-                }
-
-                $scopes = $user
-                    ->scopes()
-                    ->where('is_active', true)
-                    ->orderBy('name')
-                    ->get(['scopes.id', 'scopes.name', 'scopes.type']);
-
-                if ($scopes->isEmpty()) {
-                    return '';
-                }
-
-                return view('filament.components.scope-switcher', [
-                    'scopes' => $scopes,
-                    'activeScopeId' => app(ScopeContext::class)->activeScopeId(),
-                ]);
-            })
             ->renderHook('panels::head.end', fn (): View|string => view('filament.components.brand-assets-head'))
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -110,7 +90,6 @@ class AppPanelProvider extends PanelProvider
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
-                EnsureActiveScope::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,

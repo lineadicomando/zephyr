@@ -5,30 +5,35 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\SelectColumn;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    protected static bool $isScopedToTenant = false;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
-    protected static string|\UnitEnum|null $navigationGroup = "Users";
-    protected static ?string $label  = 'Users';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Users';
+
+    protected static ?string $label = 'Users';
+
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static bool $shouldTranslateLabel  = true;
+    protected static bool $shouldTranslateLabel = true;
 
     public static function getNavigationGroup(): ?string
     {
@@ -37,12 +42,12 @@ class UserResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return (__('User'));
+        return __('User');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Users'));
+        return __('Users');
     }
 
     public static function form(Schema $schema): Schema
@@ -99,7 +104,7 @@ class UserResource extends Resource
             ])
             ->persistSearchInSession()
             ->filters([
-                TrashedFilter::make()
+                TrashedFilter::make(),
             ])
             ->recordUrl(function ($record) {
                 // if ($record->trashed()) {
@@ -108,17 +113,18 @@ class UserResource extends Resource
                 if (auth()->user()->can('update', User::class)) {
                     return Pages\EditUser::getUrl([$record->id]);
                 }
+
                 return Pages\ViewUser::getUrl([$record->id]);
             })
             ->actions([
-                \Filament\Actions\ViewAction::make(),
-                \Filament\Actions\EditAction::make()->hidden(fn (User $user) => $user->trashed()),
-                \Filament\Actions\RestoreAction::make(),
-                \Filament\Actions\ForceDeleteAction::make()->hidden(fn (User $user) => $user->hasRelated()),
+                ViewAction::make(),
+                EditAction::make()->hidden(fn (User $user) => $user->trashed()),
+                RestoreAction::make(),
+                ForceDeleteAction::make()->hidden(fn (User $user) => $user->hasRelated()),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

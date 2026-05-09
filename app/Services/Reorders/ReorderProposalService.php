@@ -8,26 +8,28 @@ use Illuminate\Support\Collection;
 
 class ReorderProposalService
 {
-    public function __construct(private readonly ReorderEvaluatorService $evaluator)
-    {
-    }
+    public function __construct(private readonly ReorderEvaluatorService $evaluator) {}
 
     public function createDraftFromCritical(?int $userId = null): ReorderOrder
     {
+        /** @var Collection<int, Reorder> $criticalRules */
+        $criticalRules = $this->evaluator->critical()->with('stock')->get();
+
+        $scopeId = $criticalRules->first()?->scope_id;
+
         $order = ReorderOrder::query()->create([
+            'scope_id' => $scopeId,
             'status' => ReorderOrder::STATUS_DRAFT,
             'created_by' => $userId,
             'updated_by' => $userId,
         ]);
-
-        /** @var Collection<int, Reorder> $criticalRules */
-        $criticalRules = $this->evaluator->critical()->with('stock')->get();
 
         foreach ($criticalRules as $rule) {
             $currentStock = (int) ($rule->stock?->stock ?? 0);
             $fallbackQty = max(1, (int) $rule->reorder_point - $currentStock);
 
             $order->items()->create([
+                'scope_id' => $rule->scope_id,
                 'stock_id' => $rule->stock_id,
                 'reorder_id' => $rule->id,
                 'current_stock' => $currentStock,

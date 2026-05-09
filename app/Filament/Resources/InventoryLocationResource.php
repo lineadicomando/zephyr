@@ -3,19 +3,17 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InventoryLocationResource\Pages;
-use App\Filament\Resources\InventoryLocationResource\RelationManagers;
 use App\Filament\Resources\InventoryLocationResource\RelationManagers\InventoryPositionsRelationManager;
-use App\Contracts\ScopeContext;
 use App\Models\InventoryLocation;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Validation\Rules\Unique;
 
 class InventoryLocationResource extends Resource
@@ -25,9 +23,10 @@ class InventoryLocationResource extends Resource
     // protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
     // protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-globe-europe-africa';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
+
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static string|\UnitEnum|null $navigationGroup = "Inventory";
+    protected static string|\UnitEnum|null $navigationGroup = 'Inventory';
 
     public static function getNavigationGroup(): ?string
     {
@@ -36,14 +35,13 @@ class InventoryLocationResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return (__('Inventory Position'));
+        return __('Inventory Position');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Inventory positions'));
+        return __('Inventory positions');
     }
-
 
     public static function getFormDefinition()
     {
@@ -52,12 +50,10 @@ class InventoryLocationResource extends Resource
                 ->translateLabel()
                 ->unique(
                     ignoreRecord: true,
-                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', app(ScopeContext::class)->activeScopeId()),
+                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->id),
                 ),
         ];
     }
-
-
 
     public static function form(Schema $schema): Schema
     {
@@ -95,15 +91,16 @@ class InventoryLocationResource extends Resource
                 if (auth()->user()->can('update', InventoryLocation::class)) {
                     return Pages\EditInventoryLocation::getUrl([$record->id]);
                 }
+
                 return Pages\ViewInventoryLocation::getUrl([$record->id]);
             })
             ->actions([
-                \Filament\Actions\ViewAction::make(),
-                \Filament\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -111,7 +108,7 @@ class InventoryLocationResource extends Resource
     public static function getRelations(): array
     {
         return [
-            InventoryPositionsRelationManager::class
+            InventoryPositionsRelationManager::class,
         ];
     }
 

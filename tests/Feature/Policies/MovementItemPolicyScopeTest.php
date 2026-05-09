@@ -2,14 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Models\InventoryLocation;
-use App\Models\InventoryPosition;
 use App\Models\MovementItem;
-use App\Models\MovementType;
 use App\Models\Product;
 use App\Models\ProductGroup;
 use App\Models\ProductType;
-use App\Models\Stock;
 use App\Models\User;
 use App\Policies\MovementItemPolicy;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -19,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    (new RolesAndPermissionsSeeder())->run();
+    (new RolesAndPermissionsSeeder)->run();
 });
 
 function makeMovementItemInScope(int $scopeId): MovementItem
@@ -47,26 +43,40 @@ function makeMovementItemInScope(int $scopeId): MovementItem
         'updated_at' => now(),
     ]);
 
-    $location = InventoryLocation::query()->create(['name' => 'Location '.str()->uuid()]);
-    $position = InventoryPosition::query()->create([
-        'inventory_location_id' => $location->id,
-        'name' => 'Position '.str()->uuid(),
+    $locationId = DB::table('inventory_locations')->insertGetId([
+        'scope_id' => $scopeId,
+        'name' => 'Location '.str()->uuid(),
+        'created_at' => now(),
+        'updated_at' => now(),
     ]);
 
-    $movementType = MovementType::query()->create([
+    $positionId = DB::table('inventory_positions')->insertGetId([
+        'scope_id' => $scopeId,
+        'inventory_location_id' => $locationId,
+        'name' => 'Position '.str()->uuid(),
+        'path' => 'location/position',
+        'default' => false,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $movementTypeId = DB::table('movement_types')->insertGetId([
+        'scope_id' => $scopeId,
         'name' => 'Move '.str()->uuid(),
         'chart' => false,
         'chart_color' => '#ffffff',
+        'created_at' => now(),
+        'updated_at' => now(),
     ]);
 
     $movementId = DB::table('movements')->insertGetId([
         'scope_id' => $scopeId,
         'date' => now(),
-        'movement_type_id' => $movementType->id,
+        'movement_type_id' => $movementTypeId,
         'from_inventory_location_id' => null,
         'from_inventory_position_id' => null,
-        'to_inventory_location_id' => $location->id,
-        'to_inventory_position_id' => $position->id,
+        'to_inventory_location_id' => $locationId,
+        'to_inventory_position_id' => $positionId,
         'description' => null,
         'note' => null,
         'created_at' => now(),
@@ -76,7 +86,7 @@ function makeMovementItemInScope(int $scopeId): MovementItem
     $stockId = DB::table('stocks')->insertGetId([
         'scope_id' => $scopeId,
         'inventory_id' => $inventoryId,
-        'inventory_position_id' => $position->id,
+        'inventory_position_id' => $positionId,
         'path' => '1',
         'stock' => 1,
         'created_at' => now(),
@@ -129,7 +139,7 @@ it('denies update when movement item belongs to another scope', function (): voi
 
     $movementItemInOtherScope = makeMovementItemInScope($scopeBId);
 
-    $policy = new MovementItemPolicy();
+    $policy = new MovementItemPolicy;
 
     expect($policy->update($user, $movementItemInOtherScope))->toBeFalse();
 });
@@ -149,7 +159,7 @@ it('denies update for users without assigned scopes', function (): void {
 
     $movementItem = makeMovementItemInScope($scopeId);
 
-    $policy = new MovementItemPolicy();
+    $policy = new MovementItemPolicy;
 
     expect($policy->update($user, $movementItem))->toBeFalse();
 });

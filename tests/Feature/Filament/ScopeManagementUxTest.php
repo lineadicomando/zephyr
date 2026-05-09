@@ -1,105 +1,97 @@
 <?php
 
+use App\Models\Scope;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    (new RolesAndPermissionsSeeder())->run();
+    (new RolesAndPermissionsSeeder)->run();
 });
 
 it('allows super admin to manage scopes pages', function () {
-    $scopeId = DB::table('scopes')->insertGetId([
+    $scope = Scope::factory()->create([
         'name' => 'Scope UX',
         'slug' => 'scope-ux',
         'type' => 'company',
         'is_active' => true,
-        'created_at' => now(),
-        'updated_at' => now(),
     ]);
 
     $user = User::factory()->create();
     $user->assignRole('super_admin');
-    DB::table('scope_user')->insert([
-        'scope_id' => $scopeId,
-        'user_id' => $user->id,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    $user->scopes()->attach($scope);
 
     $this->actingAs($user);
 
-    $this->get('/scopes')->assertOk();
-    $this->get('/scopes/create')->assertOk();
-    $this->get("/scopes/{$scopeId}/view")->assertOk();
-    $this->get("/scopes/{$scopeId}/edit")->assertOk();
+    $slug = $scope->slug;
+    $this->get("/{$slug}/scopes")->assertOk();
+    $this->get("/{$slug}/scopes/create")->assertOk();
+    $this->get("/{$slug}/scopes/{$scope->id}/view")->assertOk();
+    $this->get("/{$slug}/scopes/{$scope->id}/edit")->assertOk();
 });
 
 it('prevents edit for read-only users while allowing scope view', function () {
     Permission::query()->firstOrCreate(['name' => 'view_any_scope', 'guard_name' => 'web']);
     Permission::query()->firstOrCreate(['name' => 'view_scope', 'guard_name' => 'web']);
 
-    $scopeId = DB::table('scopes')->insertGetId([
+    $scope = Scope::factory()->create([
         'name' => 'Scope ReadOnly',
         'slug' => 'scope-read-only',
         'type' => 'school',
         'is_active' => true,
-        'created_at' => now(),
-        'updated_at' => now(),
     ]);
 
     $user = User::factory()->create();
     $user->syncRoles([]);
     $user->givePermissionTo('view_any_scope');
     $user->givePermissionTo('view_scope');
-    DB::table('scope_user')->insert([
-        'scope_id' => $scopeId,
-        'user_id' => $user->id,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    $user->scopes()->attach($scope);
 
     $this->actingAs($user);
 
-    $this->get('/scopes')->assertOk();
-    $this->get("/scopes/{$scopeId}/view")->assertOk();
-    $this->get("/scopes/{$scopeId}/edit")->assertForbidden();
+    $slug = $scope->slug;
+    $this->get("/{$slug}/scopes")->assertOk();
+    $this->get("/{$slug}/scopes/{$scope->id}/view")->assertOk();
+    $this->get("/{$slug}/scopes/{$scope->id}/edit")->assertForbidden();
 });
 
-it('shows topbar scope switcher with assigned active scopes', function () {
-    $scopeAId = DB::table('scopes')->insertGetId([
+it('user can access their assigned tenants but not others', function () {
+    $scopeA = Scope::factory()->create([
         'name' => 'Scope Topbar A',
         'slug' => 'scope-topbar-a',
         'type' => 'company',
         'is_active' => true,
-        'created_at' => now(),
-        'updated_at' => now(),
     ]);
-    $scopeBId = DB::table('scopes')->insertGetId([
+    $scopeB = Scope::factory()->create([
         'name' => 'Scope Topbar B',
         'slug' => 'scope-topbar-b',
         'type' => 'school',
         'is_active' => true,
-        'created_at' => now(),
-        'updated_at' => now(),
+    ]);
+    $scopeOther = Scope::factory()->create([
+        'name' => 'Scope Other',
+        'slug' => 'scope-other',
+        'type' => 'company',
+        'is_active' => true,
     ]);
 
     $user = User::factory()->create();
     $user->assignRole('super_admin');
-    DB::table('scope_user')->insert([
-        ['scope_id' => $scopeAId, 'user_id' => $user->id, 'created_at' => now(), 'updated_at' => now()],
-        ['scope_id' => $scopeBId, 'user_id' => $user->id, 'created_at' => now(), 'updated_at' => now()],
-    ]);
+    $user->scopes()->attach([$scopeA->id, $scopeB->id]);
 
-    $this->actingAs($user)
-        ->withSession(['active_scope_id' => $scopeAId])
-        ->get('/')
-        ->assertOk()
-        ->assertSee('Scope Topbar A (company)')
-        ->assertSee('Scope Topbar B (school)')
-        ->assertSee("/scopes/{$scopeAId}/switch");
+    $panel = Filament::getPanel('app');
+
+    expect($user->canAccessTenant($scopeA))->toBeTrue()
+        ->and($user->canAccessTenant($scopeB))->toBeTrue()
+        ->and($user->canAccessTenant($scopeOther))->toBeFalse();
+
+    $tenants = $user->getTenants($panel);
+    expect($tenants->pluck('id')->all())
+        ->toContain($scopeA->id)
+        ->toContain($scopeB->id)
+        ->not->toContain($scopeOther->id);
 });

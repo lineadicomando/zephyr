@@ -2,7 +2,6 @@
 
 namespace App\Filament\Widgets;
 
-use App\Contracts\ScopeContext;
 use App\Models\Scope;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -18,10 +17,8 @@ class CurrentScopeWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $activeScopeId = app(ScopeContext::class)->activeScopeId();
-        $scope = $activeScopeId
-            ? Scope::query()->find($activeScopeId)
-            : null;
+        /** @var Scope|null $scope */
+        $scope = filament()->getTenant();
 
         if (! $scope) {
             return [

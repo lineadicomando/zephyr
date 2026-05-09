@@ -1,18 +1,19 @@
 <?php
 
+use App\Filament\Resources\TaskResource;
 use App\Filament\Resources\TaskResource\Widgets\TaskCalendarWidget;
+use App\Models\Scope;
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\TaskType;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    (new RolesAndPermissionsSeeder())->run();
+    (new RolesAndPermissionsSeeder)->run();
 });
 
 function calendarSuperAdmin(): User
@@ -25,31 +26,24 @@ function calendarSuperAdmin(): User
 
 function setActiveScopeForCalendar(User $user): int
 {
-    $scopeId = DB::table('scopes')->insertGetId([
-        'name' => 'Scope Calendar ' . str()->uuid(),
-        'slug' => 'scope-calendar-' . str()->lower((string) str()->ulid()),
+    $scope = Scope::factory()->create([
+        'name' => 'Scope Calendar '.str()->uuid(),
+        'slug' => 'scope-calendar-'.str()->lower((string) str()->ulid()),
         'type' => 'company',
         'is_active' => true,
-        'created_at' => now(),
-        'updated_at' => now(),
     ]);
 
-    DB::table('scope_user')->insert([
-        'scope_id' => $scopeId,
-        'user_id' => $user->id,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    $user->scopes()->attach($scope);
 
-    test()->withSession(['active_scope_id' => $scopeId]);
+    activateFilamentTenant($scope, [TaskResource::class]);
 
-    return $scopeId;
+    return $scope->id;
 }
 
-function makeTaskForCalendar(User $user, string $start, ?string $end = null): Task
+function makeTaskForCalendar(User $user, int $scopeId, string $start, ?string $end = null): Task
 {
     $status = TaskStatus::query()->create([
-        'name' => 'Status ' . str()->uuid(),
+        'name' => 'Status '.str()->uuid(),
         'order' => 1,
         'color' => 'info',
         'default' => true,
@@ -57,12 +51,13 @@ function makeTaskForCalendar(User $user, string $start, ?string $end = null): Ta
     ]);
 
     $type = TaskType::query()->create([
-        'name' => 'Type ' . str()->uuid(),
+        'name' => 'Type '.str()->uuid(),
         'chart' => false,
         'chart_color' => '#ff0000',
     ]);
 
     return Task::query()->create([
+        'scope_id' => $scopeId,
         'starts_at' => $start,
         'ends_at' => $end,
         'all_day' => false,
@@ -75,12 +70,12 @@ function makeTaskForCalendar(User $user, string $start, ?string $end = null): Ta
 
 it('updates task dates when an event is dropped', function () {
     $user = calendarSuperAdmin();
-    setActiveScopeForCalendar($user);
     $this->actingAs($user);
+    $scopeId = setActiveScopeForCalendar($user);
 
-    $task = makeTaskForCalendar($user, '2026-05-01 09:00:00', '2026-05-01 10:00:00');
+    $task = makeTaskForCalendar($user, $scopeId, '2026-05-01 09:00:00', '2026-05-01 10:00:00');
 
-    $widget = new TaskCalendarWidget();
+    $widget = new TaskCalendarWidget;
 
     $widget->onEventDrop(
         event: [
@@ -103,13 +98,13 @@ it('updates task dates when an event is dropped', function () {
 
 it('fetches events that overlap the selected window', function () {
     $user = calendarSuperAdmin();
-    setActiveScopeForCalendar($user);
     $this->actingAs($user);
+    $scopeId = setActiveScopeForCalendar($user);
 
     // Overlaps window: starts before window start, ends inside window.
-    $overlapping = makeTaskForCalendar($user, '2026-05-10 08:00:00', '2026-05-10 12:00:00');
+    $overlapping = makeTaskForCalendar($user, $scopeId, '2026-05-10 08:00:00', '2026-05-10 12:00:00');
 
-    $widget = new TaskCalendarWidget();
+    $widget = new TaskCalendarWidget;
 
     $events = $widget->fetchEvents([
         'start' => '2026-05-10 10:00:00',
@@ -123,9 +118,9 @@ it('fetches events that overlap the selected window', function () {
 
 it('normalizes selected datetimes to calendar timezone for create dialog', function () {
     config()->set('app.calendar_timezone', 'Europe/Rome');
-    $widget = new TaskCalendarWidget();
+    $widget = new TaskCalendarWidget;
 
-    $method = new \ReflectionMethod(TaskCalendarWidget::class, 'toCalendarTimezone');
+    $method = new ReflectionMethod(TaskCalendarWidget::class, 'toCalendarTimezone');
     $method->setAccessible(true);
 
     $normalizedUtc = $method->invoke($widget, '2026-05-10T10:00:00+00:00');

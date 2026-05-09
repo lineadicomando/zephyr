@@ -9,6 +9,7 @@ use App\Models\ProductGroup;
 use App\Models\ProductModel;
 use App\Models\ProductType;
 use App\Models\Reorder;
+use App\Models\Scope;
 use App\Models\Stock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -18,6 +19,7 @@ uses(RefreshDatabase::class);
 function makeStockForReorderValidation(): Stock
 {
     $suffix = (string) str()->uuid();
+    $scope = Scope::factory()->create();
 
     $brand = ProductBrand::query()->create(['name' => "Brand {$suffix}"]);
     $model = ProductModel::query()->create(['name' => "Model {$suffix}", 'product_brand_id' => $brand->id]);
@@ -32,15 +34,17 @@ function makeStockForReorderValidation(): Stock
         'name' => "Product {$suffix}",
     ]);
 
-    $location = InventoryLocation::query()->create(['name' => "L {$suffix}"]);
-    $position = InventoryPosition::query()->create([
+    $location = InventoryLocation::factory()->create(['scope_id' => $scope->id, 'name' => "L {$suffix}"]);
+    $position = InventoryPosition::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_location_id' => $location->id,
         'name' => "P {$suffix}",
     ]);
 
-    $inventory = Inventory::query()->create(['product_id' => $product->id]);
+    $inventory = Inventory::factory()->create(['scope_id' => $scope->id, 'product_id' => $product->id]);
 
-    return Stock::query()->create([
+    return Stock::factory()->create([
+        'scope_id' => $scope->id,
         'inventory_id' => $inventory->id,
         'inventory_position_id' => $position->id,
         'stock' => 0,
@@ -52,6 +56,7 @@ it('requires reorder point to be greater than zero', function () {
 
     expect(function () use ($stock) {
         Reorder::query()->create([
+            'scope_id' => $stock->scope_id,
             'stock_id' => $stock->id,
             'reorder_point' => 0,
             'reorder_quantity' => 1,
@@ -64,6 +69,7 @@ it('requires reorder quantity to be greater than zero when provided', function (
 
     expect(function () use ($stock) {
         Reorder::query()->create([
+            'scope_id' => $stock->scope_id,
             'stock_id' => $stock->id,
             'reorder_point' => 2,
             'reorder_quantity' => 0,
@@ -75,6 +81,7 @@ it('allows null reorder quantity', function () {
     $stock = makeStockForReorderValidation();
 
     $rule = Reorder::query()->create([
+        'scope_id' => $stock->scope_id,
         'stock_id' => $stock->id,
         'reorder_point' => 2,
         'reorder_quantity' => null,

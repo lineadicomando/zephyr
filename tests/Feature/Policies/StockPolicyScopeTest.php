@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Models\InventoryLocation;
-use App\Models\InventoryPosition;
 use App\Models\Product;
 use App\Models\ProductGroup;
 use App\Models\ProductType;
@@ -17,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    (new RolesAndPermissionsSeeder())->run();
+    (new RolesAndPermissionsSeeder)->run();
 });
 
 function makeStockInScope(int $scopeId): Stock
@@ -45,16 +43,27 @@ function makeStockInScope(int $scopeId): Stock
         'updated_at' => now(),
     ]);
 
-    $location = InventoryLocation::query()->create(['name' => 'Location '.str()->uuid()]);
-    $position = InventoryPosition::query()->create([
-        'inventory_location_id' => $location->id,
+    $locationId = DB::table('inventory_locations')->insertGetId([
+        'scope_id' => $scopeId,
+        'name' => 'Location '.str()->uuid(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $positionId = DB::table('inventory_positions')->insertGetId([
+        'scope_id' => $scopeId,
+        'inventory_location_id' => $locationId,
         'name' => 'Position '.str()->uuid(),
+        'path' => 'location/position',
+        'default' => false,
+        'created_at' => now(),
+        'updated_at' => now(),
     ]);
 
     $stockId = DB::table('stocks')->insertGetId([
         'scope_id' => $scopeId,
         'inventory_id' => $inventoryId,
-        'inventory_position_id' => $position->id,
+        'inventory_position_id' => $positionId,
         'path' => '1',
         'stock' => 1,
         'created_at' => now(),
@@ -95,7 +104,7 @@ it('denies update when stock belongs to another scope', function (): void {
 
     $stockInOtherScope = makeStockInScope($scopeBId);
 
-    $policy = new StockPolicy();
+    $policy = new StockPolicy;
 
     expect($policy->update($user, $stockInOtherScope))->toBeFalse();
 });
@@ -115,7 +124,7 @@ it('denies update for users without assigned scopes', function (): void {
 
     $stock = makeStockInScope($scopeId);
 
-    $policy = new StockPolicy();
+    $policy = new StockPolicy;
 
     expect($policy->update($user, $stock))->toBeFalse();
 });
