@@ -263,37 +263,66 @@ class ZephyrSetup extends Command
             ),
         );
 
+        $dbDriver = select(
+            label: 'Database driver',
+            options: [
+                'mariadb' => 'MariaDB',
+                'sqlite' => 'SQLite (file-based, no server needed)',
+            ],
+            default: in_array($defaults['DB_CONNECTION'] ?? 'mariadb', ['mariadb', 'sqlite'])
+                ? ($defaults['DB_CONNECTION'] ?? 'mariadb')
+                : 'mariadb',
+        );
+
+        if ($dbDriver === 'sqlite') {
+            $currentDbPath = $defaults['DB_DATABASE'] ?? '';
+            $dbValues = [
+                'DB_CONNECTION' => 'sqlite',
+                'DB_DATABASE' => text(
+                    label: 'SQLite database path',
+                    default: ($currentDbPath !== '' && str_starts_with($currentDbPath, '/'))
+                        ? $currentDbPath
+                        : database_path('database.sqlite'),
+                    required: true,
+                ),
+                'DB_HOST' => '',
+                'DB_PORT' => '',
+                'DB_USERNAME' => '',
+                'DB_PASSWORD' => '',
+            ];
+        } else {
+            $dbValues = [
+                'DB_CONNECTION' => 'mariadb',
+                'DB_HOST' => text(
+                    label: 'Database host',
+                    default: $defaults['DB_HOST'] ?? '127.0.0.1',
+                    required: true,
+                ),
+                'DB_PORT' => text(
+                    label: 'Database port',
+                    default: $defaults['DB_PORT'] ?? '3306',
+                    required: true,
+                ),
+                'DB_DATABASE' => text(
+                    label: 'Database name',
+                    default: $defaults['DB_DATABASE'] ?? 'zephyr',
+                    required: true,
+                ),
+                'DB_USERNAME' => text(
+                    label: 'Database username',
+                    default: $defaults['DB_USERNAME'] ?? 'root',
+                    required: true,
+                ),
+                'DB_PASSWORD' => $this->promptPasswordWithConfirmation(
+                    label: 'Database password',
+                    fallback: $defaults['DB_PASSWORD'] ?? '',
+                    allowEmpty: true,
+                ),
+            ];
+        }
+
         return [
-            'DB_CONNECTION' => text(
-                label: 'Database driver',
-                default: $defaults['DB_CONNECTION'] ?? 'mariadb',
-                required: true,
-            ),
-            'DB_HOST' => text(
-                label: 'Database host',
-                default: $defaults['DB_HOST'] ?? '127.0.0.1',
-                required: true,
-            ),
-            'DB_PORT' => text(
-                label: 'Database port',
-                default: $defaults['DB_PORT'] ?? '3306',
-                required: true,
-            ),
-            'DB_DATABASE' => text(
-                label: 'Database name',
-                default: $defaults['DB_DATABASE'] ?? 'zephyr',
-                required: true,
-            ),
-            'DB_USERNAME' => text(
-                label: 'Database username',
-                default: $defaults['DB_USERNAME'] ?? 'root',
-                required: true,
-            ),
-            'DB_PASSWORD' => $this->promptPasswordWithConfirmation(
-                label: 'Database password',
-                fallback: $defaults['DB_PASSWORD'] ?? '',
-                allowEmpty: true,
-            ),
+            ...$dbValues,
 
             'APP_LOCALE' => $appLocale,
             'APP_URL' => $appUrl,
@@ -347,10 +376,21 @@ class ZephyrSetup extends Command
         config()->set('database.default', $driver);
 
         if ($driver === 'sqlite') {
+            $dbPath = $values['DB_DATABASE'];
+            $dir = dirname($dbPath);
+
+            if (! File::isDirectory($dir)) {
+                File::makeDirectory($dir, 0755, true);
+            }
+
+            if (! File::exists($dbPath)) {
+                File::put($dbPath, '');
+            }
+
             config()->set('database.connections.sqlite', [
                 'driver' => 'sqlite',
                 'url' => null,
-                'database' => $values['DB_DATABASE'],
+                'database' => $dbPath,
                 'prefix' => '',
                 'foreign_key_constraints' => true,
             ]);
