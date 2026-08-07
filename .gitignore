@@ -32,7 +32,9 @@
 /node_modules
 /public/build
 /public/hot
+/public/js/app
 /public/storage
+/resources/js/dist
 /storage/*.key
 /storage/pail
 /vendor

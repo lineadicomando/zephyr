@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Forms\Components\BarcodeScannerInput;
 use App\Filament\Resources\InventoryResource\Pages;
 use App\Filament\Resources\InventoryResource\RelationManagers\MovementsRelationManager;
 use App\Filament\Resources\InventoryResource\RelationManagers\StocksRelationManager;
@@ -104,7 +105,7 @@ class InventoryResource extends Resource
                 ->unique(ignoreRecord: true)
                 ->helperText(__('Leave blank for automatic assignment.'))
                 ->translateLabel(),
-            TextInput::make('serial_number')
+            BarcodeScannerInput::make('serial_number')
                 ->unique(ignoreRecord: true)
                 ->translateLabel(),
             Select::make('product_id')

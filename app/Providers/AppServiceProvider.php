@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Support\Scope\ScopeAccessResolver;
 use BezhanSalleh\PanelSwitch\PanelSwitch;
+use Filament\Support\Assets\AlpineComponent;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -45,6 +47,11 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
         });
+
+        FilamentAsset::register([
+            AlpineComponent::make('barcode-scanner', __DIR__.'/../../resources/js/dist/components/barcode-scanner.js')
+                ->loadedOnRequest(),
+        ], package: 'app');
 
         PanelSwitch::configureUsing(function (PanelSwitch $panelSwitch) {
             $panelSwitch->slideOver();
