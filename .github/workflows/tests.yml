@@ -55,8 +55,23 @@ jobs:
           extensions: mbstring, sqlite3, pdo_sqlite
           coverage: none
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
       - name: Copy environment
         run: cp .env.example .env
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      # Must run before `composer install`, whose post-autoload-dump script
+      # (`filament:upgrade`) publishes the compiled barcode-scanner Alpine
+      # component registered in AppServiceProvider.
+      - name: Build frontend assets
+        run: npm run build
 
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
