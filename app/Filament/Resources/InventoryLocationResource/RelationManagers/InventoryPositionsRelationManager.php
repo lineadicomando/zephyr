@@ -3,31 +3,33 @@
 namespace App\Filament\Resources\InventoryLocationResource\RelationManagers;
 
 use App\Models\InventoryPosition;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 
 class InventoryPositionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'inventory_positions';
-    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('Positions');
     }
+
     public function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
-                Hidden::make('scope_id')
-                    ->default(fn (): ?int => $this->getOwnerRecord()->scope_id),
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255)
@@ -53,15 +55,15 @@ class InventoryPositionsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                \Filament\Actions\CreateAction::make(),
+                CreateAction::make(),
             ])
             ->actions([
-                \Filament\Actions\EditAction::make(),
-                \Filament\Actions\DeleteAction::make()->hidden(fn (InventoryPosition $record) => $record->hasRelated()),
+                EditAction::make(),
+                DeleteAction::make()->hidden(fn (InventoryPosition $record) => $record->hasRelated()),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

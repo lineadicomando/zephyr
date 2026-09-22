@@ -148,5 +148,6 @@
     "Latest inventory update (movements)": "Ultimo aggiornamento dell'inventario (movimenti)",
     "Last update of records: :date": "Ultimo aggiornamento anagrafiche: :date",
     "Available": "Disponibili",
-    "Not available": "Non disponibili"
+    "Not available": "Non disponibili",
+    "You cannot assign this scope.": "Non puoi assegnare questo scope."
 }

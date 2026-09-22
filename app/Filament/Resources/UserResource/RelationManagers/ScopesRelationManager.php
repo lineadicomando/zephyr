@@ -2,14 +2,17 @@
 
 namespace App\Filament\Resources\UserResource\RelationManagers;
 
+use App\Models\Scope;
 use App\Models\User;
+use Closure;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
-use Filament\Notifications\Notification;
 use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ScopesRelationManager extends RelationManager
 {
@@ -24,6 +27,25 @@ class ScopesRelationManager extends RelationManager
         }
 
         return $owner->scopes()->count() <= 1;
+    }
+
+    /**
+     * Limit attachable scopes to the ones the current user can manage.
+     */
+    protected function scopeToManageableScopes(Builder $query): Builder
+    {
+        $user = auth()->user();
+
+        if ($user?->isRoot()) {
+            return $query;
+        }
+
+        return $query->whereIn('scopes.id', $user?->scopes()->select('scopes.id') ?? []);
+    }
+
+    protected function canManageScopeMembership(?Scope $scope): bool
+    {
+        return $scope !== null && (bool) auth()->user()?->can('manageMembership', $scope);
     }
 
     public function table(Table $table): Table
@@ -44,10 +66,19 @@ class ScopesRelationManager extends RelationManager
             ])
             ->headerActions([
                 AttachAction::make()
-                    ->recordSelect(fn (Select $select): Select => $select->searchable()->preload()),
+                    ->recordSelectOptionsQuery(fn (Builder $query): Builder => $this->scopeToManageableScopes($query))
+                    ->recordSelect(fn (Select $select): Select => $select
+                        ->searchable()
+                        ->preload()
+                        ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
+                            if (! $this->canManageScopeMembership(Scope::query()->find($value))) {
+                                $fail(__('You cannot assign this scope.'));
+                            }
+                        })),
             ])
             ->actions([
                 DetachAction::make()
+                    ->authorize(fn (Scope $record): bool => $this->canManageScopeMembership($record))
                     ->hidden(fn (): bool => $this->shouldBlockLastScopeDetach())
                     ->before(function (DetachAction $action): void {
                         if (! $this->shouldBlockLastScopeDetach()) {

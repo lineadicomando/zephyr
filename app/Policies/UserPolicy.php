@@ -11,7 +11,7 @@ class UserPolicy
         return $user->can('view_any_user');
     }
 
-    public function view(User $user, User|null $model = null): bool
+    public function view(User $user, ?User $model = null): bool
     {
         return $user->can('view_user');
     }
@@ -21,9 +21,9 @@ class UserPolicy
         return $user->can('create_user');
     }
 
-    public function update(User $user, User|null $model = null): bool
+    public function update(User $user, ?User $model = null): bool
     {
-        return $user->can('update_user');
+        return $user->can('update_user') && $this->canManageAccount($user, $model);
     }
 
     public function deleteAny(User $user): bool
@@ -31,9 +31,9 @@ class UserPolicy
         return $user->can('delete_any_user');
     }
 
-    public function delete(User $user, User|null $model = null): bool
+    public function delete(User $user, ?User $model = null): bool
     {
-        return $user->can('delete_user');
+        return $user->can('delete_user') && $this->canManageAccount($user, $model);
     }
 
     public function restoreAny(User $user): bool
@@ -41,9 +41,9 @@ class UserPolicy
         return $user->can('restore_any_user');
     }
 
-    public function restore(User $user, User|null $model = null): bool
+    public function restore(User $user, ?User $model = null): bool
     {
-        return $user->can('restore_user');
+        return $user->can('restore_user') && $this->canManageAccount($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
@@ -51,8 +51,16 @@ class UserPolicy
         return $user->can('force_delete_any_user');
     }
 
-    public function forceDelete(User $user, User|null $model = null): bool
+    public function forceDelete(User $user, ?User $model = null): bool
     {
-        return $user->can('force_delete_user');
+        return $user->can('force_delete_user') && $this->canManageAccount($user, $model);
+    }
+
+    /**
+     * Super admin accounts can only be managed by other super admins.
+     */
+    protected function canManageAccount(User $user, ?User $model): bool
+    {
+        return $model === null || ! $model->isRoot() || $user->isRoot();
     }
 }

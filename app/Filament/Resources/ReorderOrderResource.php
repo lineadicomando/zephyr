@@ -12,7 +12,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -41,9 +40,6 @@ class ReorderOrderResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Hidden::make('scope_id')
-                ->default(fn (): ?int => filament()->getTenant()?->id)
-                ->dehydrated(),
             Textarea::make('notes')->translateLabel()->columnSpanFull(),
         ]);
     }

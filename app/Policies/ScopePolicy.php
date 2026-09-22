@@ -12,7 +12,7 @@ class ScopePolicy
         return $user->can('view_any_scope');
     }
 
-    public function view(User $user, Scope|null $model = null): bool
+    public function view(User $user, ?Scope $model = null): bool
     {
         return $user->can('view_scope');
     }
@@ -22,7 +22,7 @@ class ScopePolicy
         return $user->can('create_scope');
     }
 
-    public function update(User $user, Scope|null $model = null): bool
+    public function update(User $user, ?Scope $model = null): bool
     {
         return $user->can('update_scope');
     }
@@ -32,7 +32,7 @@ class ScopePolicy
         return $user->can('delete_any_scope');
     }
 
-    public function delete(User $user, Scope|null $model = null): bool
+    public function delete(User $user, ?Scope $model = null): bool
     {
         return $user->can('delete_scope');
     }
@@ -42,7 +42,7 @@ class ScopePolicy
         return $user->can('restore_any_scope');
     }
 
-    public function restore(User $user, Scope|null $model = null): bool
+    public function restore(User $user, ?Scope $model = null): bool
     {
         return $user->can('restore_scope');
     }
@@ -52,8 +52,17 @@ class ScopePolicy
         return $user->can('force_delete_any_scope');
     }
 
-    public function forceDelete(User $user, Scope|null $model = null): bool
+    public function forceDelete(User $user, ?Scope $model = null): bool
     {
         return $user->can('force_delete_scope');
+    }
+
+    /**
+     * Determine whether the user can add or remove members of the given scope.
+     * Super admins are allowed through the Shield gate intercept.
+     */
+    public function manageMembership(User $user, Scope $model): bool
+    {
+        return $user->can('update_user') && $user->hasScope($model->getKey());
     }
 }

@@ -57,8 +57,9 @@ function something()
  * Booting the full panel registers global scopes on every resource including
  * vendor resources that do not have a 'scope' relationship (e.g. FilamentShield
  * RoleResource), which causes a LogicException. This helper registers the
- * tenancy global scope only for the provided resource classes, then sets the
- * current panel and tenant so Filament resolves tenant-scoped queries correctly.
+ * tenancy global scope and creation observer only for the provided resource
+ * classes, then sets the current panel and tenant so Filament resolves
+ * tenant-scoped queries and associates new records with the tenant.
  *
  * @param  array<class-string<Filament\Resources\Resource>>  $resources
  */
@@ -69,6 +70,7 @@ function activateFilamentTenant(Scope $scope, array $resources = []): void
     Filament\Facades\Filament::setCurrentPanel($panel);
 
     foreach ($resources as $resource) {
+        $resource::observeTenancyModelCreation($panel);
         $resource::registerTenancyModelGlobalScope($panel);
     }
 

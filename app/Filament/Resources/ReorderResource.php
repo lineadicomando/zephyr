@@ -12,7 +12,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -63,9 +62,6 @@ class ReorderResource extends Resource
     {
         return $schema
             ->schema([
-                Hidden::make('scope_id')
-                    ->default(fn (): ?int => filament()->getTenant()?->id)
-                    ->dehydrated(),
                 Select::make('stock_id')
                     ->translateLabel()
                     ->required()

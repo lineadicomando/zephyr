@@ -18,6 +18,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserResource extends Resource
 {
@@ -70,7 +71,13 @@ class UserResource extends Resource
                     ->translateLabel()
                     ->multiple()
                     ->preload()
-                    ->relationship('roles', 'name'),
+                    ->relationship(
+                        'roles',
+                        'name',
+                        modifyQueryUsing: fn (Builder $query): Builder => auth()->user()?->isRoot()
+                            ? $query
+                            : $query->where('name', '!=', 'super_admin'),
+                    ),
             ]);
     }
 
@@ -110,7 +117,7 @@ class UserResource extends Resource
                 // if ($record->trashed()) {
                 //     return null;
                 // }
-                if (auth()->user()->can('update', User::class)) {
+                if (auth()->user()->can('update', $record)) {
                     return Pages\EditUser::getUrl([$record->id]);
                 }
 
@@ -124,7 +131,8 @@ class UserResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ]);
     }

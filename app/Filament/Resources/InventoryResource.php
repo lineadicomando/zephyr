@@ -13,7 +13,6 @@ use App\Models\Inventory;
 use App\Models\InventoryPosition;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -98,9 +97,6 @@ class InventoryResource extends Resource
         $userIsAdmin = auth()->user()?->isAdmin();
 
         return [
-            Hidden::make('scope_id')
-                ->default(fn (): ?int => filament()->getTenant()?->id)
-                ->dehydrated(),
             TextInput::make('inventory_number')
                 ->unique(ignoreRecord: true)
                 ->helperText(__('Leave blank for automatic assignment.'))
