@@ -11,6 +11,7 @@ storage/framework/testing/*
 storage/framework/views/*
 bootstrap/cache/*
 public/hot
+public/storage
 .git/
 .github/
 tests/

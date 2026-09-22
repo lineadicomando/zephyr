@@ -13,6 +13,12 @@ use Spatie\Backup\Tasks\Monitor\HealthChecks\MaximumStorageInMegabytes;
 
 return [
 
+    /*
+     * Enable the scheduled backups (backup:run, backup:clean, backup:monitor).
+     * Disable them when the database and the files are backed up elsewhere.
+     */
+    'enabled' => (bool) env('BACKUP_ENABLED', true),
+
     'backup' => [
         /*
          * The name of this application. You can use this name to monitor

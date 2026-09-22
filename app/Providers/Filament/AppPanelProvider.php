@@ -45,8 +45,9 @@ class AppPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->profile()
             ->tenant(Scope::class, slugAttribute: 'slug', ownershipRelationship: 'scope')
-            ->favicon(asset(config('app.branding.favicon')))
-            ->brandLogo(asset(config('app.branding.logo')))
+            // Closures: the URLs must be generated per request, after the trusted proxies are applied.
+            ->favicon(fn (): string => asset(config('app.branding.favicon')))
+            ->brandLogo(fn (): string => asset(config('app.branding.logo')))
             ->brandLogoHeight('2rem')
             ->colors([
                 'primary' => Color::Amber,

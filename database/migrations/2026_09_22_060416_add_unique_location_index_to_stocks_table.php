@@ -13,9 +13,14 @@ return new class extends Migration
         });
     }
 
+    /**
+     * MySQL/MariaDB use the unique index for the scope_id foreign key once it
+     * exists: add a dedicated index before dropping it.
+     */
     public function down(): void
     {
         Schema::table('stocks', function (Blueprint $table) {
+            $table->index('scope_id');
             $table->dropUnique('stocks_scope_inventory_position_unique');
         });
     }

@@ -132,6 +132,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted proxies
+    |--------------------------------------------------------------------------
+    |
+    | Reverse proxies allowed to set the X-Forwarded-* headers (for example a
+    | TLS terminating proxy): "*" or a comma separated list of IP addresses
+    | and CIDR ranges. Empty means no proxy is trusted.
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Branding assets
     |--------------------------------------------------------------------------
     |

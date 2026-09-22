@@ -6,18 +6,14 @@ use App\Models\InventoryPosition;
 use App\Models\Movement;
 use App\Models\ReorderOrder;
 use App\Models\Scope;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 uses(RefreshDatabase::class);
 
 it('merges duplicate stock rows and their references into the oldest one', function () {
-    Schema::table('stocks', function (Blueprint $table) {
-        $table->dropUnique('stocks_scope_inventory_position_unique');
-    });
+    (require database_path('migrations/2026_09_22_060416_add_unique_location_index_to_stocks_table.php'))->down();
 
     $scope = Scope::factory()->create();
     $location = InventoryLocation::factory()->create(['scope_id' => $scope->id]);

@@ -100,7 +100,7 @@ it('fails when a pending scope cannot be purged', function (): void {
     ]);
 
     DB::listen(function ($query): void {
-        if (str_starts_with($query->sql, 'delete from "scopes"')) {
+        if (preg_match('/^delete from [`"]scopes[`"]/', $query->sql) === 1) {
             throw new RuntimeException('Simulated purge failure');
         }
     });

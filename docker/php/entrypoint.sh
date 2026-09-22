@@ -16,7 +16,7 @@ if ! php artisan db:wait --timeout="${DB_WAIT_TIMEOUT:-120}" --no-ansi; then
 fi
 
 echo "[entrypoint] Ensuring storage directory structure..."
-mkdir -p /var/www/html/storage/{app,logs,framework/{cache,sessions,views}}
+mkdir -p /var/www/html/storage/{app/public,logs,framework/{cache,sessions,views}}
 
 echo "[entrypoint] Syncing public assets to shared volume..."
 rsync -a --delete /var/www/html/public/ /var/www/html/public-vol/
@@ -33,12 +33,6 @@ else
         php artisan migrate:seed --no-fresh
     fi
 fi
-
-echo "[entrypoint] Creating storage symlink..."
-php artisan storage:link --force 2>/dev/null || true
-
-# Re-sync after storage:link so nginx gets the symlink too
-rsync -a --delete /var/www/html/public/ /var/www/html/public-vol/
 
 if [ "${APP_ENV}" = "production" ]; then
     echo "[entrypoint] Caching config, routes, views, events..."

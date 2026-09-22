@@ -26,3 +26,15 @@ it('does not overlap backup runs', function () {
 it('sends backup notifications to the configured recipient', function () {
     expect(config('backup.notifications.mail.to'))->not->toBe('your@example.com');
 });
+
+it('runs the scheduled backups only when they are enabled', function (bool $enabled, string $command) {
+    config()->set('backup.enabled', $enabled);
+
+    expect(scheduledBackupEvent($command)->filtersPass(app()))->toBe($enabled);
+})->with([true, false])->with(['backup:run', 'backup:clean', 'backup:monitor']);
+
+it('keeps the other scheduled commands when backups are disabled', function () {
+    config()->set('backup.enabled', false);
+
+    expect(scheduledBackupEvent('scopes:purge-pending')->filtersPass(app()))->toBeTrue();
+});

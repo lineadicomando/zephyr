@@ -50,6 +50,8 @@ COPY --from=assets /build/public/build ./public/build
 
 RUN <<EOF
 composer dump-autoload --optimize --no-dev --no-interaction
+# public/storage link (the entrypoint runs as www-data and cannot write public/)
+ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 chown -R www-data:www-data \
     /var/www/html/storage \
     /var/www/html/bootstrap/cache

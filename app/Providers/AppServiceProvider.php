@@ -7,6 +7,7 @@ use BezhanSalleh\PanelSwitch\PanelSwitch;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (filled($trustedProxies = config('app.trusted_proxies'))) {
+            TrustProxies::at($trustedProxies === '*'
+                ? '*'
+                : array_values(array_filter(array_map('trim', explode(',', (string) $trustedProxies)))));
+        }
+
         RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(config('sanctum.rate_limit_per_minute'))
             ->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
 
