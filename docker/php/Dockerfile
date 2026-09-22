@@ -14,6 +14,7 @@ FROM docker.io/library/php:8.5-fpm-alpine
 RUN <<EOF
 apk add --no-cache \
     bash \
+    mariadb-client \
     rsync \
     netcat-openbsd \
     libpng-dev \

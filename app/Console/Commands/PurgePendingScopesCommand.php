@@ -31,7 +31,7 @@ class PurgePendingScopesCommand extends Command
 
         foreach ($candidateIds as $scopeId) {
             try {
-                $wasPurged = DB::transaction(function () use ($scopeId, $now): bool {
+                $wasPurged = DB::transaction(function () use ($scopeId): bool {
                     $scope = DB::table('scopes')
                         ->where('id', $scopeId)
                         ->lockForUpdate()
@@ -78,7 +78,6 @@ class PurgePendingScopesCommand extends Command
 
         $this->info("Pending scopes purge completed. purged={$purgedCount}, skipped={$skippedCount}, errors={$errorCount}");
 
-        return self::SUCCESS;
+        return $errorCount > 0 ? self::FAILURE : self::SUCCESS;
     }
 }
-

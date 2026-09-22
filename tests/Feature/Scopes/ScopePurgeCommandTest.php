@@ -85,3 +85,27 @@ it('does not purge protected scopes even if pending_delete is expired', function
     expect(DB::table('scopes')->where('id', $scopeId)->exists())->toBeTrue();
 });
 
+it('fails when a pending scope cannot be purged', function (): void {
+    Carbon::setTestNow('2026-05-03 10:00:00');
+
+    $scopeId = DB::table('scopes')->insertGetId([
+        'name' => 'Broken Purge',
+        'slug' => 'broken-purge',
+        'type' => 'company',
+        'is_active' => false,
+        'protected' => false,
+        'pending_delete' => now()->subHour(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    DB::listen(function ($query): void {
+        if (str_starts_with($query->sql, 'delete from "scopes"')) {
+            throw new RuntimeException('Simulated purge failure');
+        }
+    });
+
+    $this->artisan('scopes:purge-pending')->assertFailed();
+
+    expect(DB::table('scopes')->where('id', $scopeId)->exists())->toBeTrue();
+});

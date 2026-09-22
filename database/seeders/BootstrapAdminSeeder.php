@@ -5,24 +5,28 @@ namespace Database\Seeders;
 use App\Models\Scope;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 use Spatie\Permission\Models\Role;
 
 class BootstrapAdminSeeder extends Seeder
 {
+    /**
+     * Placeholder passwords shipped in the example environment files.
+     *
+     * @var array<int, string>
+     */
+    public const PLACEHOLDER_PASSWORDS = ['password', 'change-me-in-production'];
+
     public function run(): void
     {
         $email = (string) env('BOOTSTRAP_ADMIN_EMAIL', 'admin@cmdln.it');
-        $name = (string) env('BOOTSTRAP_ADMIN_NAME', 'Admin');
-        $password = (string) env('BOOTSTRAP_ADMIN_PASSWORD', 'password');
 
-        $user = User::query()->updateOrCreate(
-            ['email' => $email],
-            [
-                'name' => $name,
-                'password' => bcrypt($password),
-                'email_verified_at' => now(),
-            ],
-        );
+        $user = User::withTrashed()->where('email', $email)->first()
+            ?? $this->createAdmin($email);
+
+        if ($user->trashed()) {
+            $user->restore();
+        }
 
         $superAdminRole = Role::query()->where('name', 'super_admin')->where('guard_name', 'web')->first();
 
@@ -51,5 +55,29 @@ class BootstrapAdminSeeder extends Seeder
         if ($missingScopeIds->isNotEmpty()) {
             $user->scopes()->attach($missingScopeIds->values()->all());
         }
+    }
+
+    /**
+     * Create the bootstrap admin. The password is only set on creation so
+     * that seeding again never resets the password of an existing admin.
+     */
+    protected function createAdmin(string $email): User
+    {
+        $password = (string) env('BOOTSTRAP_ADMIN_PASSWORD', '');
+
+        if ($password === '') {
+            throw new RuntimeException('BOOTSTRAP_ADMIN_PASSWORD must be set to create the bootstrap admin.');
+        }
+
+        if (app()->isProduction() && in_array($password, self::PLACEHOLDER_PASSWORDS, true)) {
+            throw new RuntimeException('BOOTSTRAP_ADMIN_PASSWORD still has a placeholder value: set a real password.');
+        }
+
+        return User::query()->forceCreate([
+            'name' => (string) env('BOOTSTRAP_ADMIN_NAME', 'Admin'),
+            'email' => $email,
+            'password' => $password,
+            'email_verified_at' => now(),
+        ]);
     }
 }

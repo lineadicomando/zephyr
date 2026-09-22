@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 use function Laravel\Prompts\confirm;
@@ -29,6 +30,10 @@ class ZephyrSetup extends Command
 
             return self::FAILURE;
         }
+
+        $existingAppKey = File::exists($envPath)
+            ? ($this->parseEnv(File::get($envPath))['APP_KEY'] ?? '')
+            : '';
 
         if (File::exists($envPath) && ! $this->option('force')) {
             if (
@@ -63,6 +68,22 @@ class ZephyrSetup extends Command
             }
         }
 
+        $fresh = ! $this->option('no-fresh');
+
+        if ($fresh && $this->databaseHasTables($values['DB_CONNECTION']) && ! confirm(
+            label: "The database {$values['DB_DATABASE']} already contains tables: all of them will be dropped and data will be lost. Continue?",
+            default: false,
+        )) {
+            $this->warn('Setup aborted. Run again with --no-fresh to keep the existing data.');
+
+            return self::FAILURE;
+        }
+
+        if ($existingAppKey !== '') {
+            $values['APP_KEY'] = $existingAppKey;
+            $effectiveEnv['APP_KEY'] = $existingAppKey;
+        }
+
         $envContent = $this->applyValuesToTemplate($template, $values);
         File::put($envPath, $envContent);
 
@@ -71,16 +92,21 @@ class ZephyrSetup extends Command
         $this->applyRuntimeEnvironment($effectiveEnv);
         $this->syncRuntimeConfig($effectiveEnv);
 
-        // Avoid conflicts when APP_KEY is injected at process-level env.
-        putenv('APP_KEY');
-        unset($_ENV['APP_KEY'], $_SERVER['APP_KEY']);
-        config()->set('app.key', null);
+        if ($existingAppKey !== '') {
+            // Keep the existing key: regenerating it would invalidate sessions and encrypted data.
+            config()->set('app.key', $existingAppKey);
+        } else {
+            // Avoid conflicts when APP_KEY is injected at process-level env.
+            putenv('APP_KEY');
+            unset($_ENV['APP_KEY'], $_SERVER['APP_KEY']);
+            config()->set('app.key', null);
 
-        $keyExit = $this->call('key:generate', ['--force' => true]);
-        if ($keyExit !== self::SUCCESS) {
-            $this->error('key:generate failed.');
+            $keyExit = $this->call('key:generate', ['--force' => true]);
+            if ($keyExit !== self::SUCCESS) {
+                $this->error('key:generate failed.');
 
-            return self::FAILURE;
+                return self::FAILURE;
+            }
         }
 
         $seedCommand =
@@ -89,7 +115,8 @@ class ZephyrSetup extends Command
                 : 'migrate:seed';
 
         $seedExit = $this->call($seedCommand, [
-            '--no-fresh' => (bool) $this->option('no-fresh'),
+            '--no-fresh' => ! $fresh,
+            '--force' => true,
         ]);
 
         if ($seedExit !== self::SUCCESS) {
@@ -468,7 +495,7 @@ class ZephyrSetup extends Command
 
             if (preg_match($pattern, $output) === 1) {
                 $output =
-                    preg_replace($pattern, $key.'='.$escaped, $output) ??
+                    preg_replace_callback($pattern, fn (): string => $key.'='.$escaped, $output) ??
                     $output;
             } else {
                 $output .= PHP_EOL.$key.'='.$escaped;
@@ -484,11 +511,25 @@ class ZephyrSetup extends Command
             return '';
         }
 
-        if (strpbrk($value, " \t\n\r\0\x0B#\"'") !== false) {
-            return '"'.str_replace('"', '\\"', $value).'"';
+        if (strpbrk($value, " \t\n\r\0\x0B#\"'\\$") === false) {
+            return $value;
         }
 
-        return $value;
+        // Single quoted values are read literally by phpdotenv.
+        if (! str_contains($value, "'")) {
+            return "'".$value."'";
+        }
+
+        return '"'.str_replace(['\\', '"', '$'], ['\\\\', '\\"', '\\$'], $value).'"';
+    }
+
+    private function databaseHasTables(string $connection): bool
+    {
+        try {
+            return Schema::connection($connection)->getTableListing() !== [];
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     private function promptPasswordWithConfirmation(
