@@ -12,7 +12,7 @@ class TaskTypePolicy
         return $user->can('view_any_task_type');
     }
 
-    public function view(User $user, TaskType|null $model = null): bool
+    public function view(User $user, ?TaskType $model = null): bool
     {
         return $user->can('view_task_type');
     }
@@ -22,7 +22,7 @@ class TaskTypePolicy
         return $user->can('create_task_type');
     }
 
-    public function update(User $user, TaskType|null $model = null): bool
+    public function update(User $user, ?TaskType $model = null): bool
     {
         return $user->can('update_task_type');
     }
@@ -32,7 +32,7 @@ class TaskTypePolicy
         return $user->can('delete_any_task_type');
     }
 
-    public function delete(User $user, TaskType|null $model = null): bool
+    public function delete(User $user, ?TaskType $model = null): bool
     {
         return $user->can('delete_task_type');
     }
@@ -42,7 +42,7 @@ class TaskTypePolicy
         return $user->can('restore_any_task_type');
     }
 
-    public function restore(User $user, TaskType|null $model = null): bool
+    public function restore(User $user, ?TaskType $model = null): bool
     {
         return $user->can('restore_task_type');
     }
@@ -52,7 +52,7 @@ class TaskTypePolicy
         return $user->can('force_delete_any_task_type');
     }
 
-    public function forceDelete(User $user, TaskType|null $model = null): bool
+    public function forceDelete(User $user, ?TaskType $model = null): bool
     {
         return $user->can('force_delete_task_type');
     }

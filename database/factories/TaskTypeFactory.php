@@ -9,11 +9,11 @@ class TaskTypeFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'        => fake()->unique()->randomElement([
+            'name' => fake()->unique()->randomElement([
                 'Maintenance', 'Installation', 'Inspection',
                 'Repair', 'Replacement', 'Configuration', 'Upgrade',
             ]),
-            'chart'       => fake()->boolean(60),
+            'chart' => fake()->boolean(60),
             'chart_color' => fake()->hexColor(),
         ];
     }

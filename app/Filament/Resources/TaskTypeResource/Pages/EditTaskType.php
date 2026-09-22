@@ -11,6 +11,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditTaskType extends EditRecord
 {
     use CancelToCloseAction;
+
     protected static string $resource = TaskTypeResource::class;
 
     protected function getHeaderActions(): array

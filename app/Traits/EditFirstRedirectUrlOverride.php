@@ -2,8 +2,6 @@
 
 namespace App\Traits;
 
-use Filament\Actions\Action;
-
 trait EditFirstRedirectUrlOverride
 {
     protected function getRedirectUrl(): string

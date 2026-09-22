@@ -22,5 +22,4 @@ class CalendarTask extends Page
     {
         static::authorizeResourceAccess();
     }
-
 }

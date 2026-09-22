@@ -10,8 +10,8 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditProductGroup extends EditRecord
 {
-
     use CancelToCloseAction;
+
     protected static string $resource = ProductGroupResource::class;
 
     protected function getHeaderActions(): array

@@ -12,6 +12,7 @@ trait CancelToCloseAction
         if (preg_match('/.+\/create.*/', $backUrl)) {
             $backUrl = static::getResource()::getUrl();
         }
+
         return Action::make('cancel')
             ->label(__('Close'))
             ->url($backUrl)

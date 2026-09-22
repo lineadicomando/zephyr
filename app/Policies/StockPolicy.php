@@ -15,7 +15,7 @@ class StockPolicy
         return $user->can('view_any_stock');
     }
 
-    public function view(User $user, Stock|null $model = null): bool
+    public function view(User $user, ?Stock $model = null): bool
     {
         return $user->can('view_stock') && $this->canAccessModelScope($user, $model);
     }
@@ -25,7 +25,7 @@ class StockPolicy
         return $user->can('create_stock');
     }
 
-    public function update(User $user, Stock|null $model = null): bool
+    public function update(User $user, ?Stock $model = null): bool
     {
         return $user->can('update_stock') && $this->canAccessModelScope($user, $model);
     }
@@ -35,7 +35,7 @@ class StockPolicy
         return $user->can('delete_any_stock');
     }
 
-    public function delete(User $user, Stock|null $model = null): bool
+    public function delete(User $user, ?Stock $model = null): bool
     {
         return $user->can('delete_stock') && $this->canAccessModelScope($user, $model);
     }
@@ -45,7 +45,7 @@ class StockPolicy
         return $user->can('restore_any_stock');
     }
 
-    public function restore(User $user, Stock|null $model = null): bool
+    public function restore(User $user, ?Stock $model = null): bool
     {
         return $user->can('restore_stock') && $this->canAccessModelScope($user, $model);
     }
@@ -55,7 +55,7 @@ class StockPolicy
         return $user->can('force_delete_any_stock');
     }
 
-    public function forceDelete(User $user, Stock|null $model = null): bool
+    public function forceDelete(User $user, ?Stock $model = null): bool
     {
         return $user->can('force_delete_stock') && $this->canAccessModelScope($user, $model);
     }

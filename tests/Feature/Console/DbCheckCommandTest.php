@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\DbCheck;
+use App\Models\TestDbCheckFake;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -21,5 +22,5 @@ it('runs dbCheck only on models that expose the method', function () {
 
     $command->handle();
 
-    expect(\App\Models\TestDbCheckFake::$called)->toBeTrue();
+    expect(TestDbCheckFake::$called)->toBeTrue();
 });

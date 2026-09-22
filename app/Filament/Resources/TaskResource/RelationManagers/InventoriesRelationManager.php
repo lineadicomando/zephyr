@@ -2,25 +2,26 @@
 
 namespace App\Filament\Resources\TaskResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Tables;
-use Filament\Schemas\Schema;
-use Filament\Tables\Table;
-use Filament\Support\Enums\MaxWidth;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Enums\FiltersLayout;
 use Filament\Actions\AttachAction;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DetachAction;
+use Filament\Actions\DetachBulkAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\MaxWidth;
+use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class InventoriesRelationManager extends RelationManager
 {
     protected static string $relationship = 'inventories';
 
-    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('Inventories');
     }
@@ -66,7 +67,7 @@ class InventoriesRelationManager extends RelationManager
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('product.name')
                     ->translateLabel()
-                    ->searchable(isIndividual: true,)
+                    ->searchable(isIndividual: true)
                     ->sortable(),
                 TextColumn::make('description')
                     ->translateLabel()
@@ -110,9 +111,10 @@ class InventoriesRelationManager extends RelationManager
                     ->preload()
                     ->relationship('non_zero_stocks.inventory_position', 'path', function (Builder $query) use (&$locationFilter) {
                         $locationState = $locationFilter->getState();
-                        if (!empty($locationState['value'])) {
+                        if (! empty($locationState['value'])) {
                             return $query->where('inventory_location_id', $locationState['value']);
                         }
+
                         return $query;
                     }),
                 SelectFilter::make('product_group_id')
@@ -140,11 +142,12 @@ class InventoriesRelationManager extends RelationManager
                     ->preload()
                     ->relationship('product.product_model', 'name', function (Builder $query) use (&$brandFilter) {
                         $brandeState = $brandFilter->getState();
-                        if (!empty($brandeState['value'])) {
+                        if (! empty($brandeState['value'])) {
                             return $query->where('product_brand_id', $brandeState['value']);
                         }
+
                         return $query;
-                    })
+                    }),
             ])
             ->filtersFormColumns(2)
             // ->filtersFormWidth(MaxWidth::Small)
@@ -162,11 +165,11 @@ class InventoriesRelationManager extends RelationManager
             ])
             ->actions([
                 // \Filament\Actions\EditAction::make(),
-                \Filament\Actions\DetachAction::make()
+                DetachAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DetachBulkAction::make()
+                BulkActionGroup::make([
+                    DetachBulkAction::make(),
                 ]),
             ]);
     }

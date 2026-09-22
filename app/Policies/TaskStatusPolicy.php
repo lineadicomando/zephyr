@@ -12,7 +12,7 @@ class TaskStatusPolicy
         return $user->can('view_any_task_status');
     }
 
-    public function view(User $user, TaskStatus|null $model = null): bool
+    public function view(User $user, ?TaskStatus $model = null): bool
     {
         return $user->can('view_task_status');
     }
@@ -22,7 +22,7 @@ class TaskStatusPolicy
         return $user->can('create_task_status');
     }
 
-    public function update(User $user, TaskStatus|null $model = null): bool
+    public function update(User $user, ?TaskStatus $model = null): bool
     {
         return $user->can('update_task_status');
     }
@@ -32,7 +32,7 @@ class TaskStatusPolicy
         return $user->can('delete_any_task_status');
     }
 
-    public function delete(User $user, TaskStatus|null $model = null): bool
+    public function delete(User $user, ?TaskStatus $model = null): bool
     {
         return $user->can('delete_task_status');
     }
@@ -42,7 +42,7 @@ class TaskStatusPolicy
         return $user->can('restore_any_task_status');
     }
 
-    public function restore(User $user, TaskStatus|null $model = null): bool
+    public function restore(User $user, ?TaskStatus $model = null): bool
     {
         return $user->can('restore_task_status');
     }
@@ -52,7 +52,7 @@ class TaskStatusPolicy
         return $user->can('force_delete_any_task_status');
     }
 
-    public function forceDelete(User $user, TaskStatus|null $model = null): bool
+    public function forceDelete(User $user, ?TaskStatus $model = null): bool
     {
         return $user->can('force_delete_task_status');
     }

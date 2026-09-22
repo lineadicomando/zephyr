@@ -12,4 +12,3 @@ it('schedules scopes purge pending command hourly without overlapping', function
         ->and($event->expression)->toBe('0 * * * *')
         ->and($event->withoutOverlapping)->toBeTrue();
 });
-

@@ -2,27 +2,18 @@
 
 namespace App\Filament\Resources\InventoryResource\RelationManagers;
 
-use App\Filament\Resources\InventoryLocationResource;
-use App\Filament\Resources\InventoryPositionResource;
-use App\Models\InventoryPosition;
-use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class StocksRelationManager extends RelationManager
 {
     protected static string $relationship = 'stocks';
     // protected static ?string $title = '';
-
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {

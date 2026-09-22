@@ -3,18 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\StockResource\Pages;
-use App\Filament\Resources\StockResource\RelationManagers;
-use App\Models\ProductType;
 use App\Models\Stock;
-use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class StockResource extends Resource
 {
@@ -34,12 +29,12 @@ class StockResource extends Resource
     // }
     public static function getModelLabel(): string
     {
-        return (__('Stock'));
+        return __('Stock');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Stocks'));
+        return __('Stocks');
     }
 
     public static function form(Schema $schema): Schema
@@ -149,9 +144,10 @@ class StockResource extends Resource
                     ->preload()
                     ->relationship('inventory_position', 'path', function (Builder $query) use ($inventoryLocation) {
                         $locationState = $inventoryLocation->getState();
-                        if (!empty($locationState['value'])) {
+                        if (! empty($locationState['value'])) {
                             return $query->where('inventory_location_id', $locationState['value']);
                         }
+
                         return $query;
                     }),
                 SelectFilter::make('product_group')
@@ -179,9 +175,10 @@ class StockResource extends Resource
                     ->preload()
                     ->relationship('product_model', 'name', function (Builder $query) use ($productBrand) {
                         $productBrandState = $productBrand->getState();
-                        if (!empty($productBrandState['value'])) {
+                        if (! empty($productBrandState['value'])) {
                             return $query->where('product_brand_id', $productBrandState['value']);
                         }
+
                         return $query;
                     }),
             ])

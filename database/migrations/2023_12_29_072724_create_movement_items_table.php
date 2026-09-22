@@ -1,8 +1,6 @@
 <?php
 
 use App\Models\Inventory;
-use App\Models\InventoryLocation;
-use App\Models\InventoryPosition;
 use App\Models\Movement;
 use App\Models\Stock;
 use Illuminate\Database\Migrations\Migration;

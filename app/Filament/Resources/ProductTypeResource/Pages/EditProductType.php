@@ -11,6 +11,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditProductType extends EditRecord
 {
     use CancelToCloseAction;
+
     protected static string $resource = ProductTypeResource::class;
 
     protected function getHeaderActions(): array

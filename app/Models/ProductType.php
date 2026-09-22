@@ -2,9 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Inventory;
-use App\Models\Product;
-use App\Models\Stock;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,8 +9,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductType extends Model
 {
-    use PreventRelatedDeletion;
     use HasFactory, SoftDeletes;
+    use PreventRelatedDeletion;
 
     protected $fillable = [
         'name',

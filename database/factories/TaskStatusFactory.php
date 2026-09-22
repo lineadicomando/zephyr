@@ -9,11 +9,11 @@ class TaskStatusFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'      => fake()->unique()->word(),
-            'color'     => fake()->randomElement(['info', 'primary', 'warning', 'success', 'danger']),
-            'icon'      => null,
-            'order'     => fake()->numberBetween(1, 10),
-            'default'   => false,
+            'name' => fake()->unique()->word(),
+            'color' => fake()->randomElement(['info', 'primary', 'warning', 'success', 'danger']),
+            'icon' => null,
+            'order' => fake()->numberBetween(1, 10),
+            'default' => false,
             'completed' => false,
         ];
     }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToScope;
-use App\Models\Movement;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class MovementType extends Model
 {
     use BelongsToScope;
-    use PreventRelatedDeletion;
     use HasFactory, SoftDeletes;
+    use PreventRelatedDeletion;
 
     protected $fillable = [
         'scope_id',

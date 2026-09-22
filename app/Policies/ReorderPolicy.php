@@ -15,7 +15,7 @@ class ReorderPolicy
         return $user->can('view_any_reorder');
     }
 
-    public function view(User $user, Reorder|null $model = null): bool
+    public function view(User $user, ?Reorder $model = null): bool
     {
         return $user->can('view_reorder') && $this->canAccessModelScope($user, $model);
     }
@@ -25,7 +25,7 @@ class ReorderPolicy
         return $user->can('create_reorder');
     }
 
-    public function update(User $user, Reorder|null $model = null): bool
+    public function update(User $user, ?Reorder $model = null): bool
     {
         return $user->can('update_reorder') && $this->canAccessModelScope($user, $model);
     }
@@ -35,7 +35,7 @@ class ReorderPolicy
         return $user->can('delete_any_reorder');
     }
 
-    public function delete(User $user, Reorder|null $model = null): bool
+    public function delete(User $user, ?Reorder $model = null): bool
     {
         return $user->can('delete_reorder') && $this->canAccessModelScope($user, $model);
     }
@@ -45,7 +45,7 @@ class ReorderPolicy
         return $user->can('restore_any_reorder');
     }
 
-    public function restore(User $user, Reorder|null $model = null): bool
+    public function restore(User $user, ?Reorder $model = null): bool
     {
         return $user->can('restore_reorder') && $this->canAccessModelScope($user, $model);
     }
@@ -55,7 +55,7 @@ class ReorderPolicy
         return $user->can('force_delete_any_reorder');
     }
 
-    public function forceDelete(User $user, Reorder|null $model = null): bool
+    public function forceDelete(User $user, ?Reorder $model = null): bool
     {
         return $user->can('force_delete_reorder') && $this->canAccessModelScope($user, $model);
     }

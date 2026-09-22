@@ -2,32 +2,32 @@
 
 namespace App\Providers;
 
-use App\Models\ReorderOrder;
-use App\Models\InventoryLocation;
-use App\Models\Product;
 use App\Models\Inventory;
+use App\Models\InventoryLocation;
 use App\Models\Movement;
 use App\Models\MovementType;
+use App\Models\Product;
 use App\Models\ProductBrand;
 use App\Models\Reorder;
+use App\Models\ReorderOrder;
+use App\Models\Scope;
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\TaskType;
 use App\Models\User;
-use App\Models\Scope;
 use App\Policies\InventoryLocationPolicy;
-use App\Policies\ProductPolicy;
 use App\Policies\InventoryPolicy;
 use App\Policies\MovementPolicy;
 use App\Policies\MovementTypePolicy;
 use App\Policies\ProductBrandPolicy;
+use App\Policies\ProductPolicy;
+use App\Policies\ReorderOrderPolicy;
 use App\Policies\ReorderPolicy;
+use App\Policies\ScopePolicy;
 use App\Policies\TaskPolicy;
 use App\Policies\TaskStatusPolicy;
 use App\Policies\TaskTypePolicy;
 use App\Policies\UserPolicy;
-use App\Policies\ReorderOrderPolicy;
-use App\Policies\ScopePolicy;
 // use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 

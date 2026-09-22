@@ -12,7 +12,7 @@ class InventoryLocationPolicy
         return $user->can('view_any_inventory_location');
     }
 
-    public function view(User $user, InventoryLocation|null $model = null): bool
+    public function view(User $user, ?InventoryLocation $model = null): bool
     {
         return $user->can('view_inventory_location');
     }
@@ -22,7 +22,7 @@ class InventoryLocationPolicy
         return $user->can('create_inventory_location');
     }
 
-    public function update(User $user, InventoryLocation|null $model = null): bool
+    public function update(User $user, ?InventoryLocation $model = null): bool
     {
         return $user->can('update_inventory_location');
     }
@@ -32,7 +32,7 @@ class InventoryLocationPolicy
         return $user->can('delete_any_inventory_location');
     }
 
-    public function delete(User $user, InventoryLocation|null $model = null): bool
+    public function delete(User $user, ?InventoryLocation $model = null): bool
     {
         return $user->can('delete_inventory_location');
     }
@@ -42,7 +42,7 @@ class InventoryLocationPolicy
         return $user->can('restore_any_inventory_location');
     }
 
-    public function restore(User $user, InventoryLocation|null $model = null): bool
+    public function restore(User $user, ?InventoryLocation $model = null): bool
     {
         return $user->can('restore_inventory_location');
     }
@@ -52,7 +52,7 @@ class InventoryLocationPolicy
         return $user->can('force_delete_any_inventory_location');
     }
 
-    public function forceDelete(User $user, InventoryLocation|null $model = null): bool
+    public function forceDelete(User $user, ?InventoryLocation $model = null): bool
     {
         return $user->can('force_delete_inventory_location');
     }

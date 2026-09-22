@@ -10,6 +10,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditStock extends EditRecord
 {
     use CancelToCloseAction;
+
     protected static string $resource = StockResource::class;
 
     protected function getHeaderActions(): array

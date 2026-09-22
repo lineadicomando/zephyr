@@ -11,7 +11,7 @@ class ProductModelFactory extends Factory
     {
         return [
             'product_brand_id' => ProductBrand::factory(),
-            'name'             => fake()->unique()->bothify('Model-###??'),
+            'name' => fake()->unique()->bothify('Model-###??'),
         ];
     }
 }

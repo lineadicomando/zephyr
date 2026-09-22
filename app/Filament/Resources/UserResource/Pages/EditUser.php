@@ -11,6 +11,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditUser extends EditRecord
 {
     use CancelToCloseAction;
+
     protected static string $resource = UserResource::class;
 
     protected function getHeaderActions(): array
@@ -26,6 +27,7 @@ class EditUser extends EditRecord
             unset($data['password']);
             unset($data['password_confirmation']);
         }
+
         return $data;
     }
 }

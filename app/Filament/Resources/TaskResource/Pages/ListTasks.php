@@ -25,36 +25,40 @@ class ListTasks extends ListRecords
     {
         // $taskDefaultStatus = TaskStatus::where('default', true)->first();
         // if (!$taskDefaultStatus) {
-            return 'all';
+        return 'all';
         // }
         // return $taskDefaultStatus->id;
     }
 
-    public function getDefaultActiveTab(): string | int | null
+    public function getDefaultActiveTab(): string|int|null
     {
         $activeTab = Session::get('tasksActiveTab');
-        if (!$activeTab) {
+        if (! $activeTab) {
             $activeTab = $this->getDefaultTaskStatus();
         }
+
         return $activeTab;
     }
 
     public function getTabs(): array
     {
         $taskStatuses = TaskStatus::all()->toArray();
-        $tabs =  [];
+        $tabs = [];
         $tabs['all'] = Tab::make(strtoupper(__('All')))->modifyQueryUsing(function (Builder $query) {
             Session::put('tasksActiveTab', 'all');
+
             return $query;
         });
         foreach ($taskStatuses as $taskStatus) {
             $name = $taskStatus['name'];
             $id = $taskStatus['id'];
-            $tabs[$id]  = Tab::make($name)->modifyQueryUsing(function (Builder $query) use ($id) {
+            $tabs[$id] = Tab::make($name)->modifyQueryUsing(function (Builder $query) use ($id) {
                 Session::put('tasksActiveTab', $id);
+
                 return $query->where('task_status_id', $id);
             });
         }
+
         return $tabs;
     }
 }

@@ -11,8 +11,7 @@ class ReorderSeeder extends Seeder
 {
     public function __construct(
         private readonly ?int $scopeId = null,
-    ) {
-    }
+    ) {}
 
     public function run(): void
     {
@@ -28,10 +27,10 @@ class ReorderSeeder extends Seeder
             ->get()
             ->each(function (Stock $stock) {
                 Reorder::create([
-                    'scope_id'          => $this->scopeId,
-                    'stock_id'          => $stock->id,
-                    'reorder_point'     => rand(1, 3),
-                    'reorder_quantity'  => rand(2, 10),
+                    'scope_id' => $this->scopeId,
+                    'stock_id' => $stock->id,
+                    'reorder_point' => rand(1, 3),
+                    'reorder_quantity' => rand(2, 10),
                     'last_reorder_date' => fake()->optional(0.6)->dateTimeBetween('-6 months', 'now'),
                 ]);
             });

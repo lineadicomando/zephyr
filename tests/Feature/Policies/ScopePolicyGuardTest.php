@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    (new RolesAndPermissionsSeeder())->run();
+    (new RolesAndPermissionsSeeder)->run();
 });
 
 it('denies update when record belongs to another scope', function (): void {
@@ -46,7 +46,7 @@ it('denies update when record belongs to another scope', function (): void {
 
     $inventoryInOtherScope = Inventory::factory()->create(['scope_id' => $scopeBId]);
 
-    $policy = new InventoryPolicy();
+    $policy = new InventoryPolicy;
 
     expect($policy->update($user, $inventoryInOtherScope))->toBeFalse();
 });
@@ -66,7 +66,7 @@ it('denies update for users without assigned scopes', function (): void {
 
     $inventory = Inventory::factory()->create(['scope_id' => $scopeId]);
 
-    $policy = new InventoryPolicy();
+    $policy = new InventoryPolicy;
 
     expect($policy->update($user, $inventory))->toBeFalse();
 });

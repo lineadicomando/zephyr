@@ -11,6 +11,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditInventory extends EditRecord
 {
     use CancelToCloseAction;
+
     protected static string $resource = InventoryResource::class;
 
     protected function getHeaderActions(): array

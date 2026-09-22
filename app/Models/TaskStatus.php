@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaskStatus extends Model
 {
-    use PreventRelatedDeletion;
     use HasFactory;
+    use PreventRelatedDeletion;
 
     protected $fillable = [
         'default',
@@ -36,17 +36,18 @@ class TaskStatus extends Model
         }
     }
 
-    public static function getDefault(): TaskStatus|Null
+    public static function getDefault(): ?TaskStatus
     {
         return self::where('default', true)->first();
     }
 
-    public static function getDefaultId(): Int|Null
+    public static function getDefaultId(): ?int
     {
         $status = self::getDefault();
-        if (!$status) {
+        if (! $status) {
             return null;
         }
+
         return (int) $status->id;
     }
 

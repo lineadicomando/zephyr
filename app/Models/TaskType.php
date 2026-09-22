@@ -2,23 +2,20 @@
 
 namespace App\Models;
 
-use App\Models\Task;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TaskType extends Model
 {
-    use PreventRelatedDeletion;
     use HasFactory;
-
+    use PreventRelatedDeletion;
 
     protected $fillable = [
         'name',
         'chart',
         'chart_color',
     ];
-
 
     public function tasks()
     {

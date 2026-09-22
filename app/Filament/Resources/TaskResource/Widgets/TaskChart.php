@@ -17,7 +17,7 @@ class TaskChart extends ChartWidget
 
     protected string $color = 'info';
 
-    public function getHeading(): string | Htmlable | null
+    public function getHeading(): string|Htmlable|null
     {
         return __($this->heading ?? '');
     }
@@ -33,7 +33,7 @@ class TaskChart extends ChartWidget
 
             $query = Task::where('task_type_id', $taskType->id);
             $authUser = auth()->user();
-            if (!($authUser?->isAdmin())) {
+            if (! ($authUser?->isAdmin())) {
                 $query->where('user_id', $authUser?->id);
             }
 
@@ -50,7 +50,7 @@ class TaskChart extends ChartWidget
             if ($labels === []) {
                 $labels = $data->map(fn (TrendValue $value) => $value->date);
             }
-            $datasets[] =                [
+            $datasets[] = [
                 'label' => $taskType->name,
                 'backgroundColor' => $taskType->chart_color,
                 'borderColor' => $taskType->chart_color,

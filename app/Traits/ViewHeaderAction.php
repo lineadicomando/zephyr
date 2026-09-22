@@ -15,12 +15,13 @@ trait ViewHeaderAction
             session()->put('previousUrl', $previousUrl);
         }
         $previousUrl = session()->get('previousUrl', $rUrl);
+
         return [
             EditAction::make(),
             Action::make('cancel')
                 ->label(__('Close'))
                 ->url($previousUrl ?? $rUrl)
-                ->color('gray')
+                ->color('gray'),
         ];
     }
 }

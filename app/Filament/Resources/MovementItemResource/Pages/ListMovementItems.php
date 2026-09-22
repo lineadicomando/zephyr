@@ -2,14 +2,14 @@
 
 namespace App\Filament\Resources\MovementItemResource\Pages;
 
-use Filament\Actions;
-use Maatwebsite\Excel\Excel;
-use Filament\Resources\Pages\ListRecords;
-use App\Support\Export\ExportFilename;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use App\Filament\Resources\MovementResource;
 use App\Filament\Resources\MovementItemResource;
+use App\Filament\Resources\MovementResource;
+use App\Support\Export\ExportFilename;
+use Filament\Actions;
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Excel;
 use pxlrbt\FilamentExcel\Actions\Pages\ExportAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class ListMovementItems extends ListRecords
 {
@@ -29,8 +29,8 @@ class ListMovementItems extends ListRecords
                     ExcelExport::make()
                         ->fromTable()
                         ->askForFilename(ExportFilename::forCurrentScope(__('Movements')))
-                        ->askForWriterType(Excel::XLSX)
-                ])
+                        ->askForWriterType(Excel::XLSX),
+                ]),
         ];
     }
 }

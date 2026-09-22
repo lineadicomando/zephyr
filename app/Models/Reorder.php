@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToScope;
-use App\Models\Stock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
@@ -12,7 +11,6 @@ class Reorder extends Model
 {
     use BelongsToScope;
     use HasFactory;
-
 
     protected $fillable = [
         'scope_id',

@@ -46,7 +46,7 @@ it('prevents deactivation of protected scopes', function (): void {
     ]);
 
     expect(fn () => $scope->update(['is_active' => false]))
-        ->toThrow(\LogicException::class, 'Protected scopes cannot be deactivated.');
+        ->toThrow(LogicException::class, 'Protected scopes cannot be deactivated.');
 });
 
 it('prevents delete request for protected scopes', function (): void {
@@ -59,7 +59,7 @@ it('prevents delete request for protected scopes', function (): void {
     ]);
 
     expect(fn () => $scope->delete())
-        ->toThrow(\LogicException::class, 'Protected scopes cannot be deleted.');
+        ->toThrow(LogicException::class, 'Protected scopes cannot be deleted.');
 });
 
 it('allows changing only name for protected scopes', function (): void {
@@ -87,7 +87,7 @@ it('prevents changing slug for protected scopes', function (): void {
     ]);
 
     expect(fn () => $scope->update(['slug' => 'default-4-updated']))
-        ->toThrow(\LogicException::class, 'For protected scopes only the name can be changed.');
+        ->toThrow(LogicException::class, 'For protected scopes only the name can be changed.');
 });
 
 it('prevents delete request for active scopes', function (): void {
@@ -100,7 +100,7 @@ it('prevents delete request for active scopes', function (): void {
     ]);
 
     expect(fn () => $scope->delete())
-        ->toThrow(\LogicException::class, 'Active scopes cannot be deleted. Deactivate the scope first.');
+        ->toThrow(LogicException::class, 'Active scopes cannot be deleted. Deactivate the scope first.');
 });
 
 it('schedules deletion instead of physically deleting an inactive scope', function (): void {

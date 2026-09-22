@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 uses(RefreshDatabase::class);
 
 it('seeds only supported scope types including branch', function (): void {
-    (new ScopeSeeder())->run();
+    (new ScopeSeeder)->run();
 
     $types = DB::table('scopes')
         ->whereIn('slug', ['default', 'demo-school', 'demo-branch'])
@@ -25,7 +25,8 @@ it('seeds only supported scope types including branch', function (): void {
 });
 
 it('throws when seeder contains an unsupported scope type', function (): void {
-    $seeder = new class extends ScopeSeeder {
+    $seeder = new class extends ScopeSeeder
+    {
         protected function scopes(): array
         {
             return [

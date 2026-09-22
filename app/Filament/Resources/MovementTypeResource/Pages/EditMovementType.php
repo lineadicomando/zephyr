@@ -11,6 +11,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditMovementType extends EditRecord
 {
     use CancelToCloseAction;
+
     protected static string $resource = MovementTypeResource::class;
 
     protected function getHeaderActions(): array

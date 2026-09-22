@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\ProductBrand;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductModel extends Model
 {
-    use PreventRelatedDeletion;
     use HasFactory;
+    use PreventRelatedDeletion;
 
     protected $fillable = [
         'product_brand_id',

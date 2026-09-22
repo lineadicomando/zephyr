@@ -12,7 +12,7 @@ class ProductTypePolicy
         return $user->can('view_any_product_type');
     }
 
-    public function view(User $user, ProductType|null $model = null): bool
+    public function view(User $user, ?ProductType $model = null): bool
     {
         return $user->can('view_product_type');
     }
@@ -22,7 +22,7 @@ class ProductTypePolicy
         return $user->can('create_product_type');
     }
 
-    public function update(User $user, ProductType|null $model = null): bool
+    public function update(User $user, ?ProductType $model = null): bool
     {
         return $user->can('update_product_type');
     }
@@ -32,7 +32,7 @@ class ProductTypePolicy
         return $user->can('delete_any_product_type');
     }
 
-    public function delete(User $user, ProductType|null $model = null): bool
+    public function delete(User $user, ?ProductType $model = null): bool
     {
         return $user->can('delete_product_type');
     }
@@ -42,7 +42,7 @@ class ProductTypePolicy
         return $user->can('restore_any_product_type');
     }
 
-    public function restore(User $user, ProductType|null $model = null): bool
+    public function restore(User $user, ?ProductType $model = null): bool
     {
         return $user->can('restore_product_type');
     }
@@ -52,7 +52,7 @@ class ProductTypePolicy
         return $user->can('force_delete_any_product_type');
     }
 
-    public function forceDelete(User $user, ProductType|null $model = null): bool
+    public function forceDelete(User $user, ?ProductType $model = null): bool
     {
         return $user->can('force_delete_product_type');
     }

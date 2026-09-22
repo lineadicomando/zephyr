@@ -15,7 +15,7 @@ class MovementPolicy
         return $user->can('view_any_movement');
     }
 
-    public function view(User $user, Movement|null $model = null): bool
+    public function view(User $user, ?Movement $model = null): bool
     {
         return $user->can('view_movement') && $this->canAccessModelScope($user, $model);
     }
@@ -25,7 +25,7 @@ class MovementPolicy
         return $user->can('create_movement');
     }
 
-    public function update(User $user, Movement|null $model = null): bool
+    public function update(User $user, ?Movement $model = null): bool
     {
         return $user->can('update_movement') && $this->canAccessModelScope($user, $model);
     }
@@ -35,7 +35,7 @@ class MovementPolicy
         return $user->can('delete_any_movement');
     }
 
-    public function delete(User $user, Movement|null $model = null): bool
+    public function delete(User $user, ?Movement $model = null): bool
     {
         return $user->can('delete_movement') && $this->canAccessModelScope($user, $model);
     }
@@ -45,7 +45,7 @@ class MovementPolicy
         return $user->can('restore_any_movement');
     }
 
-    public function restore(User $user, Movement|null $model = null): bool
+    public function restore(User $user, ?Movement $model = null): bool
     {
         return $user->can('restore_movement') && $this->canAccessModelScope($user, $model);
     }
@@ -55,7 +55,7 @@ class MovementPolicy
         return $user->can('force_delete_any_movement');
     }
 
-    public function forceDelete(User $user, Movement|null $model = null): bool
+    public function forceDelete(User $user, ?Movement $model = null): bool
     {
         return $user->can('force_delete_movement') && $this->canAccessModelScope($user, $model);
     }

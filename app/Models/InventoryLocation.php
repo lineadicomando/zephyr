@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToScope;
-use App\Models\Stock;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,8 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 class InventoryLocation extends Model
 {
     use BelongsToScope;
-    use PreventRelatedDeletion;
     use HasFactory;
+    use PreventRelatedDeletion;
+
     protected static function booted(): void
     {
         static::saved(fn (InventoryLocation $inventoryLocation) => $inventoryLocation->onSaved());
@@ -33,6 +33,7 @@ class InventoryLocation extends Model
             'default' => true,
         ]);
     }
+
     protected $fillable = [
         'scope_id',
         'name',

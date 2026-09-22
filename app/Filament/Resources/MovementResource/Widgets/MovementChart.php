@@ -8,7 +8,6 @@ use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Facades\Log;
 
 class MovementChart extends ChartWidget
 {
@@ -16,11 +15,10 @@ class MovementChart extends ChartWidget
 
     protected static ?int $sort = 3;
 
-    public function getHeading(): string | Htmlable | null
+    public function getHeading(): string|Htmlable|null
     {
         return __($this->heading ?? '');
     }
-
 
     protected function getData(): array
     {
@@ -42,7 +40,7 @@ class MovementChart extends ChartWidget
             if ($labels === []) {
                 $labels = $data->map(fn (TrendValue $value) => $value->date);
             }
-            $datasets[] =                [
+            $datasets[] = [
                 'label' => $movementType->name,
                 'backgroundColor' => $movementType->chart_color,
                 'borderColor' => $movementType->chart_color,

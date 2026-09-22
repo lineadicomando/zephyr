@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Task;
 use App\Models\Inventory;
+use App\Models\Task;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

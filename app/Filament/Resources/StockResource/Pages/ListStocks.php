@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\StockResource\Pages;
 
-use Filament\Actions;
+use App\Filament\Resources\InventoryResource;
+use App\Filament\Resources\StockResource;
 use App\Models\Inventory;
-use Maatwebsite\Excel\Excel;
+use App\Support\Export\ExportFilename;
+use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
-use App\Filament\Resources\StockResource;
-use App\Support\Export\ExportFilename;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use App\Filament\Resources\InventoryResource;
+use Maatwebsite\Excel\Excel;
 use pxlrbt\FilamentExcel\Actions\Pages\ExportAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class ListStocks extends ListRecords
 {
@@ -24,7 +24,7 @@ class ListStocks extends ListRecords
             Actions\Action::make('inventory')
                 ->translateLabel()
                 ->label('Inventory')
-                ->hidden(fn () => !auth()->user()->can('view', Inventory::class))
+                ->hidden(fn () => ! auth()->user()->can('view', Inventory::class))
                 ->icon('heroicon-o-archive-box')
                 ->url(fn (): string => InventoryResource::getUrl()),
             ExportAction::make('table')
@@ -33,15 +33,16 @@ class ListStocks extends ListRecords
                     ExcelExport::make()
                         ->fromTable()
                         ->askForFilename(ExportFilename::forCurrentScope(__('Stocks')))
-                        ->askForWriterType(Excel::XLSX)
-                ])
+                        ->askForWriterType(Excel::XLSX),
+                ]),
         ];
     }
 
-    public function getDefaultActiveTab(): string | int | null
+    public function getDefaultActiveTab(): string|int|null
     {
         return 'Positive';
     }
+
     public function getTabs(): array
     {
         return [

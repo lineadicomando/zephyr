@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToScope;
-use App\Models\Inventory;
-use App\Models\InventoryLocation;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,8 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 class InventoryPosition extends Model
 {
     use BelongsToScope;
-    use PreventRelatedDeletion;
     use HasFactory;
+    use PreventRelatedDeletion;
 
     protected $fillable = [
         'scope_id',
@@ -37,7 +35,7 @@ class InventoryPosition extends Model
                 ->value('scope_id');
         }
 
-        $this->path = ($this->inventory_location?->name ?? '') . ($this->default ? '' :  ' \ ' . $this->name);
+        $this->path = ($this->inventory_location?->name ?? '').($this->default ? '' : ' \ '.$this->name);
         // \Illuminate\Support\Facades\Log::debug($this->path);
         // \Illuminate\Support\Facades\Log::debug('InventoryPosition::onSaving>>');
     }

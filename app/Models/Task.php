@@ -2,9 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Inventory;
-use App\Models\TaskStatus;
-use App\Models\User;
 use App\Models\Concerns\BelongsToScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -43,7 +40,6 @@ class Task extends Model
     {
         return $this->belongsToMany(Inventory::class, 'task_inventory')->withTimestamps();
     }
-
 
     public function task_type()
     {

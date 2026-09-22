@@ -15,7 +15,7 @@ class InventoryPolicy
         return $user->can('view_any_inventory');
     }
 
-    public function view(User $user, Inventory|null $model = null): bool
+    public function view(User $user, ?Inventory $model = null): bool
     {
         return $user->can('view_inventory') && $this->canAccessModelScope($user, $model);
     }
@@ -25,7 +25,7 @@ class InventoryPolicy
         return $user->can('create_inventory');
     }
 
-    public function update(User $user, Inventory|null $model = null): bool
+    public function update(User $user, ?Inventory $model = null): bool
     {
         return $user->can('update_inventory') && $this->canAccessModelScope($user, $model);
     }
@@ -35,7 +35,7 @@ class InventoryPolicy
         return $user->can('delete_any_inventory');
     }
 
-    public function delete(User $user, Inventory|null $model = null): bool
+    public function delete(User $user, ?Inventory $model = null): bool
     {
         return $user->can('delete_inventory') && $this->canAccessModelScope($user, $model);
     }
@@ -45,7 +45,7 @@ class InventoryPolicy
         return $user->can('restore_any_inventory');
     }
 
-    public function restore(User $user, Inventory|null $model = null): bool
+    public function restore(User $user, ?Inventory $model = null): bool
     {
         return $user->can('restore_inventory') && $this->canAccessModelScope($user, $model);
     }
@@ -55,7 +55,7 @@ class InventoryPolicy
         return $user->can('force_delete_any_inventory');
     }
 
-    public function forceDelete(User $user, Inventory|null $model = null): bool
+    public function forceDelete(User $user, ?Inventory $model = null): bool
     {
         return $user->can('force_delete_inventory') && $this->canAccessModelScope($user, $model);
     }

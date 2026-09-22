@@ -2,15 +2,6 @@
 
 use App\Models\TaskStatus;
 use App\Models\TaskType;
-use App\Models\Inventory;
-use App\Models\InventoryLocation;
-use App\Models\InventoryPosition;
-use App\Models\Product;
-use App\Models\ProductBrand;
-use App\Models\ProductGroup;
-use App\Models\ProductModel;
-use App\Models\ProductType;
-use App\Models\Stock;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
