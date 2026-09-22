@@ -35,13 +35,31 @@ class Inventory extends Model
     public function autoInventoryNumber($save = false): string
     {
         if (empty($this->inventory_number) && ! empty($this->id)) {
-            $this->inventory_number = str_pad($this->id, env('INVENTORY_NUMBER_ZERO_FILL', 6), '0', STR_PAD_LEFT);
+            $this->inventory_number = $this->nextFreeInventoryNumber();
         }
         if ($save) {
             $this->saveQuietly();
         }
 
         return $this->inventory_number ? $this->inventory_number : '';
+    }
+
+    /**
+     * First inventory number, starting from the record id, not yet used in the scope.
+     */
+    protected function nextFreeInventoryNumber(): string
+    {
+        $sequence = (int) $this->id;
+
+        do {
+            $number = str_pad((string) $sequence++, env('INVENTORY_NUMBER_ZERO_FILL', 6), '0', STR_PAD_LEFT);
+        } while (static::query()
+            ->where('scope_id', $this->scope_id)
+            ->where('inventory_number', $number)
+            ->whereKeyNot($this->getKey())
+            ->exists());
+
+        return $number;
     }
 
     public function syncSummary($save = false): string

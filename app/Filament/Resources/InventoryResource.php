@@ -26,6 +26,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\Rules\Unique;
 
 class InventoryResource extends Resource
 {
@@ -98,11 +99,17 @@ class InventoryResource extends Resource
 
         return [
             TextInput::make('inventory_number')
-                ->unique(ignoreRecord: true)
+                ->unique(
+                    ignoreRecord: true,
+                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->id),
+                )
                 ->helperText(__('Leave blank for automatic assignment.'))
                 ->translateLabel(),
             BarcodeScannerInput::make('serial_number')
-                ->unique(ignoreRecord: true)
+                ->unique(
+                    ignoreRecord: true,
+                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->id),
+                )
                 ->translateLabel(),
             Select::make('product_id')
                 ->required()

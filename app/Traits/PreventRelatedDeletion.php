@@ -2,24 +2,30 @@
 
 namespace App\Traits;
 
-use Filament\Actions\Action;
+use Filament\Facades\Filament;
 
 trait PreventRelatedDeletion
 {
+    public ?string $failureState = null;
+
     public function preventDeletionBy()
     {
         return [];
     }
 
-
-    public function hasRelated()
+    /**
+     * Determine whether the record is referenced by any relation listed in
+     * preventDeletionBy(). The tenancy scope is ignored so that records used
+     * by other tenants are detected as well.
+     */
+    public function hasRelated(): bool
     {
-        $hasMany = $this->preventDeletionBy();
-        foreach ($hasMany as $method) {
-            if ($this->$method()?->exists()) {
+        foreach ($this->preventDeletionBy() as $method) {
+            if ($this->$method()->withoutGlobalScope(Filament::getTenancyScopeName())->exists()) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -27,8 +33,10 @@ trait PreventRelatedDeletion
     {
         if ($this->hasRelated()) {
             $this->failureState = __('The record cannot be deleted because it is linked to another.');
+
             return false;
         }
+
         return parent::delete();
     }
 }

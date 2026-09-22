@@ -2,17 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\Inventory;
-use App\Models\ProductBrand;
-use App\Models\ProductGroup;
-use App\Models\ProductModel;
-use App\Models\ProductType;
+use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
     use HasFactory;
+    use PreventRelatedDeletion;
 
     protected $fillable = [
         'product_group_id',
@@ -23,7 +20,6 @@ class Product extends Model
         'name',
         'note',
     ];
-
 
     protected static function booted(): void
     {
@@ -46,6 +42,13 @@ class Product extends Model
         });
     }
 
+    public function preventDeletionBy()
+    {
+        return [
+            'inventories',
+            'stocks',
+        ];
+    }
 
     public function stocks()
     {
