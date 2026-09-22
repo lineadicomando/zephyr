@@ -43,7 +43,6 @@ Items left open after the September 2026 code review. Fixed items are in the git
 ### Operations and setup
 - [ ] Verify that `mysqldump`/`mariadb-dump` is available in the Docker image after build
 - [ ] API tokens can only be created through tinker: add a command or a panel page to issue/revoke tokens with abilities
-- [ ] CI: align PHP version (8.4 in CI, 8.5 in Docker), add a Pint check and a `permissions:` block, pin actions to a SHA
 - [ ] README: document the new behaviours (confirmation of `migrate:seed*` in production, required `BOOTSTRAP_ADMIN_PASSWORD`, admin vs super admin rules) and warn to back up before `php artisan migrate` (the duplicate stock merge is irreversible)
 
 ### Performance
@@ -53,7 +52,6 @@ Items left open after the September 2026 code review. Fixed items are in the git
 - [ ] Missing indexes: `tasks` (`task_type_id`, `task_status_id`, `user_id`, `starts_at`), movement foreign keys, `inventories.product_id`, product foreign keys
 
 ### Code quality
-- [ ] Apply Pint to the ~100 files that are not formatted yet
 - [ ] Add Larastan (new dependency, needs approval): plain PHPStan reports ~290 mostly false positive errors on Eloquent magic
 - [ ] Remove dead code: `UserResource\RelationManagers\GroupsRelationManager` (no `groups` relation), `config/scopes.php` `console_bypass_commands` (unused, still mentioned in the README), unused static helpers in `InventoryResource` (lines ~62-94)
 - [ ] Deduplicate the inventory table/filters (`InventoryResource`, `TaskResource\InventoriesRelationManager`, `StockResource`) and the `requestDeletion` action (`ScopeResource`, `EditScope`)

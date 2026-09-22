@@ -9,14 +9,17 @@ on:
       - 'v*'
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   version-alignment:
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Verify app.php version matches Git tag
         run: |
@@ -40,24 +43,41 @@ jobs:
             exit 1
           fi
 
-  pest:
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  pint:
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+
+      - name: Check code style
+        run: vendor/bin/pint --test
+
+  pest:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
           extensions: mbstring, sqlite3, pdo_sqlite
           coverage: none
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
           cache: npm
