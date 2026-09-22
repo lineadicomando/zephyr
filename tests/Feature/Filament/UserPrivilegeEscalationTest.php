@@ -30,6 +30,7 @@ beforeEach(function () {
 it('does not let an admin grant the super_admin role', function () {
     $target = User::factory()->create();
     $target->assignRole('user');
+    $target->scopes()->attach($this->ownScope);
 
     Livewire::test(EditUser::class, ['record' => $target->getRouteKey()])
         ->fillForm([
@@ -40,27 +41,31 @@ it('does not let an admin grant the super_admin role', function () {
     expect($target->fresh()->hasRole('super_admin'))->toBeFalse();
 });
 
-it('lets an admin assign non privileged roles', function () {
+it('does not let an admin promote a user to admin', function () {
     $target = User::factory()->create();
+    $target->syncRoles(['user']);
+    $target->scopes()->attach($this->ownScope);
 
     Livewire::test(EditUser::class, ['record' => $target->getRouteKey()])
-        ->fillForm([
-            'roles' => [Role::findByName('user')->id],
-        ])
-        ->call('save')
-        ->assertHasNoFormErrors();
+        ->assertFormFieldHidden('roles')
+        ->fillForm(['roles' => [Role::findByName('admin')->id]])
+        ->call('save');
 
-    expect($target->fresh()->hasRole('user'))->toBeTrue();
+    expect($target->fresh()->hasRole('admin'))->toBeFalse();
 });
 
 it('does not let an admin manage a super_admin account', function () {
     $root = User::factory()->create();
     $root->assignRole('super_admin');
+    $root->scopes()->attach($this->ownScope);
+
+    $colleague = User::factory()->create();
+    $colleague->scopes()->attach($this->ownScope);
 
     expect($this->admin->can('update', $root))->toBeFalse()
         ->and($this->admin->can('delete', $root))->toBeFalse()
         ->and($this->admin->can('forceDelete', $root))->toBeFalse()
-        ->and($this->admin->can('update', User::factory()->create()))->toBeTrue();
+        ->and($this->admin->can('update', $colleague))->toBeTrue();
 });
 
 it('lets a super_admin manage another super_admin account', function () {
@@ -104,7 +109,7 @@ it('lets an admin attach a user to a scope they belong to', function () {
     expect($target->fresh()->hasScope($this->ownScope->id))->toBeTrue();
 });
 
-it('does not let an admin detach a scope they do not belong to', function () {
+it('does not let an admin see or detach a scope they do not belong to', function () {
     $target = User::factory()->create();
     $target->scopes()->attach([$this->ownScope->id, $this->foreignScope->id]);
 
@@ -112,6 +117,9 @@ it('does not let an admin detach a scope they do not belong to', function () {
         'ownerRecord' => $target,
         'pageClass' => EditUser::class,
     ])
-        ->assertActionHidden(TestAction::make('detach')->table($this->foreignScope))
+        ->assertCanSeeTableRecords([$this->ownScope])
+        ->assertCanNotSeeTableRecords([$this->foreignScope])
         ->assertActionVisible(TestAction::make('detach')->table($this->ownScope));
+
+    expect($this->admin->can('manageMembership', $this->foreignScope))->toBeFalse();
 });

@@ -30,17 +30,11 @@ class ScopesRelationManager extends RelationManager
     }
 
     /**
-     * Limit attachable scopes to the ones the current user can manage.
+     * Limit listed and attachable scopes to the ones the current user belongs to.
      */
     protected function scopeToManageableScopes(Builder $query): Builder
     {
-        $user = auth()->user();
-
-        if ($user?->isRoot()) {
-            return $query;
-        }
-
-        return $query->whereIn('scopes.id', $user?->scopes()->select('scopes.id') ?? []);
+        return $query->visibleTo(auth()->user());
     }
 
     protected function canManageScopeMembership(?Scope $scope): bool
@@ -51,6 +45,7 @@ class ScopesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $this->scopeToManageableScopes($query))
             ->recordTitleAttribute('name')
             ->columns([
                 Tables\Columns\TextColumn::make('name')

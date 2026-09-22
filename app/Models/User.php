@@ -8,6 +8,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasDefaultTenant;
 use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -81,6 +82,28 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
     public function hasScope(int $scopeId): bool
     {
         return $this->scopes()->whereKey($scopeId)->exists();
+    }
+
+    /**
+     * Determine whether the user belongs to at least one scope of $other.
+     */
+    public function sharesScopeWith(User $other): bool
+    {
+        return $this->scopes()->whereIn('scopes.id', $other->scopes()->select('scopes.id'))->exists();
+    }
+
+    /**
+     * Limit the query to the users visible to $viewer: super admins see every
+     * user, everybody else only the users sharing at least one scope.
+     */
+    public function scopeVisibleTo(Builder $query, User $viewer): Builder
+    {
+        if ($viewer->isRoot()) {
+            return $query;
+        }
+
+        return $query->whereHas('scopes', fn (Builder $scopes): Builder => $scopes
+            ->whereIn('scopes.id', $viewer->scopes()->select('scopes.id')));
     }
 
     public function preventDeletionBy()

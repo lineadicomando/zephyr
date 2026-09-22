@@ -51,6 +51,14 @@ class UserResource extends Resource
         return __('Users');
     }
 
+    /**
+     * Super admins see every user, other users only the ones sharing a scope.
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->visibleTo(auth()->user());
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
@@ -74,13 +82,8 @@ class UserResource extends Resource
                     ->translateLabel()
                     ->multiple()
                     ->preload()
-                    ->relationship(
-                        'roles',
-                        'name',
-                        modifyQueryUsing: fn (Builder $query): Builder => auth()->user()?->isRoot()
-                            ? $query
-                            : $query->where('name', '!=', 'super_admin'),
-                    ),
+                    ->relationship('roles', 'name')
+                    ->visible(fn (): bool => (bool) auth()->user()?->isRoot()),
             ]);
     }
 

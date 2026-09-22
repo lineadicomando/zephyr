@@ -17,6 +17,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ScopeResource extends Resource
 {
@@ -43,6 +44,14 @@ class ScopeResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('Scopes');
+    }
+
+    /**
+     * Super admins see every scope, other users only the scopes they belong to.
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->visibleTo(auth()->user());
     }
 
     public static function form(Schema $schema): Schema
@@ -78,7 +87,8 @@ class ScopeResource extends Resource
             Toggle::make('is_active')
                 ->translateLabel()
                 ->disabled(
-                    fn (?Scope $record): bool => (bool) $record?->protected,
+                    fn (?Scope $record): bool => (bool) $record?->protected
+                        || ($record !== null && ! auth()->user()->can('changeStatus', $record)),
                 )
                 ->default(true),
         ]);
@@ -148,6 +158,7 @@ class ScopeResource extends Resource
                 ViewAction::make(),
                 EditAction::make(),
                 Action::make('requestDeletion')
+                    ->authorize('delete')
                     ->label(__('Request deletion'))
                     ->icon('heroicon-o-trash')
                     ->color('danger')

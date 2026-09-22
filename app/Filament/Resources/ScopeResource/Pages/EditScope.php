@@ -19,6 +19,7 @@ class EditScope extends EditRecord
     {
         return [
             Actions\Action::make('requestDeletion')
+                ->authorize('delete')
                 ->label(__('Request deletion'))
                 ->icon('heroicon-o-trash')
                 ->color('danger')

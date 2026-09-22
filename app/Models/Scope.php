@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Filament\Models\Contracts\HasCurrentTenantLabel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -46,6 +47,19 @@ class Scope extends Model implements HasCurrentTenantLabel
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withTimestamps();
+    }
+
+    /**
+     * Limit the query to the scopes visible to $viewer: super admins see every
+     * scope, everybody else only the scopes they belong to.
+     */
+    public function scopeVisibleTo(Builder $query, User $viewer): Builder
+    {
+        if ($viewer->isRoot()) {
+            return $query;
+        }
+
+        return $query->whereIn('scopes.id', $viewer->scopes()->select('scopes.id'));
     }
 
     public function enforceLifecycleGuardrailsOnSaving(): void

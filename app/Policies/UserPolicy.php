@@ -6,6 +6,11 @@ use App\Models\User;
 
 class UserPolicy
 {
+    /*
+     * Super admins are allowed through the Shield gate intercept before these
+     * methods run: the checks below apply to every other user.
+     */
+
     public function viewAny(User $user): bool
     {
         return $user->can('view_any_user');
@@ -13,7 +18,7 @@ class UserPolicy
 
     public function view(User $user, ?User $model = null): bool
     {
-        return $user->can('view_user');
+        return $user->can('view_user') && $this->canSeeAccount($user, $model);
     }
 
     public function create(User $user): bool
@@ -23,7 +28,8 @@ class UserPolicy
 
     public function update(User $user, ?User $model = null): bool
     {
-        return $user->can('update_user') && $this->canManageAccount($user, $model);
+        return $user->can('update_user')
+            && ($model?->is($user) || $this->canManageAccount($user, $model));
     }
 
     public function deleteAny(User $user): bool
@@ -57,10 +63,29 @@ class UserPolicy
     }
 
     /**
-     * Super admin accounts can only be managed by other super admins.
+     * Users can see their own account and the accounts sharing a scope with them.
+     */
+    protected function canSeeAccount(User $user, ?User $model): bool
+    {
+        return $model === null
+            || $user->isRoot()
+            || $model->is($user)
+            || $user->sharesScopeWith($model);
+    }
+
+    /**
+     * Admin and super admin accounts are managed only by super admins; other
+     * accounts by the users sharing a scope with them. Nobody but a super
+     * admin can manage their own account through these abilities.
      */
     protected function canManageAccount(User $user, ?User $model): bool
     {
-        return $model === null || ! $model->isRoot() || $user->isRoot();
+        if ($model === null || $user->isRoot()) {
+            return true;
+        }
+
+        return ! $model->is($user)
+            && ! $model->isAdmin()
+            && $user->sharesScopeWith($model);
     }
 }
