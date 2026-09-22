@@ -2,19 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Tables;
-use Filament\Schemas\Schema;
-use Filament\Tables\Table;
+use App\Filament\Resources\MovementItemResource\Pages;
 use App\Models\MovementItem;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\MovementItemResource\Pages;
-use App\Filament\Resources\MovementItemResource\RelationManagers;
-use App\Models\MovementType;
+use Filament\Tables\Table;
 
 class MovementItemResource extends Resource
 {
@@ -28,12 +24,12 @@ class MovementItemResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return (__('Details/Export'));
+        return __('Details/Export');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return (__('Details/Export'));
+        return __('Details/Export');
     }
 
     public static function form(Schema $schema): Schema
@@ -170,8 +166,9 @@ class MovementItemResource extends Resource
                 // \Filament\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords(fn (MovementItem $record): bool => $record->isLast() && auth()->user()->can('delete', $record)),
                 ]),
             ]);
     }

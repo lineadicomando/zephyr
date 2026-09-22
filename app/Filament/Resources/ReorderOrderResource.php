@@ -115,7 +115,8 @@ class ReorderOrderResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords(fn (ReorderOrder $record): bool => $record->status === ReorderOrder::STATUS_DRAFT && auth()->user()->can('delete', $record)),
                 ]),
             ]);
     }

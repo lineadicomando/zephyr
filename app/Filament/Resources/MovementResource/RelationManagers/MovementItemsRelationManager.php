@@ -2,39 +2,40 @@
 
 namespace App\Filament\Resources\MovementResource\RelationManagers;
 
-use App\Filament\Resources\InventoryResource;
-use App\Models\Inventory;
+use App\Models\MovementItem;
 use App\Models\Stock;
-use Filament\Forms;
+use App\Services\Stocks\StockAvailabilityService;
+use Closure;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Utilities\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 class MovementItemsRelationManager extends RelationManager
 {
     protected static string $relationship = 'movement_items';
 
-    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('Movement Items');
     }
 
     public function form(Schema $schema): Schema
     {
-        // \Illuminate\Support\Facades\DB::listen(function ($query) {
-        //     Log::debug($query->sql);
-        //     Log::debug($query->bindings);
-        // });
-        $inventoryTable = app(Inventory::class)->getTable();
         return $schema
             ->schema([
                 Select::make('inventory_id')
@@ -42,7 +43,7 @@ class MovementItemsRelationManager extends RelationManager
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set) {
-                        if (!is_null($this->ownerRecord->from_inventory_position_id)) {
+                        if (! is_null($this->ownerRecord->from_inventory_position_id)) {
                             $availability = Stock::findAvailability(
                                 inventoryId: $state,
                                 positionId: $this->ownerRecord->from_inventory_position_id
@@ -50,16 +51,15 @@ class MovementItemsRelationManager extends RelationManager
                             $set('availability', $availability);
                         }
                     })
-                    ->relationship('inventory', "summary", modifyQueryUsing: function (Builder $query) {
-                        if (!is_null($this->ownerRecord->from_inventory_position_id)) {
+                    ->relationship('inventory', 'summary', modifyQueryUsing: function (Builder $query) {
+                        if (! is_null($this->ownerRecord->from_inventory_position_id)) {
                             $query->join('stocks', 'inventories.id', '=', 'stocks.inventory_id');
                             $query->where('stocks.stock', '>', '0');
                             $query->where('stocks.inventory_position_id', $this->ownerRecord->from_inventory_position_id);
                         }
+
                         return $query;
                     })
-                    // ->createOptionForm(InventoryResource::getFormDefinition())
-                    // ->editOptionForm(InventoryResource::getFormDefinition())
                     ->columnSpanFull(),
                 TextInput::make('availability')
                     ->translateLabel()
@@ -70,7 +70,11 @@ class MovementItemsRelationManager extends RelationManager
                     ->default(1)
                     ->translateLabel()
                     ->required()
-                    ->numeric(),
+                    ->integer()
+                    ->minValue(1)
+                    ->rule(fn (Get $get): Closure => $this->withdrawalRule(
+                        filled($get('inventory_id')) ? (int) $get('inventory_id') : null,
+                    )),
             ]);
     }
 
@@ -85,7 +89,6 @@ class MovementItemsRelationManager extends RelationManager
                 TextColumn::make('outcoming_stock.stock')
                     ->label('Residual availability')
                     ->translateLabel(),
-                // TextInputColumn::make('stock'),
                 TextColumn::make('stock')
                     ->translateLabel()
                     ->label('Qty'),
@@ -94,28 +97,93 @@ class MovementItemsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                \Filament\Actions\CreateAction::make(),
+                CreateAction::make()
+                    ->using(fn (array $data, CreateAction $action): MovementItem => $this->withdraw(
+                        action: $action,
+                        inventoryId: (int) $data['inventory_id'],
+                        quantity: (int) $data['stock'],
+                        callback: fn (): MovementItem => $this->getOwnerRecord()->movement_items()->create($data),
+                    )),
             ])
             ->actions([
-                \Filament\Actions\DeleteAction::make()
-                    ->hidden(fn (\App\Models\MovementItem $movementItem) => !$movementItem->isLast())
+                DeleteAction::make()
+                    ->hidden(fn (MovementItem $movementItem) => ! $movementItem->isLast())
                     ->label(''),
-                \Filament\Actions\EditAction::make()
-                    ->hidden(fn (\App\Models\MovementItem $movementItem) => !$movementItem->isLast())
+                EditAction::make()
+                    ->hidden(fn (MovementItem $movementItem) => ! $movementItem->isLast())
                     ->label('')
-                    ->form([
+                    ->form(fn (MovementItem $record): array => [
                         TextInput::make('stock')
                             ->label('Qty')
                             ->default(1)
                             ->translateLabel()
                             ->required()
-                            ->numeric(),
-                    ]),
+                            ->integer()
+                            ->minValue(1)
+                            ->rule(fn (): Closure => $this->withdrawalRule($record->inventory_id, $record)),
+                    ])
+                    ->using(fn (array $data, EditAction $action, MovementItem $record): MovementItem => $this->withdraw(
+                        action: $action,
+                        inventoryId: $record->inventory_id,
+                        quantity: (int) $data['stock'],
+                        alreadyWithdrawn: $this->alreadyWithdrawn($record),
+                        callback: function () use ($data, $record): MovementItem {
+                            $record->update(['stock' => (int) $data['stock']]);
+
+                            return $record;
+                        },
+                    )),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords(fn (MovementItem $record): bool => $record->isLast() && auth()->user()->can('delete', $record)),
                 ]),
             ]);
+    }
+
+    protected function withdrawalRule(?int $inventoryId, ?MovementItem $record = null): Closure
+    {
+        $positionId = $this->getOwnerRecord()->from_inventory_position_id;
+
+        return function (string $attribute, mixed $value, Closure $fail) use ($inventoryId, $positionId, $record): void {
+            if ($inventoryId === null || ! is_numeric($value)) {
+                return;
+            }
+
+            if (! app(StockAvailabilityService::class)->canWithdraw($inventoryId, $positionId, (int) $value, $this->alreadyWithdrawn($record))) {
+                $fail(__('Insufficient availability, impossible to proceed'));
+            }
+        };
+    }
+
+    protected function alreadyWithdrawn(?MovementItem $record): int
+    {
+        return filled($record?->outcoming_stock_id) ? (int) $record->getOriginal('stock') : 0;
+    }
+
+    /**
+     * @param  Closure(): MovementItem  $callback
+     */
+    protected function withdraw(Action $action, int $inventoryId, int $quantity, Closure $callback, int $alreadyWithdrawn = 0): MovementItem
+    {
+        try {
+            return app(StockAvailabilityService::class)->withdraw(
+                inventoryId: $inventoryId,
+                positionId: $this->getOwnerRecord()->from_inventory_position_id,
+                quantity: $quantity,
+                callback: $callback,
+                alreadyWithdrawn: $alreadyWithdrawn,
+            );
+        } catch (ValidationException) {
+            Notification::make()
+                ->warning()
+                ->title(__('Warning'))
+                ->body(__('Insufficient availability, impossible to proceed'))
+                ->persistent()
+                ->send();
+
+            $action->halt();
+        }
     }
 }

@@ -208,7 +208,12 @@ class MovementResource extends Resource
                 return Pages\ViewMovement::getUrl([$record->id]);
             })
             ->actions([ViewAction::make(), EditAction::make()])
-            ->bulkActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords(fn (Movement $record): bool => ! $record->hasSubsequentMovements() && auth()->user()->can('delete', $record)),
+                ]),
+            ]);
     }
 
     public static function getRelations(): array

@@ -7,21 +7,27 @@ use App\Models\Movement;
 use App\Models\MovementItem;
 use App\Models\MovementType;
 use App\Models\Stock;
-use Filament\Forms;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Notifications\Livewire\Notifications;
-use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Support\Enums\Alignment;
-use Filament\Support\Enums\VerticalAlignment;
-use Filament\Tables;
+use App\Services\Stocks\StockAvailabilityService;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 
 class MovementsRelationManager extends RelationManager
 {
@@ -35,60 +41,69 @@ class MovementsRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         $ownerRecord = $this->getOwnerRecord();
+
         return $schema
             ->schema([
-                \Filament\Forms\Components\Hidden::make('inventory_id')
-                    ->default($ownerRecord->id),
-                \Filament\Forms\Components\DateTimePicker::make('date')
+                DateTimePicker::make('date')
                     ->required()
-                    ->disabled(fn ($record) => !is_null($record))
+                    ->disabled(fn ($record) => ! is_null($record))
                     ->default(date('Y-m-d h:i'))
                     ->seconds(false)
                     ->translateLabel(),
-                \Filament\Forms\Components\Select::make('movement_type_id')
+                Select::make('movement_type_id')
                     ->label('Movement type')
                     ->required()
                     ->searchable()
                     ->preload()
                     ->translateLabel()
                     ->options(MovementType::all()->sortBy('name')->pluck('name', 'id')),
-                \Filament\Forms\Components\Select::make('from_inventory_position_id')
+                Select::make('from_inventory_position_id')
                     ->label('Origin position')
-                    ->disabled(fn ($record) => !is_null($record))
+                    ->disabled(fn ($record) => ! is_null($record))
                     ->translateLabel()
                     ->searchable()
                     ->live()
                     ->preload()
-                    ->options(function (\App\Models\Stock $stock, Get $get) use ($ownerRecord) {
-                        $query = $stock
+                    ->options(function () use ($ownerRecord) {
+                        $query = Stock::query()
                             ->select('path', 'inventory_position_id as id')
                             ->where('stock', '>', 0)
                             ->where('inventory_id', $ownerRecord->id);
+
                         return $query->get()->sortBy('path')->pluck('path', 'id');
                     }),
-                \Filament\Forms\Components\Select::make('to_inventory_position_id')
+                Select::make('to_inventory_position_id')
                     ->label('Destination position')
-                    ->disabled(fn ($record) => !is_null($record))
+                    ->disabled(fn ($record) => ! is_null($record))
                     ->translateLabel()
                     ->searchable()
                     ->preload()
                     ->live()
-                    ->options(function (InventoryPosition $inventoryPosition, Get $get) {
-                        $query = $inventoryPosition->select('path', 'id')->where('id', '<>', $get('from_inventory_position_id'));
+                    ->options(function (Get $get) {
+                        $query = InventoryPosition::query()->select('path', 'id')->where('id', '<>', $get('from_inventory_position_id'));
+
                         return $query->get()->sortBy('path')->pluck('path', 'id');
                     }),
-                \Filament\Forms\Components\TextInput::make('stock')
+                TextInput::make('stock')
                     ->label('Qty')
-                    ->disabled(fn ($record) => !is_null($record))
+                    ->disabled(fn ($record) => ! is_null($record))
                     ->default(1)
                     ->translateLabel()
                     ->required()
-                    ->numeric(),
-                \Filament\Forms\Components\TextInput::make('description')
+                    ->integer()
+                    ->minValue(1)
+                    ->rule(fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get, $ownerRecord): void {
+                        $positionId = filled($get('from_inventory_position_id')) ? (int) $get('from_inventory_position_id') : null;
+
+                        if (is_numeric($value) && ! app(StockAvailabilityService::class)->canWithdraw($ownerRecord->id, $positionId, (int) $value)) {
+                            $fail(__('Insufficient availability, impossible to proceed'));
+                        }
+                    }),
+                TextInput::make('description')
                     ->translateLabel()
                     ->maxLength(255)
                     ->required(),
-                \Filament\Forms\Components\Textarea::make('note')->translateLabel(),
+                Textarea::make('note')->translateLabel(),
             ]);
     }
 
@@ -154,91 +169,58 @@ class MovementsRelationManager extends RelationManager
                     ->translateLabel()
                     ->searchable()
                     ->preload()
-                    ->relationship('movement.to_inventory_position', 'path')
+                    ->relationship('movement.to_inventory_position', 'path'),
             ])->filtersFormColumns(2)
             ->headerActions([
-                \Filament\Actions\CreateAction::make()
-                    ->using(function (array $data, $action,  string $model): Model|bool {
+                CreateAction::make()
+                    ->using(function (array $data, CreateAction $action, string $model): Model {
+                        $data['inventory_id'] = $this->getOwnerRecord()->getKey();
+                        $positionId = filled($data['from_inventory_position_id'] ?? null) ? (int) $data['from_inventory_position_id'] : null;
 
-                        if (empty($data['inventory_id'])) {
-                            \Filament\Notifications\Notification::make()
-                                ->danger()
-                                ->icon('heroicon-o-exclamation-triangle')
-                                ->title(__('Error'))
-                                ->body(__('Unknown error, contact support'))
-                                ->persistent()
-                                ->actions([
-                                    \Filament\Notifications\Actions\Action::make('Close')
-                                        ->button()
-                                        ->close()
-                                ])
-                                ->send();
-                            $action->halt();
-                            return false;
-                        }
-
-                        if (!empty($data['from_inventory_position_id'])) {
-                            $stock = Stock::findAvailability(
+                        try {
+                            return app(StockAvailabilityService::class)->withdraw(
                                 inventoryId: $data['inventory_id'],
-                                positionId: $data['from_inventory_position_id'],
+                                positionId: $positionId,
+                                quantity: (int) $data['stock'],
+                                callback: function () use ($data, $model): Model {
+                                    $data['movement_id'] = Movement::create($data)->getKey();
+
+                                    return $model::create($data);
+                                },
                             );
-                            $newStock = $stock - $data['stock'];
-                            if ($newStock < 0) {
-                                \Filament\Notifications\Notification::make()
-                                    ->warning()
-                                    ->title(__('Warning'))
-                                    ->body(__('Insufficient availability, impossible to proceed'))
-                                    ->persistent()
-                                    ->send();
-                                $action->halt();
-                                return false;
-                            }
-                        }
-
-                        $movement = \App\Models\Movement::create($data);
-                        if (!$movement->id) {
-                            \Filament\Notifications\Notification::make()
-                                ->danger()
-                                ->icon('heroicon-o-exclamation-triangle')
-                                ->title(__('Error'))
-                                ->body(__('Unknown error, contact support'))
+                        } catch (ValidationException) {
+                            Notification::make()
+                                ->warning()
+                                ->title(__('Warning'))
+                                ->body(__('Insufficient availability, impossible to proceed'))
                                 ->persistent()
-                                ->actions([
-                                    \Filament\Notifications\Actions\Action::make('Close')
-                                        ->button()
-                                        ->close()
-                                ])
                                 ->send();
-                            $action->halt();
-                            return false;
-                        }
-                        $data['movement_id'] = $movement->id;
 
-                        return $model::create($data);
-                    })
+                            $action->halt();
+                        }
+                    }),
             ])
             ->actions([
-                \Filament\Actions\Action::make('Movement')
+                Action::make('Movement')
                     ->translateLabel()
                     ->color('gray')
                     // ->icon('heroicon-m-eye')
                     ->icon('heroicon-s-arrow-up-tray')
-                    ->url(function (\App\Models\MovementItem $record) {
-                        return url('/movements/' . $record->movement_id . '/view');
+                    ->url(function (MovementItem $record) {
+                        return url('/movements/'.$record->movement_id.'/view');
                     })->openUrlInNewTab(),
-                \Filament\Actions\ViewAction::make()
+                ViewAction::make()
                     ->beforeFormFilled(fn (array $data, string $model, MovementItem $movementItem) => self::ActionsBeforeFormFilled($data, $model, $movementItem)),
-                \Filament\Actions\EditAction::make()
+                EditAction::make()
                     ->beforeFormFilled(fn (array $data, string $model, MovementItem $movementItem) => self::ActionsBeforeFormFilled($data, $model, $movementItem))
-                    ->using(function (array $data, $action, MovementItem $movementItem): Model | bool {
-                        $movement = \App\Models\Movement::find($movementItem->movement_id);
-                        $movement->update($data);
-                        $movementItem->update($data);
+                    ->using(function (array $data, MovementItem $movementItem): Model {
+                        $movementItem->movement->update(Arr::only($data, ['movement_type_id', 'description', 'note']));
+
                         return $movementItem;
                     }),
-                \Filament\Actions\ActionGroup::make([
-                    \Filament\Actions\DeleteAction::make()->hidden(fn (MovementItem $movementItem) => !$movementItem->isLast()),
-                ])
+                ActionGroup::make([
+                    DeleteAction::make()->hidden(fn (MovementItem $movementItem) => ! $movementItem->isLast()),
+                ]),
             ])
             ->bulkActions([
                 // \Filament\Actions\BulkActionGroup::make([

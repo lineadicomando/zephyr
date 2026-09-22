@@ -21,7 +21,7 @@ class MovementFactory extends Factory
             'from_inventory_location_id' => null,
             'from_inventory_position_id' => null,
             'to_inventory_location_id' => $toLocation->id,
-            'to_inventory_position_id' => InventoryPosition::factory()->for($toLocation, 'inventoryLocation'),
+            'to_inventory_position_id' => InventoryPosition::factory()->for($toLocation, 'inventory_location'),
             'description' => fake()->optional(0.7)->sentence(5),
             'note' => fake()->optional(0.2)->sentence(),
         ];

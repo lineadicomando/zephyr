@@ -34,10 +34,10 @@ class Movement extends Model
 
     public function onSaving()
     {
-        if ($this->to_inventory_position_id && !$this->to_inventory_location_id) {
+        if ($this->to_inventory_position_id && ! $this->to_inventory_location_id) {
             $this->to_inventory_location_id = $this->to_inventory_position?->inventory_location_id;
         }
-        if ($this->from_inventory_position_id && !$this->from_inventory_location_id) {
+        if ($this->from_inventory_position_id && ! $this->from_inventory_location_id) {
             $this->from_inventory_location_id = $this->from_inventory_position?->inventory_location_id;
         }
     }
@@ -69,6 +69,20 @@ class Movement extends Model
     public function preventDeletionBy()
     {
         return [];
+    }
+
+    /**
+     * Determine whether any inventory of this movement was moved again afterwards.
+     */
+    public function hasSubsequentMovements(): bool
+    {
+        return $this->movement_items()
+            ->whereExists(fn ($query) => $query
+                ->from('movement_items as later_items')
+                ->whereColumn('later_items.inventory_id', 'movement_items.inventory_id')
+                ->whereColumn('later_items.id', '>', 'movement_items.id')
+                ->whereColumn('later_items.movement_id', '!=', 'movement_items.movement_id'))
+            ->exists();
     }
 
     public function from_inventory_location()
