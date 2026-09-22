@@ -68,6 +68,10 @@ composer run dev
 ### Setup Workflows
 `zephyr:setup` is the recommended first-run flow: it interactively creates `.env` from `.env.example`, asks for the environment (`production` by default, with `LOG_LEVEL=error`), DB / locale / bootstrap admin values, the backup archive password and whether to load demo data, then runs `migrate:seed` or `migrate:seed_demo`.
 
+`migrate:seed` and `migrate:seed_demo` run `migrate:fresh` by default, which **drops all tables**: in production they ask for confirmation (skip it with `--force`), and `--no-fresh` runs only the pending migrations and keeps the data.
+
+The bootstrap admin (`BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_EMAIL`) gets the `super_admin` role. `BOOTSTRAP_ADMIN_PASSWORD` is required to create it and the placeholder values of the example files (`password`, `change-me-in-production`) are refused in production. The password is set only when the account is created, so seeding again never resets it; `zephyr:setup` removes it from `.env` once seeding is done.
+
 `composer run setup` is the non-interactive bootstrap script: it installs dependencies, creates `.env` if missing, generates the app key, runs migrations, and builds frontend assets.
 
 `composer run dev` starts the Laravel server, queue worker, log viewer, and Vite dev server concurrently.
@@ -156,7 +160,7 @@ Requirements:
 - A database on the host must listen on an address reachable from the containers (not only `127.0.0.1`) and accept connections from the container network.
 - For TLS connections mount the CA certificate in the container and set `MYSQL_ATTR_SSL_CA` to its path.
 - At startup the app waits up to `DB_WAIT_TIMEOUT` seconds (default 120) for the database (`php artisan db:wait`), then stops with an explicit error.
-- Backups (`backup:run`) dump the database through the network with the MariaDB client included in the image; `DB_ROOT_PASSWORD` and the `db` volume are not used.
+- Backups (`backup:run`) dump the database through the network with the MariaDB client included in the image, which also supports MySQL 8 (`caching_sha2_password`); `DB_ROOT_PASSWORD` and the `db` volume are not used. The server certificate is verified only when `MYSQL_ATTR_SSL_CA` is set, like the application connection.
 
 ### Configuration notes
 
@@ -177,6 +181,23 @@ docker compose exec -u root app composer install
 # run the demo seeder
 docker compose exec app php artisan migrate:seed_demo
 ```
+
+## Upgrading
+
+**Back up the database before upgrading.** Some migrations change existing data and cannot be rolled back: for example `2026_09_22_060415_merge_duplicate_stocks` merges duplicate stock rows into a single one before adding a unique index.
+
+```bash
+# Manual installation
+php artisan backup:run --only-db
+git pull && composer install --no-dev && npm ci && npm run build
+php artisan migrate --force
+
+# Docker: the app container runs the pending migrations at startup
+docker compose exec app php artisan backup:run --only-db
+git pull && docker compose up -d --build
+```
+
+The archive is written to `storage/app/private/<APP_NAME>/` (in Docker, inside the `storage` volume): copy it outside the server before upgrading.
 
 ## Backups
 
@@ -208,13 +229,20 @@ composer test
 Zephyr supports multiple flat operational scopes through a neutral `scopes` entity (for example `company`, `school`).
 
 - Global entities: `users`, `products`, product catalog dictionaries (`product_brands`, `product_groups`, `product_models`, `product_types`) and task dictionaries (`task_statuses`, `task_types`).
-- Global catalog changes: products and the product/task dictionaries are shared by every scope, so only super admins can create, edit or delete them; admins and users can only read them. `super_admin` is a special account reserved to the system administrator and has every privilege, including the domain rules of the policies.
 - Scoped entities: operational records (inventory, movements, tasks, reorders, orders).
 - Runtime context: one `active_scope_id` in session per authenticated user.
 - Access model: users can be assigned to one or more scopes and can switch active scope from the Filament user menu.
 - Console bypass policy: scope filtering bypass is limited to maintenance commands (`migrate*`, `db:seed`, `db:wipe`) via `config/scopes.php`.
 
 See [docs/architecture/global-scopes.md](docs/architecture/global-scopes.md) for architecture details.
+
+### Roles
+
+- `super_admin`: special account reserved to the system administrator, with every privilege (it also bypasses the domain rules of the policies). It sees every user and scope, assigns roles, creates scopes, changes their status, requests their deletion and is the only role that can change the global catalog.
+- `admin`: full operational access to the scopes it belongs to. It sees only the users and scopes it shares, manages only the non-admin users of its scopes (new users get the `user` role), cannot manage roles and has read-only access to the global catalog (products and product/task dictionaries, shared by every scope).
+- `user`: day-to-day operations (tasks, movements, reorder orders) and read access to inventory, stocks and catalog.
+
+Roles are global: an admin is admin in every scope it belongs to.
 
 ### Scope deletion workflow
 

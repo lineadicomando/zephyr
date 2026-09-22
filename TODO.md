@@ -36,9 +36,7 @@ Items left open after the September 2026 code review. Fixed items are in the git
 - [ ] Reorder proposals: every click creates a new draft even if an open order already contains the same stocks; outside the panel the order scope is taken from the first rule
 
 ### Operations and setup
-- [ ] Verify that `mysqldump`/`mariadb-dump` is available in the Docker image after build
 - [ ] API tokens can only be created through tinker: add a command or a panel page to issue/revoke tokens with abilities
-- [ ] README: document the new behaviours (confirmation of `migrate:seed*` in production, required `BOOTSTRAP_ADMIN_PASSWORD`, admin vs super admin rules) and warn to back up before `php artisan migrate` (the duplicate stock merge is irreversible)
 
 ### Performance
 - [ ] Cascading saves: `Inventory`, `InventoryLocation`, `Product`, `ProductType` re-save every related stock/movement item on save; replace with bulk updates of the changed columns
