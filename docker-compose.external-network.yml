@@ -1,0 +1,28 @@
+# Optional override: connect the PHP services to the network of an existing
+# database container (for example a database shared by other Compose stacks).
+#
+#   DB_EXTERNAL_NETWORK=<network name>   # in .env, see `docker network ls`
+#   DB_HOST=<database container or alias on that network>
+#   COMPOSE_PROFILES=                    # do not start the bundled database
+#
+#   docker compose -f docker-compose.yml -f docker-compose.external-network.yml up -d
+
+services:
+    app:
+        networks:
+            - default
+            - database
+    queue:
+        networks:
+            - default
+            - database
+    scheduler:
+        networks:
+            - default
+            - database
+
+networks:
+    default: {}
+    database:
+        name: ${DB_EXTERNAL_NETWORK:?Set DB_EXTERNAL_NETWORK in .env}
+        external: true

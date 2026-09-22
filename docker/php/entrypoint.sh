@@ -8,10 +8,12 @@ if [ "$1" != "php-fpm" ]; then
 fi
 
 echo "[entrypoint] Waiting for database at ${DB_HOST:-db}:${DB_PORT:-3306}..."
-until nc -z "${DB_HOST:-db}" "${DB_PORT:-3306}"; do
-    sleep 2
-done
-echo "[entrypoint] Database is up."
+if ! php artisan db:wait --timeout="${DB_WAIT_TIMEOUT:-120}" --no-ansi; then
+    echo "[entrypoint] Database not reachable. Check DB_* in .env: with the bundled database"
+    echo "[entrypoint] set COMPOSE_PROFILES=database and DB_HOST=db; with an existing database"
+    echo "[entrypoint] set its host (host.docker.internal for the host machine) and credentials."
+    exit 1
+fi
 
 echo "[entrypoint] Ensuring storage directory structure..."
 mkdir -p /var/www/html/storage/{app,logs,framework/{cache,sessions,views}}

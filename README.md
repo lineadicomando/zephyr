@@ -94,6 +94,7 @@ echo "base64:$(openssl rand -base64 32)"
 
 # 3. Edit .env: set strong passwords and update APP_URL if needed
 #    DB_PASSWORD, DB_ROOT_PASSWORD, BOOTSTRAP_ADMIN_PASSWORD
+#    (to use an existing database instead of the bundled one, see "Existing database")
 #    APP_URL=http://your-host:8080
 #    SEED_DEMO_DATA=true  # set to true to load demo data on first boot
 
@@ -121,12 +122,48 @@ docker compose down
 docker compose down -v
 ```
 
+### Existing database
+
+By default Compose starts a dedicated MariaDB service (`db`, enabled by `COMPOSE_PROFILES=database` in `.env`). To use a database server you already run (MariaDB 10.6+ or MySQL 8+), disable the bundled service and point the `DB_*` variables to it:
+
+```dotenv
+COMPOSE_PROFILES=
+DB_CONNECTION=mariadb   # or mysql
+DB_HOST=...             # see below
+DB_PORT=3306
+DB_DATABASE=zephyr
+DB_USERNAME=zephyr
+DB_PASSWORD=...
+```
+
+| Where the database runs | `DB_HOST` | Start command |
+|---|---|---|
+| On the Docker/Podman host | `host.docker.internal` | `docker compose up -d` |
+| In another container (e.g. another Compose stack) | container name or network alias | `docker compose -f docker-compose.yml -f docker-compose.external-network.yml up -d` with `DB_EXTERNAL_NETWORK=<network>` in `.env` |
+| On a remote server | hostname or IP | `docker compose up -d` |
+
+Requirements:
+
+- Use a **dedicated, empty database**: on first boot the entrypoint runs the migrations and the seeders when no migration has been run yet, and on every boot it runs the pending migrations. Do not share the database with other applications.
+- The user needs full privileges on that database (tables are created, altered and dropped by migrations):
+
+  ```sql
+  CREATE DATABASE zephyr CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+  CREATE USER 'zephyr'@'%' IDENTIFIED BY 'change-me';
+  GRANT ALL PRIVILEGES ON zephyr.* TO 'zephyr'@'%';
+  ```
+
+- A database on the host must listen on an address reachable from the containers (not only `127.0.0.1`) and accept connections from the container network.
+- For TLS connections mount the CA certificate in the container and set `MYSQL_ATTR_SSL_CA` to its path.
+- At startup the app waits up to `DB_WAIT_TIMEOUT` seconds (default 120) for the database (`php artisan db:wait`), then stops with an explicit error.
+- Backups (`backup:run`) dump the database through the network with the MariaDB client included in the image; `DB_ROOT_PASSWORD` and the `db` volume are not used.
+
 ### Configuration notes
 
-- `DB_HOST` must be `db` and `REDIS_HOST` must be `redis` (the Compose service names).
+- With the bundled database `DB_HOST` must be `db`; `REDIS_HOST` must be `redis` (the Compose service names).
 - `CACHE_STORE`, `SESSION_DRIVER`, and `QUEUE_CONNECTION` are set to `redis` in `.env.docker` — do not change them to `file`/`sync` in production.
 - The default port is `8080` (set via `APP_PORT` in `.env`). Change it to any free port and update `APP_URL` accordingly.
-- Persistent data is stored in named Docker volumes (`db`, `redis`, `storage`); back them up before running `docker compose down -v`.
+- Persistent data is stored in named Docker volumes (`db` with the bundled database, `redis`, `storage`); back them up before running `docker compose down -v`.
 
 ### Loading demo data manually
 

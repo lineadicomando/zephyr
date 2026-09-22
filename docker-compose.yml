@@ -1,3 +1,9 @@
+# Database modes (see README, "Docker deployment"):
+#   - bundled (default): COMPOSE_PROFILES=database starts the MariaDB "db" service
+#   - existing database: leave COMPOSE_PROFILES empty and point DB_* in .env to it;
+#     add docker-compose.external-network.yml when it runs on another container network
+# The PHP services do not depend on "db": the entrypoint waits for the database.
+
 services:
     # ── PHP-FPM application ──────────────────────────────────────────────────────
     app:
@@ -9,9 +15,9 @@ services:
         volumes:
             - storage:/var/www/html/storage
             - public:/var/www/html/public-vol # shared with nginx
+        extra_hosts:
+            - "host.docker.internal:host-gateway" # database on the host machine
         depends_on:
-            db:
-                condition: service_healthy
             redis:
                 condition: service_healthy
         healthcheck:
@@ -19,7 +25,7 @@ services:
             interval: 10s
             timeout: 5s
             retries: 10
-            start_period: 30s
+            start_period: 180s # covers the database wait (DB_WAIT_TIMEOUT) and first-boot migrations
 
     # ── Nginx web server ─────────────────────────────────────────────────────────
     nginx:
@@ -44,6 +50,8 @@ services:
         env_file: .env
         volumes:
             - storage:/var/www/html/storage
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=90", "--memory=128"]
         depends_on:
             app:
@@ -58,14 +66,17 @@ services:
         env_file: .env
         volumes:
             - storage:/var/www/html/storage
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         command: ["php", "artisan", "schedule:work"]
         depends_on:
             app:
                 condition: service_healthy
 
-    # ── MariaDB ──────────────────────────────────────────────────────────────────
+    # ── MariaDB (bundled, profile "database") ───────────────────────────────────
     db:
         image: docker.io/library/mariadb:11
+        profiles: ["database"]
         restart: unless-stopped
         environment:
             MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
