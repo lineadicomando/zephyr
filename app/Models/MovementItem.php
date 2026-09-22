@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class MovementItem extends Model
 {
@@ -33,6 +34,24 @@ class MovementItem extends Model
         }
 
         return false;
+    }
+
+    /**
+     * Save in a transaction: the stock update after saving may reject the change.
+     *
+     * @param  array<string, mixed>  $options
+     */
+    public function save(array $options = []): bool
+    {
+        return DB::transaction(fn (): bool => parent::save($options));
+    }
+
+    /**
+     * Delete in a transaction: the stock update after deleting may reject the change.
+     */
+    public function delete(): ?bool
+    {
+        return DB::transaction(fn (): ?bool => parent::delete());
     }
 
     protected static function booted(): void

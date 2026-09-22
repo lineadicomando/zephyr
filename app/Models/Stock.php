@@ -4,14 +4,18 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToScope;
 use App\Traits\HasDbCheck;
+use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class Stock extends Model
 {
     use BelongsToScope;
     use HasDbCheck;
     use HasFactory;
+    use PreventRelatedDeletion;
 
     protected $fillable = [
         'scope_id',
@@ -26,6 +30,21 @@ class Stock extends Model
         'inventory_summary',
         'stock',
     ];
+
+    /**
+     * Movement and order history must not lose its stock: the reorder rule
+     * is only configuration and is deleted together with the stock.
+     *
+     * @return list<string>
+     */
+    public function preventDeletionBy(): array
+    {
+        return [
+            'incoming_movement_items',
+            'outcoming_movement_items',
+            'reorder_order_items',
+        ];
+    }
 
     protected static function booted(): void
     {
@@ -80,18 +99,28 @@ class Stock extends Model
     //     }
     // }
 
-    public function updateStockByMovementItems()
+    /**
+     * Recompute the stock from the movement items. A change that would make the
+     * stock negative (or more negative than it already is) is rejected, unless
+     * $allowNegative is true (used to repair the stored values).
+     *
+     * @throws ValidationException
+     */
+    public function updateStockByMovementItems(bool $allowNegative = false): void
     {
         $incomingStockTotal = MovementItem::where('incoming_stock_id', $this->id)->sum('stock');
         $outcomingStockTotal = MovementItem::where('outcoming_stock_id', $this->id)->sum('stock');
         $stock = $incomingStockTotal - $outcomingStockTotal;
-        // if ($stock != 0) {
+
+        if (! $allowNegative && $stock < 0 && $stock < (int) DB::table('stocks')->where('id', $this->id)->value('stock')) {
+            throw ValidationException::withMessages([
+                'stock' => __('Insufficient availability, impossible to proceed'),
+            ]);
+        }
+
         $this->update([
             'stock' => $stock,
         ]);
-        // } else {
-        //     $this->delete();
-        // }
     }
 
     public static function dbCheck(bool $output = false): void
@@ -99,7 +128,7 @@ class Stock extends Model
         $stocks = self::all();
         $count = 0;
         $stocks->each(function (Stock $stock) use (&$count) {
-            $stock->updateStockByMovementItems();
+            $stock->updateStockByMovementItems(allowNegative: true);
             $count++;
         });
         if ($output) {
@@ -160,5 +189,10 @@ class Stock extends Model
     public function reorder()
     {
         return $this->hasOne(Reorder::class);
+    }
+
+    public function reorder_order_items()
+    {
+        return $this->hasMany(ReorderOrderItem::class);
     }
 }

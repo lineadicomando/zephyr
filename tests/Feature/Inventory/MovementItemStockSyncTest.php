@@ -76,6 +76,21 @@ it('recomputes stock totals when movement item is created updated and deleted', 
         'movementType' => $movementType,
     ] = makeMovementDomain();
 
+    $load = Movement::factory()->create([
+        'scope_id' => $scope->id,
+        'date' => now(),
+        'movement_type_id' => $movementType->id,
+        'to_inventory_location_id' => $locationA->id,
+        'to_inventory_position_id' => $positionA->id,
+        'description' => 'Load test',
+    ]);
+    MovementItem::query()->create([
+        'scope_id' => $load->scope_id,
+        'movement_id' => $load->id,
+        'inventory_id' => $inventory->id,
+        'stock' => 10,
+    ]);
+
     $movement = Movement::factory()->create([
         'scope_id' => $scope->id,
         'date' => now(),
@@ -104,7 +119,7 @@ it('recomputes stock totals when movement item is created updated and deleted', 
     $outgoing->refresh();
 
     expect((int) $incoming->stock)->toBe(5)
-        ->and((int) $outgoing->stock)->toBe(-5);
+        ->and((int) $outgoing->stock)->toBe(5);
 
     $item->update(['stock' => 8]);
 
@@ -112,7 +127,7 @@ it('recomputes stock totals when movement item is created updated and deleted', 
     $outgoing->refresh();
 
     expect((int) $incoming->stock)->toBe(8)
-        ->and((int) $outgoing->stock)->toBe(-8);
+        ->and((int) $outgoing->stock)->toBe(2);
 
     $item->delete();
 
@@ -120,5 +135,5 @@ it('recomputes stock totals when movement item is created updated and deleted', 
     $outgoing->refresh();
 
     expect((int) $incoming->stock)->toBe(0)
-        ->and((int) $outgoing->stock)->toBe(0);
+        ->and((int) $outgoing->stock)->toBe(10);
 });

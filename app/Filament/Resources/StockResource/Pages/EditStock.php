@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\StockResource\Pages;
 
 use App\Filament\Resources\StockResource;
+use App\Models\Stock;
 use App\Traits\CancelToCloseAction;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -16,7 +17,7 @@ class EditStock extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()->hidden(fn (Stock $record) => $record->hasRelated()),
         ];
     }
 }

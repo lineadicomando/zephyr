@@ -6,12 +6,15 @@ use App\Models\Concerns\BelongsToScope;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Movement extends Model
 {
     use BelongsToScope;
     use HasFactory;
-    use PreventRelatedDeletion;
+    use PreventRelatedDeletion {
+        delete as deleteUnlessRelated;
+    }
 
     protected $fillable = [
         'scope_id',
@@ -24,6 +27,26 @@ class Movement extends Model
         'description',
         'note',
     ];
+
+    /**
+     * Save in a transaction together with the movement items, whose stock
+     * update may reject the change.
+     *
+     * @param  array<string, mixed>  $options
+     */
+    public function save(array $options = []): bool
+    {
+        return DB::transaction(fn (): bool => parent::save($options));
+    }
+
+    /**
+     * Delete in a transaction together with the movement items, whose stock
+     * update may reject the change.
+     */
+    public function delete(): ?bool
+    {
+        return DB::transaction(fn (): ?bool => $this->deleteUnlessRelated());
+    }
 
     protected static function booted(): void
     {
