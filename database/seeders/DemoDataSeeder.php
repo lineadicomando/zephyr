@@ -10,6 +10,7 @@ class DemoDataSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            DemoScopeSeeder::class,
             ProductCatalogSeeder::class,
             UserSeeder::class,
         ]);

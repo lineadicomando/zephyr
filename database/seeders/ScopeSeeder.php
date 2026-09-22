@@ -25,16 +25,20 @@ class ScopeSeeder extends Seeder
                 throw new InvalidArgumentException("Unsupported scope type [{$scope['type']}] for slug [{$scope['slug']}].");
             }
 
-            DB::table('scopes')->updateOrInsert(
-                ['slug' => $scope['slug']],
-                [
-                    'name' => $scope['name'],
-                    'type' => $scope['type'],
-                    'is_active' => true,
-                    'updated_at' => now(),
-                    'created_at' => now(),
-                ],
-            );
+            // Existing scopes are left untouched: seeding again must not
+            // reactivate a scope pending deletion or rewrite its dates.
+            if (DB::table('scopes')->where('slug', $scope['slug'])->exists()) {
+                continue;
+            }
+
+            DB::table('scopes')->insert([
+                'slug' => $scope['slug'],
+                'name' => $scope['name'],
+                'type' => $scope['type'],
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
     }
 
@@ -45,8 +49,6 @@ class ScopeSeeder extends Seeder
     {
         return [
             ['slug' => 'default', 'name' => 'Default', 'type' => 'company'],
-            ['slug' => 'demo-school', 'name' => 'Demo School', 'type' => 'school'],
-            ['slug' => 'demo-branch', 'name' => 'Demo Branch', 'type' => 'branch'],
         ];
     }
 }
