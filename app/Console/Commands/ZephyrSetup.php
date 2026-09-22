@@ -140,6 +140,15 @@ class ZephyrSetup extends Command
      */
     private function collectValues(array $defaults): array
     {
+        $appEnv = select(
+            label: 'Application environment',
+            options: [
+                'production' => 'Production (debug off, errors only in the log)',
+                'local' => 'Local development',
+            ],
+            default: 'production',
+        );
+
         $appLocale = select(
             label: 'Application locale',
             options: [
@@ -157,7 +166,8 @@ class ZephyrSetup extends Command
 
         $appDebug = confirm(
             label: 'Enable debug mode (APP_DEBUG)?',
-            default: false,
+            default: $appEnv === 'local',
+            hint: $appEnv === 'production' ? 'Debug pages expose configuration and secrets: keep it off in production.' : '',
         );
 
         $timezone = select(
@@ -342,15 +352,27 @@ class ZephyrSetup extends Command
                 ),
                 'DB_PASSWORD' => $this->promptPasswordWithConfirmation(
                     label: 'Database password',
-                    fallback: $defaults['DB_PASSWORD'] ?? '',
                     allowEmpty: true,
                 ),
             ];
         }
 
+        $backupPassword = $this->promptPasswordWithConfirmation(
+            label: 'Backup archive password (leave empty to disable encryption)',
+            allowEmpty: true,
+        );
+
+        if ($backupPassword === '') {
+            $this->warn('Backup archives will not be encrypted, although they contain the database and .env.');
+        } else {
+            $this->warn('Store the backup archive password outside this server: it is required to restore a backup.');
+        }
+
         return [
             ...$dbValues,
+            ...$this->environmentValues($appEnv),
 
+            'BACKUP_ARCHIVE_PASSWORD' => $backupPassword,
             'APP_LOCALE' => $appLocale,
             'APP_URL' => $appUrl,
             'APP_DEBUG' => $appDebug ? 'true' : 'false',
@@ -387,10 +409,22 @@ class ZephyrSetup extends Command
             ),
             'BOOTSTRAP_ADMIN_PASSWORD' => $this->promptPasswordWithConfirmation(
                 label: 'Bootstrap admin password',
-                fallback: $defaults['BOOTSTRAP_ADMIN_PASSWORD'] ?? '',
                 allowEmpty: false,
             ),
             'SEED_DEMO_DATA' => $seedDemoData ? 'true' : 'false',
+        ];
+    }
+
+    /**
+     * Values that depend on the application environment.
+     *
+     * @return array{APP_ENV: string, LOG_LEVEL: string}
+     */
+    private function environmentValues(string $appEnv): array
+    {
+        return [
+            'APP_ENV' => $appEnv,
+            'LOG_LEVEL' => $appEnv === 'production' ? 'error' : 'debug',
         ];
     }
 
@@ -534,15 +568,13 @@ class ZephyrSetup extends Command
 
     private function promptPasswordWithConfirmation(
         string $label,
-        string $fallback = '',
         bool $allowEmpty = false,
     ): string {
         while (true) {
             $first = password(label: "{$label} (hidden input)");
-            $second = password(label: "{$label} confirmation");
 
             if ($first === '' && $allowEmpty) {
-                return $fallback;
+                return '';
             }
 
             if ($first === '') {
@@ -551,7 +583,7 @@ class ZephyrSetup extends Command
                 continue;
             }
 
-            if ($first !== $second) {
+            if ($first !== password(label: "{$label} confirmation")) {
                 $this->error(
                     'Password confirmation does not match. Please try again.',
                 );

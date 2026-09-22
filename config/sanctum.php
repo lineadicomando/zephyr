@@ -50,7 +50,9 @@ return [
     |
     */
 
-    'expiration' => env('SANCTUM_TOKEN_EXPIRATION') ? (int) env('SANCTUM_TOKEN_EXPIRATION') : null,
+    'expiration' => (int) (in_array(env('SANCTUM_TOKEN_EXPIRATION'), [null, ''], true)
+        ? 525600
+        : env('SANCTUM_TOKEN_EXPIRATION')) ?: null,
 
     /*
     |--------------------------------------------------------------------------

@@ -38,3 +38,10 @@ it('keeps the other scheduled commands when backups are disabled', function () {
 
     expect(scheduledBackupEvent('scopes:purge-pending')->filtersPass(app()))->toBeTrue();
 });
+
+it('backs up the application files and the environment file only', function () {
+    expect(config('backup.backup.source.files.include'))->toBe([
+        storage_path('app'),
+        base_path('.env'),
+    ]);
+});

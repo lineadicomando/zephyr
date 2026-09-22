@@ -9,9 +9,14 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function (): void {
-    Route::get('/products', [ProductController::class, 'index']);
-    Route::get('/products/{product}', [ProductController::class, 'show']);
-    Route::post('/products', [ProductController::class, 'store']);
-    Route::patch('/products/{product}', [ProductController::class, 'update']);
-    Route::put('/products/{product}', [ProductController::class, 'update']);
+    Route::middleware('abilities:products:read')->group(function (): void {
+        Route::get('/products', [ProductController::class, 'index']);
+        Route::get('/products/{product}', [ProductController::class, 'show']);
+    });
+
+    Route::middleware('abilities:products:write')->group(function (): void {
+        Route::post('/products', [ProductController::class, 'store']);
+        Route::patch('/products/{product}', [ProductController::class, 'update']);
+        Route::put('/products/{product}', [ProductController::class, 'update']);
+    });
 });

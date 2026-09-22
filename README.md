@@ -66,7 +66,7 @@ composer run dev
 ```
 
 ### Setup Workflows
-`zephyr:setup` is the recommended first-run flow: it interactively creates `.env` from `.env.example`, asks for DB / locale / bootstrap admin values and whether to load demo data, then runs `migrate:seed` or `migrate:seed_demo`.
+`zephyr:setup` is the recommended first-run flow: it interactively creates `.env` from `.env.example`, asks for the environment (`production` by default, with `LOG_LEVEL=error`), DB / locale / bootstrap admin values, the backup archive password and whether to load demo data, then runs `migrate:seed` or `migrate:seed_demo`.
 
 `composer run setup` is the non-interactive bootstrap script: it installs dependencies, creates `.env` if missing, generates the app key, runs migrations, and builds frontend assets.
 
@@ -163,6 +163,7 @@ Requirements:
 - With the bundled database `DB_HOST` must be `db`; `REDIS_HOST` must be `redis` (the Compose service names).
 - `CACHE_STORE`, `SESSION_DRIVER`, and `QUEUE_CONNECTION` are set to `redis` in `.env.docker` — do not change them to `file`/`sync` in production.
 - The default port is `8080` (set via `APP_PORT` in `.env`). Change it to any free port and update `APP_URL` accordingly.
+- Behind a TLS terminating reverse proxy set `APP_URL=https://...` and `TRUSTED_PROXIES`: session cookies are then sent over HTTPS only (override with `SESSION_SECURE_COOKIE=true|false`).
 - Persistent data is stored in named Docker volumes (`db` with the bundled database, `redis`, `storage`); back them up before running `docker compose down -v`.
 
 ### Loading demo data manually
@@ -176,6 +177,20 @@ docker compose exec -u root app composer install
 # run the demo seeder
 docker compose exec app php artisan migrate:seed_demo
 ```
+
+## Backups
+
+`backup:run` runs every hour (disable with `BACKUP_ENABLED=false`) and archives the database dump, `storage/app` (uploaded files) and `.env` (needed to decrypt data encrypted with `APP_KEY`; in Docker it lives outside the container and is not included). Set `BACKUP_ARCHIVE_PASSWORD` to encrypt the archives and store it outside the server: it is required to restore them.
+
+## API
+
+The REST API (`/api/products`) authenticates with Sanctum personal access tokens. Tokens need an ability for each group of endpoints: `products:read` for `GET` and `products:write` for `POST`/`PUT`/`PATCH` (the user permissions still apply):
+
+```bash
+php artisan tinker --execute '$user = App\Models\User::where("email", "ansible@example.com")->first(); echo $user->createToken("ansible", ["products:read", "products:write"])->plainTextToken;'
+```
+
+Tokens expire after `SANCTUM_TOKEN_EXPIRATION` minutes (default 525600, one year; `0` disables the expiration). Requests are limited to `API_RATE_LIMIT_PER_MINUTE` per user/IP.
 
 ## Testing
 

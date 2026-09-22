@@ -29,8 +29,6 @@ Items left open after the September 2026 code review. Fixed items are in the git
 - [ ] Domain rules inside policies are bypassed by super admins (Shield `intercept_gate => before`), e.g. `ReorderOrderPolicy::delete` (draft only): move them to models/actions or switch the intercept to `after`
 - [ ] Roles are global (`permission.teams => false`): an admin is admin in every scope they belong to; per-scope roles require spatie/permission teams
 - [ ] Global catalog (products, product types/groups/brands/models, task statuses/types) is editable by any admin and affects every tenant: decide whether to restrict it to super admins
-- [ ] API: choose a default for `SANCTUM_TOKEN_EXPIRATION` (currently tokens never expire) and check token abilities (`tokenCan`) in the API controllers
-- [ ] Add `SESSION_SECURE_COOKIE` to `.env.example` / `.env.docker` (true behind HTTPS)
 
 ### Data integrity
 - [ ] Stock can still go negative at model level (availability is validated only in the UI actions)
@@ -44,10 +42,9 @@ Items left open after the September 2026 code review. Fixed items are in the git
 
 ### Operations and setup
 - [ ] Verify that `mysqldump`/`mariadb-dump` is available in the Docker image after build
-- [ ] `backup:run` backs up the whole `base_path()` every hour: consider database + `storage/app` only; set `BACKUP_ARCHIVE_PASSWORD` (archives contain `.env`)
-- [ ] `zephyr:setup` does not ask for `APP_ENV` (production installs keep `local`/debug settings); an empty DB password falls back to `password` from `.env.example`
+- [ ] API tokens can only be created through tinker: add a command or a panel page to issue/revoke tokens with abilities
 - [ ] CI: align PHP version (8.4 in CI, 8.5 in Docker), add a Pint check and a `permissions:` block, pin actions to a SHA
-- [ ] README: document the new behaviours (confirmation of `migrate:seed*` in production, required `BOOTSTRAP_ADMIN_PASSWORD`, backup and API env variables, admin vs super admin rules) and warn to back up before `php artisan migrate` (the duplicate stock merge is irreversible)
+- [ ] README: document the new behaviours (confirmation of `migrate:seed*` in production, required `BOOTSTRAP_ADMIN_PASSWORD`, admin vs super admin rules) and warn to back up before `php artisan migrate` (the duplicate stock merge is irreversible)
 
 ### Performance
 - [ ] Cascading saves: `Inventory`, `InventoryLocation`, `Product`, `ProductType` re-save every related stock/movement item on save; replace with bulk updates of the changed columns
