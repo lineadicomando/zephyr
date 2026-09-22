@@ -28,11 +28,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (filled($trustedProxies = config('app.trusted_proxies'))) {
-            TrustProxies::at($trustedProxies === '*'
-                ? '*'
-                : array_values(array_filter(array_map('trim', explode(',', (string) $trustedProxies)))));
-        }
+        $this->configureTrustedProxies();
 
         RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(config('sanctum.rate_limit_per_minute'))
             ->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
@@ -85,5 +81,19 @@ class AppServiceProvider extends ServiceProvider
                 )
                 ->renderHook('panels::global-search.after');
         });
+    }
+
+    /**
+     * Trust the X-Forwarded-* headers sent by the configured reverse proxies.
+     */
+    public function configureTrustedProxies(): void
+    {
+        TrustProxies::flushState();
+
+        if (filled($trustedProxies = config('app.trusted_proxies'))) {
+            TrustProxies::at($trustedProxies === '*'
+                ? '*'
+                : array_values(array_filter(array_map('trim', explode(',', (string) $trustedProxies)))));
+        }
     }
 }

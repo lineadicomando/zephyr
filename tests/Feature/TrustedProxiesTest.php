@@ -1,18 +1,19 @@
 <?php
 
+use App\Providers\AppServiceProvider;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Route;
 
 /**
- * Set TRUSTED_PROXIES as the environment would; the application must be
- * refreshed afterwards so that the service providers read it at boot.
+ * Configure the trusted proxies as TRUSTED_PROXIES would at boot. The config
+ * value is set directly: refreshing the application would reload .env, whose
+ * values overwrite the ones set by the test.
  */
-function setTrustedProxiesEnv(?string $proxies): void
+function setTrustedProxies(?string $proxies): void
 {
-    $proxies === null ? putenv('TRUSTED_PROXIES') : putenv("TRUSTED_PROXIES={$proxies}");
-    $_ENV['TRUSTED_PROXIES'] = $_SERVER['TRUSTED_PROXIES'] = $proxies;
+    config()->set('app.trusted_proxies', $proxies);
 
-    TrustProxies::flushState();
+    app()->getProvider(AppServiceProvider::class)->configureTrustedProxies();
 }
 
 function registerTrustedProxiesProbe(): void
@@ -21,14 +22,11 @@ function registerTrustedProxiesProbe(): void
 }
 
 afterEach(function () {
-    putenv('TRUSTED_PROXIES');
-    unset($_ENV['TRUSTED_PROXIES'], $_SERVER['TRUSTED_PROXIES']);
     TrustProxies::flushState();
 });
 
 it('generates https urls behind a trusted proxy', function (string $proxies) {
-    setTrustedProxiesEnv($proxies);
-    $this->refreshApplication();
+    setTrustedProxies($proxies);
     registerTrustedProxiesProbe();
 
     $this->withServerVariables(['REMOTE_ADDR' => '192.168.48.2'])
@@ -41,8 +39,7 @@ it('generates https urls behind a trusted proxy', function (string $proxies) {
 ]);
 
 it('ignores forwarded headers from untrusted clients', function (?string $proxies) {
-    setTrustedProxiesEnv($proxies);
-    $this->refreshApplication();
+    setTrustedProxies($proxies);
     registerTrustedProxiesProbe();
 
     $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.10'])
@@ -55,8 +52,7 @@ it('ignores forwarded headers from untrusted clients', function (?string $proxie
 ]);
 
 it('serves the panel branding assets over https behind a trusted proxy', function () {
-    setTrustedProxiesEnv('192.168.48.0/20');
-    $this->refreshApplication();
+    setTrustedProxies('192.168.48.0/20');
 
     $this->withServerVariables(['REMOTE_ADDR' => '192.168.48.2'])
         ->get('/login', ['X-Forwarded-Proto' => 'https', 'X-Forwarded-Host' => 'zephyr.cmdln.it'])
