@@ -12,9 +12,11 @@ RUN npm run build
 FROM docker.io/library/php:8.5-fpm-alpine
 
 RUN <<EOF
+set -e
 apk add --no-cache \
     bash \
     mariadb-client \
+    mariadb-connector-c \
     rsync \
     netcat-openbsd \
     libpng-dev \
@@ -24,11 +26,20 @@ apk add --no-cache \
     freetype-dev \
     libjpeg-turbo-dev \
     libwebp-dev
+# Build tools for the extensions, removed once they are compiled
+apk add --no-cache --virtual .build-deps $PHPIZE_DEPS
 docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp
-docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache
+# OPcache is built into PHP since 8.5
+docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
 pecl install redis
 docker-php-ext-enable redis
+apk del .build-deps
 rm -rf /tmp/pear
+# Backups dump the database with these tools: fail the build if they are missing
+# (caching_sha2_password is the default authentication plugin of MySQL 8)
+mariadb-dump --version
+mysqldump --version
+test -f /usr/lib/mariadb/plugin/caching_sha2_password.so
 EOF
 
 COPY --from=docker.io/library/composer:2 /usr/bin/composer /usr/bin/composer

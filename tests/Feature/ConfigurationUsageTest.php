@@ -86,6 +86,15 @@ it('sends the session cookie over https only when the application url uses https
     'forced off' => ['false', 'https://zephyr.example.com', false],
 ]);
 
+it('verifies the server certificate of database dumps only against the configured CA', function (string $connection, ?string $ca, string $option) {
+    $config = configWithEnvironment('database', ['MYSQL_ATTR_SSL_CA' => $ca]);
+
+    expect($config['connections'][$connection]['dump']['add_extra_option'])->toBe($option);
+})->with(['mariadb', 'mysql'])->with([
+    'no CA' => [null, '--skip-ssl-verify-server-cert'],
+    'CA' => ['/var/www/html/storage/app/db-ca.pem', "--ssl-ca='/var/www/html/storage/app/db-ca.pem'"],
+]);
+
 arch('environment variables are only read in the config directory')
     ->expect('env')
     ->not->toBeUsedIn(['App', 'Database\Seeders']);

@@ -62,6 +62,14 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            // Backups: the MariaDB client verifies the server certificate by default,
+            // which fails with self-signed certificates (e.g. MySQL): verify it only
+            // against the configured CA, like the application connection does.
+            'dump' => [
+                'add_extra_option' => env('MYSQL_ATTR_SSL_CA')
+                    ? '--ssl-ca='.escapeshellarg((string) env('MYSQL_ATTR_SSL_CA'))
+                    : '--skip-ssl-verify-server-cert',
+            ],
         ],
 
         'mariadb' => [
@@ -82,6 +90,14 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            // Backups: the MariaDB client verifies the server certificate by default,
+            // which fails with self-signed certificates (e.g. MySQL): verify it only
+            // against the configured CA, like the application connection does.
+            'dump' => [
+                'add_extra_option' => env('MYSQL_ATTR_SSL_CA')
+                    ? '--ssl-ca='.escapeshellarg((string) env('MYSQL_ATTR_SSL_CA'))
+                    : '--skip-ssl-verify-server-cert',
+            ],
         ],
 
         'pgsql' => [
