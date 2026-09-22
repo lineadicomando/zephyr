@@ -41,10 +41,13 @@ class RolesAndPermissionsSeeder extends Seeder
         // Super admin keeps full access (also covered by Shield gate intercept).
         $superAdmin->permissions()->sync($allPermissionIds);
 
-        // Admin preset: full operational access, no role-management permissions.
+        // Admin preset: full operational access, no role-management permissions and
+        // read-only access to the global catalog, which only super admins may change.
         $adminPermissionIds = Permission::query()
             ->where('guard_name', 'web')
             ->where('name', 'not like', '%role%')
+            ->get()
+            ->reject(fn (Permission $permission): bool => self::changesGlobalCatalog($permission->name))
             ->pluck('id')
             ->unique()
             ->values()
@@ -96,5 +99,23 @@ class RolesAndPermissionsSeeder extends Seeder
         $user->permissions()->sync($userPermissionIds);
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    }
+
+    /**
+     * Whether the permission allows changing a global catalog entity.
+     */
+    public static function changesGlobalCatalog(string $permission): bool
+    {
+        if (str_starts_with($permission, 'view_')) {
+            return false;
+        }
+
+        foreach (['product', 'product_brand', 'product_group', 'product_model', 'product_type', 'task_status', 'task_type'] as $entity) {
+            if (str_ends_with($permission, "_{$entity}")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

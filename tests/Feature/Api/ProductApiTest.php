@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -23,6 +24,13 @@ function makeProductCatalogForApi(string $suffix): array
     $group = ProductGroup::query()->create(['name' => "Group {$suffix}"]);
 
     return compact('brand', 'model', 'type', 'group');
+}
+
+function makeSuperAdminForApi(): User
+{
+    Role::findOrCreate('super_admin', 'web');
+
+    return tap(User::factory()->create())->assignRole('super_admin');
 }
 
 it('requires authentication to create a product via api', function () {
@@ -135,12 +143,9 @@ it('forbids create when user has no permission', function () {
     $this->postJson('/api/products', $payload)->assertForbidden();
 });
 
-it('creates a product when user has create_product permission', function () {
-    Permission::query()->firstOrCreate(['name' => 'create_product', 'guard_name' => 'web']);
-
+it('creates a product when user is a super admin', function () {
     $catalog = makeProductCatalogForApi((string) str()->uuid());
-    $user = User::factory()->create();
-    $user->givePermissionTo('create_product');
+    $user = makeSuperAdminForApi();
     Sanctum::actingAs($user, ['products:write']);
 
     $payload = [
@@ -168,11 +173,7 @@ it('creates a product when user has create_product permission', function () {
 });
 
 it('validates required fields while creating a product', function () {
-    Permission::query()->firstOrCreate(['name' => 'create_product', 'guard_name' => 'web']);
-
-    $user = User::factory()->create();
-    $user->givePermissionTo('create_product');
-    Sanctum::actingAs($user, ['products:write']);
+    Sanctum::actingAs(makeSuperAdminForApi(), ['products:write']);
 
     $response = $this->postJson('/api/products', ['name' => 'Invalid']);
 
@@ -180,9 +181,7 @@ it('validates required fields while creating a product', function () {
         ->assertJsonValidationErrors(['product_group_id', 'product_type_id']);
 });
 
-it('updates a product when user has update_product permission', function () {
-    Permission::query()->firstOrCreate(['name' => 'update_product', 'guard_name' => 'web']);
-
+it('updates a product when user is a super admin', function () {
     $catalog = makeProductCatalogForApi((string) str()->uuid());
     $product = Product::query()->create([
         'product_group_id' => $catalog['group']->id,
@@ -192,9 +191,7 @@ it('updates a product when user has update_product permission', function () {
         'name' => 'Before Update',
     ]);
 
-    $user = User::factory()->create();
-    $user->givePermissionTo('update_product');
-    Sanctum::actingAs($user, ['products:write']);
+    Sanctum::actingAs(makeSuperAdminForApi(), ['products:write']);
 
     $response = $this->patchJson("/api/products/{$product->id}", [
         'name' => 'After Update',
@@ -212,9 +209,7 @@ it('updates a product when user has update_product permission', function () {
     ]);
 });
 
-it('updates a product with put when user has update_product permission', function () {
-    Permission::query()->firstOrCreate(['name' => 'update_product', 'guard_name' => 'web']);
-
+it('updates a product with put when user is a super admin', function () {
     $catalog = makeProductCatalogForApi((string) str()->uuid());
     $product = Product::query()->create([
         'product_group_id' => $catalog['group']->id,
@@ -224,9 +219,7 @@ it('updates a product with put when user has update_product permission', functio
         'name' => 'Before Put Update',
     ]);
 
-    $user = User::factory()->create();
-    $user->givePermissionTo('update_product');
-    Sanctum::actingAs($user, ['products:write']);
+    Sanctum::actingAs(makeSuperAdminForApi(), ['products:write']);
 
     $response = $this->putJson("/api/products/{$product->id}", [
         'name' => 'After Put Update',
@@ -284,9 +277,6 @@ it('forbids product reads when the token lacks the products:read ability', funct
 });
 
 it('forbids product writes when the token lacks the products:write ability', function () {
-    Permission::query()->firstOrCreate(['name' => 'create_product', 'guard_name' => 'web']);
-    Permission::query()->firstOrCreate(['name' => 'update_product', 'guard_name' => 'web']);
-
     $catalog = makeProductCatalogForApi((string) str()->uuid());
     $product = Product::query()->create([
         'product_group_id' => $catalog['group']->id,
@@ -294,9 +284,7 @@ it('forbids product writes when the token lacks the products:write ability', fun
         'name' => 'Read Only Token',
     ]);
 
-    $user = User::factory()->create();
-    $user->givePermissionTo(['create_product', 'update_product']);
-    Sanctum::actingAs($user, ['products:read']);
+    Sanctum::actingAs(makeSuperAdminForApi(), ['products:read']);
 
     $this->postJson('/api/products', [
         'product_group_id' => $catalog['group']->id,
@@ -324,3 +312,29 @@ it('checks the abilities of real personal access tokens', function (array $abili
     'all abilities' => [['*'], 200],
     'unrelated ability' => [['tasks:read'], 403],
 ]);
+
+it('forbids product writes to users that are not super admins even with the permissions', function () {
+    Permission::query()->firstOrCreate(['name' => 'create_product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'update_product', 'guard_name' => 'web']);
+
+    $catalog = makeProductCatalogForApi((string) str()->uuid());
+    $product = Product::query()->create([
+        'product_group_id' => $catalog['group']->id,
+        'product_type_id' => $catalog['type']->id,
+        'name' => 'Admin Cannot Change',
+    ]);
+
+    $user = User::factory()->create();
+    $user->givePermissionTo(['create_product', 'update_product']);
+    Sanctum::actingAs($user, ['products:write']);
+
+    $this->postJson('/api/products', [
+        'product_group_id' => $catalog['group']->id,
+        'product_type_id' => $catalog['type']->id,
+        'name' => 'Should Fail',
+    ])->assertForbidden();
+
+    $this->patchJson("/api/products/{$product->id}", ['name' => 'Should Fail'])->assertForbidden();
+
+    expect($product->fresh()->name)->toBe('Admin Cannot Change');
+});

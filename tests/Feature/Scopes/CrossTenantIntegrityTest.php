@@ -41,7 +41,16 @@ function actInTenantA(object $test): void
     activateFilamentTenant($test->scopeA, [InventoryResource::class, StockResource::class]);
 }
 
+/**
+ * The global catalog can only be changed by super admins.
+ */
+function actAsSuperAdmin(object $test): void
+{
+    $test->user->syncRoles('super_admin');
+}
+
 it('detects products used only by inventories of another tenant', function () {
+    actAsSuperAdmin($this);
     $product = Product::factory()->create();
     Inventory::factory()->create(['scope_id' => $this->scopeB->id, 'product_id' => $product->id]);
     actInTenantA($this);
@@ -62,6 +71,7 @@ it('detects products used only by inventories of another tenant', function () {
 });
 
 it('lets unused products be deleted', function () {
+    actAsSuperAdmin($this);
     $product = Product::factory()->create();
     actInTenantA($this);
 

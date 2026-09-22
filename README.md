@@ -184,7 +184,7 @@ docker compose exec app php artisan migrate:seed_demo
 
 ## API
 
-The REST API (`/api/products`) authenticates with Sanctum personal access tokens. Tokens need an ability for each group of endpoints: `products:read` for `GET` and `products:write` for `POST`/`PUT`/`PATCH` (the user permissions still apply):
+The REST API (`/api/products`) authenticates with Sanctum personal access tokens. Tokens need an ability for each group of endpoints: `products:read` for `GET` and `products:write` for `POST`/`PUT`/`PATCH` (the user permissions still apply, and writing the global catalog requires a super admin):
 
 ```bash
 php artisan tinker --execute '$user = App\Models\User::where("email", "ansible@example.com")->first(); echo $user->createToken("ansible", ["products:read", "products:write"])->plainTextToken;'
@@ -207,7 +207,8 @@ composer test
 
 Zephyr supports multiple flat operational scopes through a neutral `scopes` entity (for example `company`, `school`).
 
-- Global entities: `users`, `products`, and product catalog dictionaries (`product_brands`, `product_groups`, `product_models`, `product_types`).
+- Global entities: `users`, `products`, product catalog dictionaries (`product_brands`, `product_groups`, `product_models`, `product_types`) and task dictionaries (`task_statuses`, `task_types`).
+- Global catalog changes: products and the product/task dictionaries are shared by every scope, so only super admins can create, edit or delete them; admins and users can only read them. `super_admin` is a special account reserved to the system administrator and has every privilege, including the domain rules of the policies.
 - Scoped entities: operational records (inventory, movements, tasks, reorders, orders).
 - Runtime context: one `active_scope_id` in session per authenticated user.
 - Access model: users can be assigned to one or more scopes and can switch active scope from the Filament user menu.
