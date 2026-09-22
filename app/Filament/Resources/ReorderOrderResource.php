@@ -13,6 +13,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -67,8 +68,16 @@ class ReorderOrderResource extends Resource
                 Action::make('generateCriticalProposal')
                     ->label(__('Generate proposal'))
                     ->icon('heroicon-o-plus')
-                    ->action(function () {
-                        app(ReorderProposalService::class)->createDraftFromCritical(auth()->id());
+                    ->authorize(fn (): bool => auth()->user()->can('create', ReorderOrder::class))
+                    ->action(function (): void {
+                        $order = app(ReorderProposalService::class)->createDraftFromCritical(auth()->id());
+
+                        if ($order === null) {
+                            Notification::make()
+                                ->info()
+                                ->title(__('No critical items to reorder'))
+                                ->send();
+                        }
                     })
                     ->requiresConfirmation(),
             ])
@@ -84,24 +93,28 @@ class ReorderOrderResource extends Resource
                 EditAction::make()
                     ->visible(fn (ReorderOrder $record): bool => static::canEdit($record)),
                 Action::make('request')
+                    ->authorize('transition')
                     ->label(__('Request'))
                     ->icon('heroicon-o-paper-airplane')
                     ->visible(fn (ReorderOrder $record): bool => $record->status === ReorderOrder::STATUS_DRAFT)
                     ->action(fn (ReorderOrder $record) => app(ReorderOrderService::class)->request($record, auth()->id()))
                     ->requiresConfirmation(),
                 Action::make('markOrdered')
+                    ->authorize('transition')
                     ->label(__('Mark ordered'))
                     ->icon('heroicon-o-truck')
                     ->visible(fn (ReorderOrder $record): bool => $record->status === ReorderOrder::STATUS_REQUESTED)
                     ->action(fn (ReorderOrder $record) => app(ReorderOrderService::class)->markOrdered($record, auth()->id()))
                     ->requiresConfirmation(),
                 Action::make('markReceived')
+                    ->authorize('transition')
                     ->label(__('Mark received'))
                     ->icon('heroicon-o-check-circle')
                     ->visible(fn (ReorderOrder $record): bool => $record->status === ReorderOrder::STATUS_ORDERED)
                     ->action(fn (ReorderOrder $record) => app(ReorderOrderService::class)->markReceived($record, auth()->id()))
                     ->requiresConfirmation(),
                 Action::make('cancel')
+                    ->authorize('transition')
                     ->label(__('Cancel'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')

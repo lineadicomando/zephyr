@@ -5,16 +5,33 @@ namespace App\Services\Reorders;
 use App\Models\Reorder;
 use App\Models\ReorderOrder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ReorderProposalService
 {
     public function __construct(private readonly ReorderEvaluatorService $evaluator) {}
 
-    public function createDraftFromCritical(?int $userId = null): ReorderOrder
+    /**
+     * Create a draft order with the critical reorder rules, or return null
+     * when no rule is critical.
+     */
+    public function createDraftFromCritical(?int $userId = null): ?ReorderOrder
     {
         /** @var Collection<int, Reorder> $criticalRules */
         $criticalRules = $this->evaluator->critical()->with('stock')->get();
 
+        if ($criticalRules->isEmpty()) {
+            return null;
+        }
+
+        return DB::transaction(fn (): ReorderOrder => $this->createDraft($criticalRules, $userId));
+    }
+
+    /**
+     * @param  Collection<int, Reorder>  $criticalRules
+     */
+    protected function createDraft(Collection $criticalRules, ?int $userId): ReorderOrder
+    {
         $scopeId = $criticalRules->first()?->scope_id;
 
         $order = ReorderOrder::query()->create([

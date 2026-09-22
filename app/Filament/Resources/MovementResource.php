@@ -54,7 +54,7 @@ class MovementResource extends Resource
         return $schema->schema([
             DateTimePicker::make('date')
                 ->required()
-                ->default(date('Y-m-d h:i'))
+                ->default(fn (): string => now()->format('Y-m-d H:i'))
                 ->seconds(false)
                 ->translateLabel(),
             Select::make('movement_type_id')

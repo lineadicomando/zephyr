@@ -161,6 +161,11 @@ it('forbids edit and allows view for read-only users on critical resources', fun
     $user->givePermissionTo($viewPerm);
     $user->scopes()->attach($scope->id);
 
+    if ($record instanceof Task) {
+        // Non admin users can only access the tasks assigned to them.
+        $record->update(['user_id' => $user->id]);
+    }
+
     $this->actingAs($user);
 
     $slug = $scope->slug;

@@ -94,7 +94,9 @@ class MovementTypeResource extends Resource
                 ColorColumn::make('chart_color')
                     ->default('#ffffff')
                     ->translateLabel(),
-                CheckboxColumn::make('chart')->translateLabel(),
+                CheckboxColumn::make('chart')
+                    ->translateLabel()
+                    ->disabled(fn (MovementType $record): bool => ! auth()->user()->can('update', $record)),
                 // IconColumn::make('chart')
                 //     ->translateLabel()
                 //     ->icon(fn (string $state): string => match ($state) {

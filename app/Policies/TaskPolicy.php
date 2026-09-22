@@ -15,9 +15,9 @@ class TaskPolicy
         return $user->can('view_any_task');
     }
 
-    public function view(User $user, Task|null $model = null): bool
+    public function view(User $user, ?Task $model = null): bool
     {
-        return $user->can('view_task') && $this->canAccessModelScope($user, $model);
+        return $user->can('view_task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
     }
 
     public function create(User $user): bool
@@ -25,9 +25,9 @@ class TaskPolicy
         return $user->can('create_task');
     }
 
-    public function update(User $user, Task|null $model = null): bool
+    public function update(User $user, ?Task $model = null): bool
     {
-        return $user->can('update_task') && $this->canAccessModelScope($user, $model);
+        return $user->can('update_task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
     }
 
     public function deleteAny(User $user): bool
@@ -35,9 +35,9 @@ class TaskPolicy
         return $user->can('delete_any_task');
     }
 
-    public function delete(User $user, Task|null $model = null): bool
+    public function delete(User $user, ?Task $model = null): bool
     {
-        return $user->can('delete_task') && $this->canAccessModelScope($user, $model);
+        return $user->can('delete_task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
     }
 
     public function restoreAny(User $user): bool
@@ -45,7 +45,7 @@ class TaskPolicy
         return $user->can('restore_any_task');
     }
 
-    public function restore(User $user, Task|null $model = null): bool
+    public function restore(User $user, ?Task $model = null): bool
     {
         return $user->can('restore_task') && $this->canAccessModelScope($user, $model);
     }
@@ -55,8 +55,16 @@ class TaskPolicy
         return $user->can('force_delete_any_task');
     }
 
-    public function forceDelete(User $user, Task|null $model = null): bool
+    public function forceDelete(User $user, ?Task $model = null): bool
     {
         return $user->can('force_delete_task') && $this->canAccessModelScope($user, $model);
+    }
+
+    /**
+     * Non admin users can only access the tasks assigned to them.
+     */
+    protected function canAccessTask(User $user, ?Task $model): bool
+    {
+        return $model === null || $user->isAdmin() || $model->user_id === $user->id;
     }
 }

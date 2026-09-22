@@ -149,5 +149,7 @@
     "Last update of records: :date": "Ultimo aggiornamento anagrafiche: :date",
     "Available": "Disponibili",
     "Not available": "Non disponibili",
-    "You cannot assign this scope.": "Non puoi assegnare questo scope."
+    "You cannot assign this scope.": "Non puoi assegnare questo scope.",
+    "No critical items to reorder": "Nessun articolo critico da riordinare",
+    "Transition reorder orders": "Cambiare stato agli ordini di riordino"
 }

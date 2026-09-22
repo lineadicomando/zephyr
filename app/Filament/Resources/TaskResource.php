@@ -187,9 +187,9 @@ class TaskResource extends Resource
                                     )
                                     ->where('entity_type', TaskStatus::class);
                             });
-                            $query
+                            $query->where(fn (Builder $query) => $query
                                 ->whereNull('permission_entities.id')
-                                ->orWhere('permission_entities.view', true);
+                                ->orWhere('permission_entities.view', true));
                         }
 
                         return $query->orderBy('order', 'asc');
@@ -212,7 +212,14 @@ class TaskResource extends Resource
                 ->disabled(! auth()->user()->isAdmin())
                 ->default(Auth()->user()->id)
                 ->preload()
-                ->relationship('user', 'name'),
+                ->relationship(
+                    'user',
+                    'name',
+                    modifyQueryUsing: fn (Builder $query): Builder => $query->whereHas(
+                        'scopes',
+                        fn (Builder $scopes): Builder => $scopes->whereKey(filament()->getTenant()?->getKey()),
+                    ),
+                ),
             Textarea::make('note')->columnSpanFull()->translateLabel(),
         ];
         if ($modal) {

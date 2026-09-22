@@ -60,10 +60,13 @@ class UserResource extends Resource
                     ->required(),
                 TextInput::make('email')
                     ->autocomplete('off')
-                    ->email(),
+                    ->required()
+                    ->email()
+                    ->unique(ignoreRecord: true),
                 TextInput::make('password')
                     ->autocomplete('off')
                     ->password()
+                    ->required(fn (string $operation): bool => $operation === 'create')
                     ->confirmed(),
                 TextInput::make('password_confirmation')
                     ->password(),

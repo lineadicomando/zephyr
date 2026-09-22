@@ -4,15 +4,16 @@ namespace App\Filament\Resources\InventoryResource\RelationManagers;
 
 use App\Filament\Resources\TaskResource;
 use App\Models\Task;
-use Filament\Forms;
-use Filament\Schemas\Schema;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DetachAction;
+use Filament\Actions\DetachBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TasksRelationManager extends RelationManager
 {
@@ -44,8 +45,8 @@ class TasksRelationManager extends RelationManager
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('task_status.name')
                     ->badge()
-                    ->color(fn (String $state, Task  $task) => $task->task_status->color)
-                    ->icon(fn (String $state, Task  $task) => $task->task_status->icon)
+                    ->color(fn (string $state, Task $task) => $task->task_status->color)
+                    ->icon(fn (string $state, Task $task) => $task->task_status->icon)
                     ->translateLabel()
                     ->sortable(),
                 TextColumn::make('task_type.name')
@@ -60,16 +61,16 @@ class TasksRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                \Filament\Actions\CreateAction::make(),
+                CreateAction::make(),
             ])
             ->actions([
-                \Filament\Actions\EditAction::make(),
-                \Filament\Actions\DetachAction::make(),
+                EditAction::make(),
+                DetachAction::make(),
                 // \Filament\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DetachBulkAction::make(),
                 ]),
             ]);
     }

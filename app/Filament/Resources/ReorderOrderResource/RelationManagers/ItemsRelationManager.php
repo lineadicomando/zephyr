@@ -3,7 +3,10 @@
 namespace App\Filament\Resources\ReorderOrderResource\RelationManagers;
 
 use App\Models\ReorderOrder;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +18,17 @@ class ItemsRelationManager extends RelationManager
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('Items');
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema
+            ->schema([
+                TextInput::make('ordered_qty')
+                    ->translateLabel()
+                    ->integer()
+                    ->minValue(0),
+            ]);
     }
 
     public function table(Table $table): Table
@@ -39,7 +53,7 @@ class ItemsRelationManager extends RelationManager
             ])
             ->headerActions([])
             ->actions([
-                \Filament\Actions\EditAction::make()->visible(! $isLocked),
+                EditAction::make()->visible(! $isLocked),
             ])
             ->bulkActions([]);
     }

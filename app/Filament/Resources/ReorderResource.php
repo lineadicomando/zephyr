@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ReorderResource\Pages;
 use App\Models\Reorder;
+use App\Models\ReorderOrder;
 use App\Models\Stock;
 use App\Services\Reorders\ReorderProposalService;
 use Filament\Actions\Action;
@@ -14,6 +15,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -66,6 +68,7 @@ class ReorderResource extends Resource
                     ->translateLabel()
                     ->required()
                     ->searchable()
+                    ->unique(ignoreRecord: true)
                     ->relationship('stock', 'inventory_summary'),
                 TextInput::make('reorder_point')
                     ->required()
@@ -174,8 +177,16 @@ class ReorderResource extends Resource
                 Action::make('generateCriticalProposal')
                     ->label(__('Generate proposal'))
                     ->icon('heroicon-o-plus')
-                    ->action(function () {
-                        app(ReorderProposalService::class)->createDraftFromCritical(auth()->id());
+                    ->authorize(fn (): bool => auth()->user()->can('create', ReorderOrder::class))
+                    ->action(function (): void {
+                        $order = app(ReorderProposalService::class)->createDraftFromCritical(auth()->id());
+
+                        if ($order === null) {
+                            Notification::make()
+                                ->info()
+                                ->title(__('No critical items to reorder'))
+                                ->send();
+                        }
                     })
                     ->requiresConfirmation(),
             ])

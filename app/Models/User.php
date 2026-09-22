@@ -50,7 +50,7 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
 
     public function canAccessTenant(Model $tenant): bool
     {
-        return $this->scopes()->whereKey($tenant)->exists();
+        return $this->scopes()->where('is_active', true)->whereKey($tenant)->exists();
     }
 
     public function getDefaultTenant(Panel $panel): ?Model

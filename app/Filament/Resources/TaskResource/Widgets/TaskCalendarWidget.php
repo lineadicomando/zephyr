@@ -7,29 +7,30 @@ use App\Models\Task;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
-use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 use Saade\FilamentFullCalendar\Actions\CreateAction;
+use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
 
 class TaskCalendarWidget extends FullCalendarWidget
 {
-
     public static function boot()
     {
         view()->composer('*', function ($view) {
             $panel = Filament::getCurrentPanel();
 
-            if (($panel?->getId() !== 'app') || (!$panel->hasPlugin('filament-fullcalendar'))) {
+            if (($panel?->getId() !== 'app') || (! $panel->hasPlugin('filament-fullcalendar'))) {
                 return;
             }
 
-            $plugin = \Saade\FilamentFullCalendar\FilamentFullCalendarPlugin::get();
+            $plugin = FilamentFullCalendarPlugin::get();
             $plugin->editable(auth()->user()?->can('update', Task::class) ?? false);
             $view->with('plugin', $plugin);
         });
     }
-    public Model | string | null $model = Task::class;
+
+    public Model|string|null $model = Task::class;
 
     public function onEventResize(array $event, array $oldEvent, array $relatedEvents, array $startDelta, array $endDelta): bool
     {
@@ -37,9 +38,13 @@ class TaskCalendarWidget extends FullCalendarWidget
             $this->record = $this->resolveRecord($event['id']);
         }
 
+        if (! auth()->user()->can('update', $this->record)) {
+            return true;
+        }
+
         try {
             $updateArray = ['starts_at' => Carbon::parse($event['start'])];
-            if (!empty($event['end'])) {
+            if (! empty($event['end'])) {
                 $updateArray['ends_at'] = Carbon::parse($event['end']);
             }
             $this->record->update($updateArray);
@@ -65,14 +70,18 @@ class TaskCalendarWidget extends FullCalendarWidget
         array $delta,
         ?array $oldResource,
         ?array $newResource
-    ): bool
-    {
+    ): bool {
         if ($this->getModel()) {
             $this->record = $this->resolveRecord($event['id']);
         }
+
+        if (! auth()->user()->can('update', $this->record)) {
+            return true;
+        }
+
         try {
             $updateArray = ['starts_at' => Carbon::parse($event['start'])];
-            if (!empty($event['end'])) {
+            if (! empty($event['end'])) {
                 $updateArray['ends_at'] = Carbon::parse($event['end']);
             }
             $this->record->update($updateArray);
@@ -87,6 +96,7 @@ class TaskCalendarWidget extends FullCalendarWidget
                 ->danger()
                 ->send();
         }
+
         return false;
     }
 
@@ -96,7 +106,7 @@ class TaskCalendarWidget extends FullCalendarWidget
             $this->record = $this->resolveRecord($event['id']);
         }
 
-        if (!auth()->user()->can('update', $this->record)) {
+        if (! auth()->user()->can('update', $this->record)) {
             return;
         }
 
@@ -110,15 +120,15 @@ class TaskCalendarWidget extends FullCalendarWidget
     {
         return [
             CreateAction::make()
-                ->hidden(!auth()->user()->can('create', Task::class))
+                ->hidden(! auth()->user()->can('create', Task::class))
                 ->mountUsing(
-                    function (\Filament\Schemas\Schema $form, array $arguments) {
+                    function (Schema $form, array $arguments) {
                         $form->fill([
                             'starts_at' => $this->toCalendarTimezone($arguments['start'] ?? null),
                             'ends_at' => $this->toCalendarTimezone($arguments['end'] ?? null),
                         ]);
                     }
-                )
+                ),
         ];
     }
 
@@ -151,7 +161,7 @@ class TaskCalendarWidget extends FullCalendarWidget
     public function fetchEvents(array $fetchInfo): array
     {
         $tasks = Task::query()->with('task_type');
-        if (!auth()->user()->isAdmin()) {
+        if (! auth()->user()->isAdmin()) {
             $tasks->where('user_id', auth()->user()->id);
         }
 
@@ -170,7 +180,7 @@ class TaskCalendarWidget extends FullCalendarWidget
                 'end' => $task->ends_at,
                 'backgroundColor' => $task->task_type->chart_color,
                 // 'url' => TaskResource::getUrl(name: 'edit', parameters: ['record' => $task]),
-                'shouldOpenUrlInNewTab' => false
+                'shouldOpenUrlInNewTab' => false,
             ]
         )->all();
 

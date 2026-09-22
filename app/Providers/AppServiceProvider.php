@@ -31,11 +31,12 @@ class AppServiceProvider extends ServiceProvider
         // {tenant:slug}/products route (treating "api" as a tenant slug) before the
         // api middleware group can handle the request.
         $this->app->booted(function (): void {
-            // Symfony route requirements strip anchors, so use a negative lookbehind
-            // to match any valid slug that does not end with exactly "api".
+            // Symfony route requirements strip anchors, so use a negative lookahead
+            // to reject a slug that is exactly "api" (followed by "/" or the end of
+            // the path) while still allowing slugs such as "sapi" or "api-team".
             // This prevents the Filament {tenant:slug}/... web routes from intercepting
             // requests to the /api/... endpoints.
-            $pattern = '[a-z0-9\-_]+(?<!api)';
+            $pattern = '(?!api(?:/|$))[a-z0-9\-_]+';
 
             foreach (Route::getRoutes()->getRoutes() as $route) {
                 $uri = $route->uri();

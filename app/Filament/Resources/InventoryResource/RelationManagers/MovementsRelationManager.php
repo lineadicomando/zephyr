@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InventoryResource\RelationManagers;
 
+use App\Filament\Resources\MovementResource;
 use App\Models\InventoryPosition;
 use App\Models\Movement;
 use App\Models\MovementItem;
@@ -47,7 +48,7 @@ class MovementsRelationManager extends RelationManager
                 DateTimePicker::make('date')
                     ->required()
                     ->disabled(fn ($record) => ! is_null($record))
-                    ->default(date('Y-m-d h:i'))
+                    ->default(fn (): string => now()->format('Y-m-d H:i'))
                     ->seconds(false)
                     ->translateLabel(),
                 Select::make('movement_type_id')
@@ -207,7 +208,7 @@ class MovementsRelationManager extends RelationManager
                     // ->icon('heroicon-m-eye')
                     ->icon('heroicon-s-arrow-up-tray')
                     ->url(function (MovementItem $record) {
-                        return url('/movements/'.$record->movement_id.'/view');
+                        return MovementResource::getUrl('view', ['record' => $record->movement_id]);
                     })->openUrlInNewTab(),
                 ViewAction::make()
                     ->beforeFormFilled(fn (array $data, string $model, MovementItem $movementItem) => self::ActionsBeforeFormFilled($data, $model, $movementItem)),
