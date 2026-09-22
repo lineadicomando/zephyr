@@ -13,3 +13,4 @@ Schedule::command('backup:clean')->dailyAt('01:30')->withoutOverlapping();
 Schedule::command('backup:monitor')->dailyAt('03:00');
 Schedule::command('db:check')->daily();
 Schedule::command('scopes:purge-pending')->hourly()->withoutOverlapping();
+Schedule::command('sanctum:prune-expired --hours=24')->daily();

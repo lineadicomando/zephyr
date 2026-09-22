@@ -1,8 +1,8 @@
 @php
-    $svgFavicon = (string) env('APP_FAVICON_SVG', env('APP_FAVICON', 'images/favicon.svg'));
-    $icoFavicon = (string) env('APP_FAVICON_ICO', 'favicon.ico');
-    $png32Favicon = (string) env('APP_FAVICON_PNG_32', 'favicon.ico');
-    $appleTouchIcon = (string) env('APP_APPLE_TOUCH_ICON', 'favicon.ico');
+    $svgFavicon = (string) config('app.branding.favicon_svg');
+    $icoFavicon = (string) config('app.branding.favicon_ico');
+    $png32Favicon = (string) config('app.branding.favicon_png_32');
+    $appleTouchIcon = (string) config('app.branding.apple_touch_icon');
 @endphp
 
 <link rel="icon" type="image/svg+xml" href="{{ asset($svgFavicon) }}">

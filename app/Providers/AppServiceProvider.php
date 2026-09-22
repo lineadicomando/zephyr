@@ -6,6 +6,9 @@ use App\Support\Scope\ScopeAccessResolver;
 use BezhanSalleh\PanelSwitch\PanelSwitch;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(config('sanctum.rate_limit_per_minute'))
+            ->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
+
         // After all service providers have booted (including Filament which registers
         // its routes during boot), retroactively constrain the {tenant} route parameter
         // on all Filament routes to prevent them from matching reserved path segments

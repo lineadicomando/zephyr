@@ -14,9 +14,7 @@ class DatabaseSeeder extends Seeder
             BootstrapAdminSeeder::class,
         ]);
 
-        $seedDemoData = filter_var(env('SEED_DEMO_DATA', false), FILTER_VALIDATE_BOOL);
-
-        if ($seedDemoData) {
+        if (config('app.seed_demo_data')) {
             $this->call(DemoDataSeeder::class);
         }
     }

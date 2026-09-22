@@ -7,31 +7,17 @@ use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 
-function setBootstrapAdminEnv(string $key, ?string $value): void
+function setBootstrapAdminConfig(string $key, ?string $value): void
 {
-    if ($value === null) {
-        putenv($key);
-        unset($_ENV[$key], $_SERVER[$key]);
-
-        return;
-    }
-
-    putenv("{$key}={$value}");
-    $_ENV[$key] = $value;
-    $_SERVER[$key] = $value;
+    config()->set("app.bootstrap_admin.{$key}", $value);
 }
 
 beforeEach(function () {
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_EMAIL', 'root@example.com');
-});
-
-afterEach(function () {
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_EMAIL', null);
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_PASSWORD', null);
+    setBootstrapAdminConfig('email', 'root@example.com');
 });
 
 it('creates the bootstrap admin with the configured password', function () {
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_PASSWORD', 'first-secret');
+    setBootstrapAdminConfig('password', 'first-secret');
 
     (new BootstrapAdminSeeder)->run();
 
@@ -42,10 +28,10 @@ it('creates the bootstrap admin with the configured password', function () {
 });
 
 it('does not reset the password of an existing admin when seeding again', function (?string $newPassword) {
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_PASSWORD', 'first-secret');
+    setBootstrapAdminConfig('password', 'first-secret');
     (new BootstrapAdminSeeder)->run();
 
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_PASSWORD', $newPassword);
+    setBootstrapAdminConfig('password', $newPassword);
     (new BootstrapAdminSeeder)->run();
 
     $admin = User::query()->where('email', 'root@example.com')->sole();
@@ -58,7 +44,7 @@ it('does not reset the password of an existing admin when seeding again', functi
 ]);
 
 it('refuses to create the admin without a password', function () {
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_PASSWORD', '');
+    setBootstrapAdminConfig('password', '');
 
     expect(fn () => (new BootstrapAdminSeeder)->run())->toThrow(RuntimeException::class);
     expect(User::query()->where('email', 'root@example.com')->exists())->toBeFalse();
@@ -66,13 +52,13 @@ it('refuses to create the admin without a password', function () {
 
 it('refuses placeholder passwords in production', function (string $placeholder) {
     app()->detectEnvironment(fn (): string => 'production');
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_PASSWORD', $placeholder);
+    setBootstrapAdminConfig('password', $placeholder);
 
     expect(fn () => (new BootstrapAdminSeeder)->run())->toThrow(RuntimeException::class);
 })->with(BootstrapAdminSeeder::PLACEHOLDER_PASSWORDS);
 
 it('allows the example password outside production', function () {
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_PASSWORD', 'password');
+    setBootstrapAdminConfig('password', 'password');
 
     (new BootstrapAdminSeeder)->run();
 
@@ -80,7 +66,7 @@ it('allows the example password outside production', function () {
 });
 
 it('restores a soft deleted bootstrap admin', function () {
-    setBootstrapAdminEnv('BOOTSTRAP_ADMIN_PASSWORD', 'first-secret');
+    setBootstrapAdminConfig('password', 'first-secret');
     (new BootstrapAdminSeeder)->run();
     User::query()->where('email', 'root@example.com')->sole()->delete();
 

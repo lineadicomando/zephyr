@@ -1,6 +1,6 @@
 <?php
 
-$appVersion = "0.1.2";
+$appVersion = '0.1.2';
 
 return [
     /*
@@ -14,7 +14,7 @@ return [
     |
     */
 
-    "name" => env("APP_NAME", "Laravel"),
+    'name' => env('APP_NAME', 'Laravel'),
 
     /*
     |--------------------------------------------------------------------------
@@ -27,7 +27,7 @@ return [
     |
     */
 
-    "env" => env("APP_ENV", "production"),
+    'env' => env('APP_ENV', 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ return [
     |
     */
 
-    "debug" => (bool) env("APP_DEBUG", false),
+    'debug' => (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ return [
     |
     */
 
-    "url" => env("APP_URL", "http://localhost"),
+    'url' => env('APP_URL', 'http://localhost'),
 
     /*
     |--------------------------------------------------------------------------
@@ -66,8 +66,8 @@ return [
     |
     */
 
-    "timezone" => "UTC",
-    "calendar_timezone" => env("CALENDAR_TIMEZONE", "Europe/Rome"),
+    'timezone' => 'UTC',
+    'calendar_timezone' => env('CALENDAR_TIMEZONE', 'Europe/Rome'),
 
     /*
     |--------------------------------------------------------------------------
@@ -80,14 +80,14 @@ return [
     |
     */
 
-    "locale" => env("APP_LOCALE", env("LOCALE", "en")),
+    'locale' => env('APP_LOCALE', env('LOCALE', 'en')),
 
-    "fallback_locale" => env(
-        "APP_FALLBACK_LOCALE",
-        env("FALLBACK_LOCALE", "en"),
+    'fallback_locale' => env(
+        'APP_FALLBACK_LOCALE',
+        env('FALLBACK_LOCALE', 'en'),
     ),
 
-    "faker_locale" => env("APP_FAKER_LOCALE", "en_US"),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*
     |--------------------------------------------------------------------------
@@ -100,12 +100,12 @@ return [
     |
     */
 
-    "cipher" => "AES-256-CBC",
+    'cipher' => 'AES-256-CBC',
 
-    "key" => env("APP_KEY"),
+    'key' => env('APP_KEY'),
 
-    "previous_keys" => [
-        ...array_filter(explode(",", (string) env("APP_PREVIOUS_KEYS", ""))),
+    'previous_keys' => [
+        ...array_filter(explode(',', (string) env('APP_PREVIOUS_KEYS', ''))),
     ],
 
     /*
@@ -121,18 +121,70 @@ return [
     |
     */
 
-    "maintenance" => [
-        "driver" => env("APP_MAINTENANCE_DRIVER", "file"),
-        "store" => env("APP_MAINTENANCE_STORE", "database"),
+    'maintenance' => [
+        'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
+        'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    "ver" => $appVersion,
-    "projectName" => env("APP_PROJECT_NAME", "Zephyr"),
-    "diagnostics_enabled" => env("APP_DIAGNOSTICS_ENABLED", false),
+    'ver' => $appVersion,
+    'projectName' => env('APP_PROJECT_NAME', 'Zephyr'),
+    'diagnostics_enabled' => env('APP_DIAGNOSTICS_ENABLED', false),
 
-    "project" => (static function () use ($appVersion): array {
+    /*
+    |--------------------------------------------------------------------------
+    | Branding assets
+    |--------------------------------------------------------------------------
+    |
+    | Paths (relative to the public directory) of the logo and favicons.
+    |
+    */
+
+    'branding' => [
+        'logo' => env('APP_LOGO', 'images/logo.svg'),
+        'favicon' => env('APP_FAVICON', 'images/favicon.svg'),
+        'favicon_svg' => env('APP_FAVICON_SVG', env('APP_FAVICON', 'images/favicon.svg')),
+        'favicon_ico' => env('APP_FAVICON_ICO', 'favicon.ico'),
+        'favicon_png_32' => env('APP_FAVICON_PNG_32', 'favicon.ico'),
+        'apple_touch_icon' => env('APP_APPLE_TOUCH_ICON', 'favicon.ico'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Display formats and working hours
+    |--------------------------------------------------------------------------
+    */
+
+    'date_format' => env('DATE_FORMAT', 'Y-m-d'),
+    'datetime_format' => env('DATETIME_FORMAT', 'Y-m-d H:i'),
+
+    'work_schedule' => [
+        'start' => env('ZPH_TIME_START_WORK', '09:00'),
+        'end' => env('ZPH_TIME_END_WORK', '17:00'),
+        'days' => env('ZPH_WORK_DAYS', '1,2,3,4,5'),
+    ],
+
+    'inventory_number_zero_fill' => (int) env('INVENTORY_NUMBER_ZERO_FILL', 6),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Seeding
+    |--------------------------------------------------------------------------
+    |
+    | Bootstrap admin account created by the seeders and demo data toggle.
+    |
+    */
+
+    'bootstrap_admin' => [
+        'name' => env('BOOTSTRAP_ADMIN_NAME', 'Admin'),
+        'email' => env('BOOTSTRAP_ADMIN_EMAIL', 'admin@cmdln.it'),
+        'password' => env('BOOTSTRAP_ADMIN_PASSWORD', ''),
+    ],
+
+    'seed_demo_data' => (bool) filter_var(env('SEED_DEMO_DATA', false), FILTER_VALIDATE_BOOL),
+
+    'project' => (static function () use ($appVersion): array {
         $composer = [];
-        $composerPath = base_path("composer.json");
+        $composerPath = base_path('composer.json');
 
         if (is_file($composerPath)) {
             $decoded = json_decode(
@@ -145,15 +197,15 @@ return [
             }
         }
 
-        $license = $composer["license"] ?? "Proprietary";
+        $license = $composer['license'] ?? 'Proprietary';
 
         if (is_array($license)) {
-            $license = implode(", ", array_map("strval", $license));
+            $license = implode(', ', array_map('strval', $license));
         }
 
-        $authorName = "Project Maintainers";
+        $authorName = 'Project Maintainers';
         $authorEmail = null;
-        $authorsPath = base_path("AUTHORS.md");
+        $authorsPath = base_path('AUTHORS.md');
 
         if (is_file($authorsPath)) {
             $lines =
@@ -166,30 +218,30 @@ return [
             foreach ($lines as $line) {
                 $line = trim($line);
 
-                if ($line === "" || str_starts_with($line, "#")) {
+                if ($line === '' || str_starts_with($line, '#')) {
                     continue;
                 }
 
-                $line = ltrim($line, "-* ");
+                $line = ltrim($line, '-* ');
 
-                if ($line !== "") {
+                if ($line !== '') {
                     $authorName = $line;
                     break;
                 }
             }
         }
 
-        if (preg_match("/<([^>]+@[^>]+)>/", $authorName, $matches) === 1) {
+        if (preg_match('/<([^>]+@[^>]+)>/', $authorName, $matches) === 1) {
             $authorEmail = $matches[1];
-            $authorName = trim(str_replace($matches[0], "", $authorName));
+            $authorName = trim(str_replace($matches[0], '', $authorName));
         }
 
         return [
-            "name" => env("APP_PROJECT_NAME", "Zephyr"),
-            "version" => $appVersion,
-            "license" => (string) $license,
-            "author_name" => $authorName,
-            "author_email" => $authorEmail,
+            'name' => env('APP_PROJECT_NAME', 'Zephyr'),
+            'version' => $appVersion,
+            'license' => (string) $license,
+            'author_name' => $authorName,
+            'author_email' => $authorEmail,
         ];
     })(),
 ];

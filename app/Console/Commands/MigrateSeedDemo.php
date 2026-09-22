@@ -22,35 +22,20 @@ class MigrateSeedDemo extends Command
             return self::FAILURE;
         }
 
-        $previous = getenv('SEED_DEMO_DATA');
-
-        putenv('SEED_DEMO_DATA=true');
-        $_ENV['SEED_DEMO_DATA'] = 'true';
-        $_SERVER['SEED_DEMO_DATA'] = 'true';
+        $previous = config('app.seed_demo_data');
+        config()->set('app.seed_demo_data', true);
 
         $command = $fresh ? 'migrate:fresh' : 'migrate';
 
-        $exitCode = $this->call($command, [
-            '--seed' => true,
-            '--force' => true,
-        ]);
-
-        $this->restoreSeedDemoEnv($previous);
-
-        return $exitCode;
-    }
-
-    private function restoreSeedDemoEnv(string|false $previous): void
-    {
-        if ($previous === false) {
-            putenv('SEED_DEMO_DATA');
-            unset($_ENV['SEED_DEMO_DATA'], $_SERVER['SEED_DEMO_DATA']);
-
-            return;
+        try {
+            $exitCode = $this->call($command, [
+                '--seed' => true,
+                '--force' => true,
+            ]);
+        } finally {
+            config()->set('app.seed_demo_data', $previous);
         }
 
-        putenv("SEED_DEMO_DATA={$previous}");
-        $_ENV['SEED_DEMO_DATA'] = $previous;
-        $_SERVER['SEED_DEMO_DATA'] = $previous;
+        return $exitCode;
     }
 }

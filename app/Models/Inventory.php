@@ -52,7 +52,7 @@ class Inventory extends Model
         $sequence = (int) $this->id;
 
         do {
-            $number = str_pad((string) $sequence++, env('INVENTORY_NUMBER_ZERO_FILL', 6), '0', STR_PAD_LEFT);
+            $number = str_pad((string) $sequence++, config('app.inventory_number_zero_fill'), '0', STR_PAD_LEFT);
         } while (static::query()
             ->where('scope_id', $this->scope_id)
             ->where('inventory_number', $number)

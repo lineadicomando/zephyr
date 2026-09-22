@@ -5,10 +5,8 @@ use App\Console\Commands\MigrateSeedDemo;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 
-it('migrate seed sets flag false and restores previous env value', function () {
-    putenv('SEED_DEMO_DATA=keep-me');
-    $_ENV['SEED_DEMO_DATA'] = 'keep-me';
-    $_SERVER['SEED_DEMO_DATA'] = 'keep-me';
+it('migrate seed disables demo data while seeding and restores the previous value', function () {
+    config()->set('app.seed_demo_data', true);
 
     $command = Mockery::mock(MigrateSeed::class)->makePartial();
     $command->shouldReceive('option')->once()->with('no-fresh')->andReturnFalse();
@@ -16,19 +14,18 @@ it('migrate seed sets flag false and restores previous env value', function () {
     $command->shouldReceive('call')->once()->with('migrate:fresh', [
         '--seed' => true,
         '--force' => true,
-    ])->andReturn(0);
+    ])->andReturnUsing(function (): int {
+        expect(config('app.seed_demo_data'))->toBeFalse();
 
-    $exitCode = $command->handle();
+        return 0;
+    });
 
-    expect($exitCode)->toBe(0)
-        ->and(getenv('SEED_DEMO_DATA'))->toBe('keep-me')
-        ->and($_ENV['SEED_DEMO_DATA'])->toBe('keep-me')
-        ->and($_SERVER['SEED_DEMO_DATA'])->toBe('keep-me');
+    expect($command->handle())->toBe(0)
+        ->and(config('app.seed_demo_data'))->toBeTrue();
 });
 
-it('migrate seed demo sets flag true and unsets env when previously absent', function () {
-    putenv('SEED_DEMO_DATA');
-    unset($_ENV['SEED_DEMO_DATA'], $_SERVER['SEED_DEMO_DATA']);
+it('migrate seed demo enables demo data while seeding and restores the previous value', function () {
+    config()->set('app.seed_demo_data', false);
 
     $command = Mockery::mock(MigrateSeedDemo::class)->makePartial();
     $command->shouldReceive('option')->once()->with('no-fresh')->andReturnTrue();
@@ -36,14 +33,14 @@ it('migrate seed demo sets flag true and unsets env when previously absent', fun
     $command->shouldReceive('call')->once()->with('migrate', [
         '--seed' => true,
         '--force' => true,
-    ])->andReturn(0);
+    ])->andReturnUsing(function (): int {
+        expect(config('app.seed_demo_data'))->toBeTrue();
 
-    $exitCode = $command->handle();
+        return 0;
+    });
 
-    expect($exitCode)->toBe(0)
-        ->and(getenv('SEED_DEMO_DATA'))->toBeFalse()
-        ->and(array_key_exists('SEED_DEMO_DATA', $_ENV))->toBeFalse()
-        ->and(array_key_exists('SEED_DEMO_DATA', $_SERVER))->toBeFalse();
+    expect($command->handle())->toBe(0)
+        ->and(config('app.seed_demo_data'))->toBeFalse();
 });
 
 it('does not drop the database in production without confirmation', function (string $command) {

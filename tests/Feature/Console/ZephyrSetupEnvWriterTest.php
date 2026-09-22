@@ -42,3 +42,15 @@ it('detects whether the database already contains tables', function () {
     expect(callZephyrSetup('databaseHasTables', config('database.default')))->toBeTrue()
         ->and(callZephyrSetup('databaseHasTables', 'missing-connection'))->toBeFalse();
 });
+
+it('passes the collected setup values to the runtime configuration used by the seeders', function () {
+    callZephyrSetup('syncRuntimeConfig', [
+        'BOOTSTRAP_ADMIN_EMAIL' => 'setup@example.com',
+        'BOOTSTRAP_ADMIN_PASSWORD' => 'setup-secret',
+        'ZPH_TIME_START_WORK' => '08:00',
+    ]);
+
+    expect(config('app.bootstrap_admin.email'))->toBe('setup@example.com')
+        ->and(config('app.bootstrap_admin.password'))->toBe('setup-secret')
+        ->and(config('app.work_schedule.start'))->toBe('08:00');
+});

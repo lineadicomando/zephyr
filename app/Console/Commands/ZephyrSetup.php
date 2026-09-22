@@ -588,6 +588,24 @@ class ZephyrSetup extends Command
             config()->set('cache.default', $effectiveEnv['CACHE_STORE']);
         }
 
+        $configKeys = [
+            'BOOTSTRAP_ADMIN_NAME' => 'app.bootstrap_admin.name',
+            'BOOTSTRAP_ADMIN_EMAIL' => 'app.bootstrap_admin.email',
+            'BOOTSTRAP_ADMIN_PASSWORD' => 'app.bootstrap_admin.password',
+            'ZPH_TIME_START_WORK' => 'app.work_schedule.start',
+            'ZPH_TIME_END_WORK' => 'app.work_schedule.end',
+            'ZPH_WORK_DAYS' => 'app.work_schedule.days',
+            'DATE_FORMAT' => 'app.date_format',
+            'DATETIME_FORMAT' => 'app.datetime_format',
+            'CALENDAR_TIMEZONE' => 'app.calendar_timezone',
+        ];
+
+        foreach ($configKeys as $envKey => $configKey) {
+            if (isset($effectiveEnv[$envKey])) {
+                config()->set($configKey, $effectiveEnv[$envKey]);
+            }
+        }
+
         if (($effectiveEnv['CACHE_STORE'] ?? null) === 'database') {
             config()->set(
                 'cache.stores.database.connection',
@@ -613,5 +631,6 @@ class ZephyrSetup extends Command
         putenv('BOOTSTRAP_ADMIN_PASSWORD=');
         $_ENV['BOOTSTRAP_ADMIN_PASSWORD'] = '';
         $_SERVER['BOOTSTRAP_ADMIN_PASSWORD'] = '';
+        config()->set('app.bootstrap_admin.password', '');
     }
 }

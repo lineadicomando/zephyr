@@ -45,8 +45,8 @@ class AppPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->profile()
             ->tenant(Scope::class, slugAttribute: 'slug', ownershipRelationship: 'scope')
-            ->favicon(asset(env('APP_FAVICON')))
-            ->brandLogo(asset(env('APP_LOGO')))
+            ->favicon(asset(config('app.branding.favicon')))
+            ->brandLogo(asset(config('app.branding.logo')))
             ->brandLogoHeight('2rem')
             ->colors([
                 'primary' => Color::Amber,
@@ -133,7 +133,7 @@ class AppPanelProvider extends PanelProvider
                     ->selectable()
                     ->editable()
                     ->timezone(config('app.calendar_timezone'))
-                    ->locale(env('LOCALE', 'en'))
+                    ->locale(config('app.locale'))
                     ->config([
                         'initialView' => 'timeGridWeek',
                         'slotMinTime' => '06:00:00',

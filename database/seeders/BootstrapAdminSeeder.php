@@ -19,7 +19,7 @@ class BootstrapAdminSeeder extends Seeder
 
     public function run(): void
     {
-        $email = (string) env('BOOTSTRAP_ADMIN_EMAIL', 'admin@cmdln.it');
+        $email = (string) config('app.bootstrap_admin.email');
 
         $user = User::withTrashed()->where('email', $email)->first()
             ?? $this->createAdmin($email);
@@ -63,7 +63,7 @@ class BootstrapAdminSeeder extends Seeder
      */
     protected function createAdmin(string $email): User
     {
-        $password = (string) env('BOOTSTRAP_ADMIN_PASSWORD', '');
+        $password = (string) config('app.bootstrap_admin.password');
 
         if ($password === '') {
             throw new RuntimeException('BOOTSTRAP_ADMIN_PASSWORD must be set to create the bootstrap admin.');
@@ -74,7 +74,7 @@ class BootstrapAdminSeeder extends Seeder
         }
 
         return User::query()->forceCreate([
-            'name' => (string) env('BOOTSTRAP_ADMIN_NAME', 'Admin'),
+            'name' => (string) config('app.bootstrap_admin.name'),
             'email' => $email,
             'password' => $password,
             'email_verified_at' => now(),

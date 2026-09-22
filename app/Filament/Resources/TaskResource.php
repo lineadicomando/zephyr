@@ -130,11 +130,11 @@ class TaskResource extends Resource
                         $initialDate = $carbon->format('Y-m-d');
                         $startsAt->state(
                             date(
-                                $initialDate.' '.env('ZPH_TIME_START_WORK'),
+                                $initialDate.' '.config('app.work_schedule.start'),
                             ),
                         );
                         $endsAt->state(
-                            date($initialDate.' '.env('ZPH_TIME_END_WORK')),
+                            date($initialDate.' '.config('app.work_schedule.end')),
                         );
                     } else {
                         if ($task) {
@@ -254,11 +254,11 @@ class TaskResource extends Resource
                     ->label('#')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('starts_at')
-                    ->date(env('DATETIME_FORMAT'))
+                    ->date(config('app.datetime_format'))
                     ->translateLabel()
                     ->sortable(),
                 TextColumn::make('ends_at')
-                    ->date(env('DATETIME_FORMAT'))
+                    ->date(config('app.datetime_format'))
                     ->translateLabel()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
