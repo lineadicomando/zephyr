@@ -13,6 +13,13 @@ class Scope extends Model implements HasCurrentTenantLabel
 {
     use HasFactory;
 
+    /**
+     * Slugs usable in the tenant URL segment: lowercase, and never exactly
+     * "api", which is reserved to the API routes. The negative lookahead
+     * works without anchors, as Symfony route requirements strip them.
+     */
+    public const SLUG_PATTERN = '(?!api(?:/|$))[a-z0-9\-_]+';
+
     protected $fillable = [
         'name',
         'slug',

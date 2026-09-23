@@ -30,7 +30,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P2 - Medium
 
 ### P3 - Low
-- [ ] Scope slug can be changed to `api` (rejected by the tenant route pattern): the scope becomes unreachable
 - [ ] `GET /api/user` has no token ability check
 - [ ] `composer run setup` produces an insecure install (`APP_DEBUG=true`, `admin@example.com`/`password`) without warnings in the README
 - [ ] README: remove the session `active_scope_id` description (scope comes from the tenant URL) and the `console_bypass_commands` mention

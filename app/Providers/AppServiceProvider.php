@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Scope;
 use App\Support\Scope\ScopeAccessResolver;
 use BezhanSalleh\PanelSwitch\PanelSwitch;
 use Filament\Support\Assets\AlpineComponent;
@@ -40,12 +41,11 @@ class AppServiceProvider extends ServiceProvider
         // {tenant:slug}/products route (treating "api" as a tenant slug) before the
         // api middleware group can handle the request.
         $this->app->booted(function (): void {
-            // Symfony route requirements strip anchors, so use a negative lookahead
-            // to reject a slug that is exactly "api" (followed by "/" or the end of
-            // the path) while still allowing slugs such as "sapi" or "api-team".
-            // This prevents the Filament {tenant:slug}/... web routes from intercepting
-            // requests to the /api/... endpoints.
-            $pattern = '(?!api(?:/|$))[a-z0-9\-_]+';
+            // Scope::SLUG_PATTERN rejects a slug that is exactly "api" while still
+            // allowing slugs such as "sapi" or "api-team". This prevents the Filament
+            // {tenant:slug}/... web routes from intercepting requests to the /api/...
+            // endpoints.
+            $pattern = Scope::SLUG_PATTERN;
 
             foreach (Route::getRoutes()->getRoutes() as $route) {
                 $uri = $route->uri();

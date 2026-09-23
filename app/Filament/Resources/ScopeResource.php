@@ -63,7 +63,8 @@ class ScopeResource extends Resource
                 ->maxLength(255),
             TextInput::make('slug')
                 ->required()
-                ->alphaDash()
+                ->regex('~^'.Scope::SLUG_PATTERN.'$~')
+                ->helperText(__('Lowercase letters, numbers, dashes and underscores; "api" is reserved.'))
                 ->maxLength(255)
                 ->disabled(
                     fn (?Scope $record): bool => (bool) $record?->protected,

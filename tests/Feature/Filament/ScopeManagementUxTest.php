@@ -1,10 +1,12 @@
 <?php
 
+use App\Filament\Resources\ScopeResource\Pages\CreateScope;
 use App\Models\Scope;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
@@ -95,3 +97,26 @@ it('user can access their assigned tenants but not others', function () {
         ->toContain($scopeB->id)
         ->not->toContain($scopeOther->id);
 });
+
+it('accepts only scope slugs that can be used in the tenant url', function (string $slug, bool $isValid) {
+    $scope = Scope::factory()->create(['is_active' => true]);
+    $user = User::factory()->create();
+    $user->assignRole('super_admin');
+    $user->scopes()->attach($scope);
+
+    $this->actingAs($user);
+    activateFilamentTenant($scope);
+
+    $component = Livewire::test(CreateScope::class)
+        ->fillForm(['name' => 'New scope', 'slug' => $slug, 'type' => 'company'])
+        ->call('create');
+
+    $isValid
+        ? $component->assertHasNoFormErrors(['slug'])
+        : $component->assertHasFormErrors(['slug' => 'regex']);
+})->with([
+    'reserved api' => ['api', false],
+    'uppercase' => ['Branch', false],
+    'api prefix' => ['api-team', true],
+    'lowercase with dash' => ['new-branch', true],
+]);
