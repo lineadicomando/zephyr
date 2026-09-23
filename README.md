@@ -187,7 +187,7 @@ docker compose exec app php artisan migrate:seed_demo
 
 ## Upgrading
 
-**Back up the database before upgrading.** Some migrations change existing data and cannot be rolled back: for example `2026_09_22_060415_merge_duplicate_stocks` merges duplicate stock rows into a single one before adding a unique index.
+**Back up the database before upgrading.** Some migrations change existing data and cannot be rolled back: for example `2026_09_22_060415_merge_duplicate_stocks` merges duplicate stock rows into a single one before adding a unique index, and `2026_09_23_063627_add_product_and_inventory_foreign_keys_to_inventories_and_stocks` deletes inventories of missing products and stocks of missing inventories (with their movement items, reorder rules and task links; the counts are logged) before adding the foreign keys. Run `php artisan db:check` afterwards to recalculate the stocks.
 
 ```bash
 # Manual installation

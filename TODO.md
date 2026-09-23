@@ -32,7 +32,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P3 - Low
 
 ### Data integrity (structural)
-- [ ] Add foreign keys on `inventories.product_id` and on the product columns of `stocks` (clean up orphan rows first)
 - [ ] Stock uniqueness is not enforced when `inventory_position_id` is NULL
 - [ ] `Movement::onSaving` fills the location only when empty: derive it from the position every time
 - [ ] Inventory locations can never be deleted (`defaultPosition()` always creates a related position)
