@@ -2,9 +2,20 @@
 
 declare(strict_types=1);
 
+use App\Models\Inventory;
+use App\Models\Movement;
+use App\Models\MovementItem;
+use App\Models\Reorder;
+use App\Models\ReorderOrder;
+use App\Models\Scope;
+use App\Models\Task;
+use App\Models\User;
+use App\Support\Scope\ScopePurgeRegistry;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -111,30 +122,30 @@ it('fails when a pending scope cannot be purged', function (): void {
 });
 
 it('purges a scope with its whole domain data and leaves the other scopes alone', function (): void {
-    (new Database\Seeders\RolesAndPermissionsSeeder)->run();
+    (new RolesAndPermissionsSeeder)->run();
 
-    $makeDomain = function (App\Models\Scope $scope): App\Models\User {
-        $user = App\Models\User::factory()->inScope($scope)->create();
-        $user->syncRolesInScope($scope->id, [Spatie\Permission\Models\Role::findByName('admin', 'web')->id]);
+    $makeDomain = function (Scope $scope): User {
+        $user = User::factory()->inScope($scope)->create();
+        $user->syncRolesInScope($scope->id, [Role::findByName('admin', 'web')->id]);
 
-        $load = App\Models\Movement::factory()->create(['scope_id' => $scope->id]);
-        $inventory = App\Models\Inventory::factory()->create(['scope_id' => $scope->id]);
-        $item = App\Models\MovementItem::query()->create(['scope_id' => $scope->id, 'movement_id' => $load->id, 'inventory_id' => $inventory->id, 'stock' => 2]);
-        $reorder = App\Models\Reorder::factory()->create(['scope_id' => $scope->id, 'stock_id' => $item->incoming_stock_id, 'reorder_point' => 5]);
-        $order = App\Models\ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => App\Models\ReorderOrder::STATUS_DRAFT]);
+        $load = Movement::factory()->create(['scope_id' => $scope->id]);
+        $inventory = Inventory::factory()->create(['scope_id' => $scope->id]);
+        $item = MovementItem::query()->create(['scope_id' => $scope->id, 'movement_id' => $load->id, 'inventory_id' => $inventory->id, 'stock' => 2]);
+        $reorder = Reorder::factory()->create(['scope_id' => $scope->id, 'stock_id' => $item->incoming_stock_id, 'reorder_point' => 5]);
+        $order = ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => ReorderOrder::STATUS_DRAFT]);
         $order->items()->create(['scope_id' => $scope->id, 'stock_id' => $reorder->stock_id, 'reorder_id' => $reorder->id, 'current_stock' => 2, 'reorder_point' => 5, 'suggested_qty' => 3]);
-        App\Models\Task::factory()->create(['scope_id' => $scope->id, 'user_id' => $user->id])->inventories()->attach($inventory);
+        Task::factory()->create(['scope_id' => $scope->id, 'user_id' => $user->id])->inventories()->attach($inventory);
 
         return $user;
     };
 
-    $purged = App\Models\Scope::factory()->create(['is_active' => true]);
-    $kept = App\Models\Scope::factory()->create(['is_active' => true]);
+    $purged = Scope::factory()->create(['is_active' => true]);
+    $kept = Scope::factory()->create(['is_active' => true]);
     $purgedUser = $makeDomain($purged);
     $makeDomain($kept);
     $purged->forceFill(['is_active' => false, 'pending_delete' => now()->subHour()])->saveQuietly();
 
-    $counts = fn (int $scopeId): array => collect([...App\Support\Scope\ScopePurgeRegistry::tables(), 'scope_user'])
+    $counts = fn (int $scopeId): array => collect([...ScopePurgeRegistry::tables(), 'scope_user'])
         ->mapWithKeys(fn (string $table): array => [$table => DB::table($table)->where('scope_id', $scopeId)->count()])
         ->all();
     $keptBefore = $counts($kept->id);
@@ -145,5 +156,5 @@ it('purges a scope with its whole domain data and leaves the other scopes alone'
         ->and($counts($kept->id))->toBe($keptBefore)
         ->and(DB::table('scopes')->where('id', $purged->id)->exists())->toBeFalse()
         ->and(DB::table('task_inventory')->count())->toBe(1)
-        ->and(App\Models\User::query()->find($purgedUser->id))->not->toBeNull();
+        ->and(User::query()->find($purgedUser->id))->not->toBeNull();
 });

@@ -57,7 +57,7 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts --ignore-platform-req=php+
 
       - name: Check code style
         run: vendor/bin/pint --test
@@ -95,7 +95,7 @@ jobs:
         run: npm run build
 
       - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+        run: composer install --no-interaction --no-progress --prefer-dist --ignore-platform-req=php+
 
       - name: Generate app key
         run: php artisan key:generate
