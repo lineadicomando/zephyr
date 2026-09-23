@@ -59,5 +59,6 @@ it('serves the panel branding assets over https behind a trusted proxy', functio
         ->assertOk()
         ->assertSee('https://zephyr.cmdln.it/'.config('app.branding.favicon'), escape: false)
         ->assertSee('https://zephyr.cmdln.it/'.config('app.branding.logo'), escape: false)
+        ->assertSee('https://zephyr.cmdln.it/'.config('app.branding.logo_dark'), escape: false)
         ->assertDontSee('http://zephyr.cmdln.it', escape: false);
 });

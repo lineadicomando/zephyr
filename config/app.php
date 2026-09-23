@@ -154,6 +154,7 @@ return [
 
     'branding' => [
         'logo' => env('APP_LOGO', 'images/logo.svg'),
+        'logo_dark' => env('APP_LOGO_DARK', 'images/logo-dark.svg'),
         'favicon' => env('APP_FAVICON', 'images/favicon.svg'),
         'favicon_svg' => env('APP_FAVICON_SVG', env('APP_FAVICON', 'images/favicon.svg')),
         'favicon_ico' => env('APP_FAVICON_ICO', 'favicon.ico'),

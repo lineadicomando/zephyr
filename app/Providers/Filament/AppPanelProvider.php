@@ -50,9 +50,10 @@ class AppPanelProvider extends PanelProvider
             // Closures: the URLs must be generated per request, after the trusted proxies are applied.
             ->favicon(fn (): string => asset(config('app.branding.favicon')))
             ->brandLogo(fn (): string => asset(config('app.branding.logo')))
+            ->darkModeBrandLogo(fn (): string => asset(config('app.branding.logo_dark')))
             ->brandLogoHeight('2rem')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Sky,
             ])
             ->navigationGroups([
                 NavigationGroup::make()
