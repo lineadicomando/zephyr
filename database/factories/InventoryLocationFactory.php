@@ -11,11 +11,11 @@ class InventoryLocationFactory extends Factory
     {
         return [
             'scope_id' => Scope::factory(),
-            'name' => fake()->unique()->randomElement([
+            'name' => fake()->randomElement([
                 'Warehouse', 'Server Room', 'Office 1st Floor',
                 'Office 2nd Floor', 'IT Storage', 'Reception',
                 'Conference Room A', 'Data Center',
-            ]),
+            ]).' '.fake()->unique()->numberBetween(1, 99999),
         ];
     }
 }

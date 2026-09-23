@@ -29,7 +29,7 @@ dataset('global catalog models', [
 ]);
 
 it('lets admins read the global catalog without changing it', function (string $modelClass) {
-    $admin = User::factory()->create()->assignRole('admin');
+    $admin = User::factory()->inScope()->create()->assignRole('admin');
     $record = new $modelClass;
 
     expect($admin->can('viewAny', $modelClass))->toBeTrue()
@@ -43,7 +43,7 @@ it('lets admins read the global catalog without changing it', function (string $
 })->with('global catalog models');
 
 it('lets super admins change the global catalog', function (string $modelClass) {
-    $superAdmin = User::factory()->create()->assignRole('super_admin');
+    $superAdmin = User::factory()->inScope()->create()->assignRole('super_admin');
     $record = new $modelClass;
 
     expect($superAdmin->can('create', $modelClass))->toBeTrue()
@@ -53,7 +53,7 @@ it('lets super admins change the global catalog', function (string $modelClass) 
 })->with('global catalog models');
 
 it('does not let the change permissions bypass the super admin restriction', function (string $modelClass) {
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     $user->givePermissionTo(Role::findByName('super_admin')->permissions);
     $record = new $modelClass;
 

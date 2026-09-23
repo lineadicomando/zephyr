@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
 
 /**
  * @extends Factory<User>
@@ -35,25 +34,13 @@ class UserFactory extends Factory
         ];
     }
 
-    public function configure(): static
+    /**
+     * Attach the user to the scope, a new one by default. Users get no scope
+     * and no role unless a test asks for them.
+     */
+    public function inScope(?Scope $scope = null): static
     {
-        return $this->afterCreating(function (User $user) {
-            $role = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
-            $user->assignRole($role);
-
-            $defaultScope = Scope::query()->firstOrCreate(
-                ['slug' => 'default'],
-                [
-                    'name' => 'Default',
-                    'type' => 'company',
-                    'is_active' => true,
-                ],
-            );
-
-            if (! $user->scopes()->whereKey($defaultScope->id)->exists()) {
-                $user->scopes()->attach($defaultScope->id);
-            }
-        });
+        return $this->afterCreating(fn (User $user) => $user->scopes()->attach($scope ?? Scope::factory()->create()));
     }
 
     /**

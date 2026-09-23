@@ -30,7 +30,7 @@ function makeSuperAdminForApi(): User
 {
     Role::findOrCreate('super_admin', 'web');
 
-    return tap(User::factory()->create())->assignRole('super_admin');
+    return tap(User::factory()->inScope()->create())->assignRole('super_admin');
 }
 
 it('requires authentication to create a product via api', function () {
@@ -80,7 +80,7 @@ it('lists products when user has view permissions', function () {
         'name' => 'Product List 2',
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     $user->givePermissionTo('view_any_product');
     $user->givePermissionTo('view_product');
     Sanctum::actingAs($user, ['products:read']);
@@ -103,7 +103,7 @@ it('shows a single product when user has view permissions', function () {
         'name' => 'Product Show',
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     $user->givePermissionTo('view_any_product');
     $user->givePermissionTo('view_product');
     Sanctum::actingAs($user, ['products:read']);
@@ -122,7 +122,7 @@ it('forbids product reads when user has no view permissions', function () {
         'name' => 'Product No Read Permission',
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     Sanctum::actingAs($user, ['products:read']);
 
     $this->getJson('/api/products')->assertForbidden();
@@ -131,7 +131,7 @@ it('forbids product reads when user has no view permissions', function () {
 
 it('forbids create when user has no permission', function () {
     $catalog = makeProductCatalogForApi((string) str()->uuid());
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     Sanctum::actingAs($user, ['products:write']);
 
     $payload = [
@@ -245,7 +245,7 @@ it('forbids update when user has no permission', function () {
         'name' => 'No Update Permission',
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     Sanctum::actingAs($user, ['products:write']);
 
     $this->patchJson("/api/products/{$product->id}", [
@@ -257,7 +257,7 @@ it('denies api access when user has no assigned scopes', function () {
     Permission::query()->firstOrCreate(['name' => 'view_any_product', 'guard_name' => 'web']);
     Permission::query()->firstOrCreate(['name' => 'view_product', 'guard_name' => 'web']);
 
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     $user->givePermissionTo('view_any_product');
     $user->givePermissionTo('view_product');
     $user->scopes()->detach();
@@ -269,7 +269,7 @@ it('denies api access when user has no assigned scopes', function () {
 it('forbids product reads when the token lacks the products:read ability', function () {
     Permission::query()->firstOrCreate(['name' => 'view_any_product', 'guard_name' => 'web']);
 
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     $user->givePermissionTo('view_any_product');
     Sanctum::actingAs($user, ['products:write']);
 
@@ -300,7 +300,7 @@ it('forbids product writes when the token lacks the products:write ability', fun
 it('checks the abilities of real personal access tokens', function (array $abilities, int $status) {
     Permission::query()->firstOrCreate(['name' => 'view_any_product', 'guard_name' => 'web']);
 
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     $user->givePermissionTo('view_any_product');
     $token = $user->createToken('integration', $abilities);
 
@@ -324,7 +324,7 @@ it('forbids product writes to users that are not super admins even with the perm
         'name' => 'Admin Cannot Change',
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->inScope()->create();
     $user->givePermissionTo(['create_product', 'update_product']);
     Sanctum::actingAs($user, ['products:write']);
 

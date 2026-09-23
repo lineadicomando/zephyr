@@ -12,16 +12,15 @@ class MovementFactory extends Factory
 {
     public function definition(): array
     {
-        $toLocation = InventoryLocation::factory()->create();
-
         return [
             'scope_id' => Scope::factory(),
             'date' => fake()->dateTimeBetween('-6 months', 'now'),
-            'movement_type_id' => MovementType::factory(),
+            // The type and the destination belong to the scope of the movement.
+            'movement_type_id' => fn (array $attributes) => MovementType::factory()->state(['scope_id' => $attributes['scope_id']]),
             'from_inventory_location_id' => null,
             'from_inventory_position_id' => null,
-            'to_inventory_location_id' => $toLocation->id,
-            'to_inventory_position_id' => InventoryPosition::factory()->for($toLocation, 'inventory_location'),
+            'to_inventory_position_id' => fn (array $attributes) => InventoryPosition::factory()->state(['scope_id' => $attributes['scope_id']]),
+            'to_inventory_location_id' => fn (array $attributes) => InventoryPosition::query()->whereKey($attributes['to_inventory_position_id'])->value('inventory_location_id'),
             'description' => fake()->optional(0.7)->sentence(5),
             'note' => fake()->optional(0.2)->sentence(),
         ];

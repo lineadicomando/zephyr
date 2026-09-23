@@ -152,7 +152,7 @@ it('forbids edit and allows view for read-only users on critical resources', fun
         'reorder' => makeReorderForAuthTest($suffix, $scope),
         'task-status' => TaskStatus::query()->create(['name' => "Status {$suffix}", 'color' => 'info']),
         'task-type' => TaskType::query()->create(['name' => "Type {$suffix}", 'chart' => false, 'chart_color' => '#ffffff']),
-        'user' => User::factory()->create(),
+        'user' => User::factory()->inScope($scope)->create(),
     };
 
     $user = User::factory()->create();

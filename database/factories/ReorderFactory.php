@@ -12,7 +12,7 @@ class ReorderFactory extends Factory
     {
         return [
             'scope_id' => Scope::factory(),
-            'stock_id' => Stock::factory(),
+            'stock_id' => fn (array $attributes) => Stock::factory()->state(['scope_id' => $attributes['scope_id']]),
             'reorder_point' => fake()->numberBetween(1, 5),
             'reorder_quantity' => fake()->optional(0.8)->numberBetween(2, 20),
             'last_reorder_date' => fake()->optional(0.5)->dateTimeBetween('-6 months', 'now'),
