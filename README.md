@@ -53,11 +53,13 @@ Create and configure the environment:
 php artisan zephyr:setup
 ```
 
-Or use the non-interactive bootstrap script:
+Or, for local development only, use the non-interactive bootstrap script:
 
 ```bash
 composer run setup
 ```
+
+It copies `.env.example` as is (`APP_ENV=local`, `APP_DEBUG=true`) and creates the bootstrap admin `admin@example.com` with password `password`: never use it on a server reachable by others.
 
 Start the local development stack:
 
