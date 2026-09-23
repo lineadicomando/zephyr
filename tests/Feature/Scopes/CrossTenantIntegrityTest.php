@@ -6,6 +6,7 @@ use App\Filament\Resources\ProductResource\Pages\EditProduct;
 use App\Filament\Resources\ProductResource\Pages\ListProducts;
 use App\Filament\Resources\StockResource;
 use App\Models\Inventory;
+use App\Models\InventoryPosition;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Scope;
@@ -89,6 +90,7 @@ it('detects catalog records used by stocks of another tenant', function () {
     Stock::query()->create([
         'scope_id' => $this->scopeB->id,
         'inventory_id' => $inventory->id,
+        'inventory_position_id' => InventoryPosition::factory()->create(['scope_id' => $this->scopeB->id])->id,
         'stock' => 0,
     ])->forceFill(['product_type_id' => $type->id])->saveQuietly();
     actInTenantA($this);

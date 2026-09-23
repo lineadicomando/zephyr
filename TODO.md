@@ -32,7 +32,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P3 - Low
 
 ### Data integrity (structural)
-- [ ] Stock uniqueness is not enforced when `inventory_position_id` is NULL
 - [ ] Inventory locations can never be deleted (`defaultPosition()` always creates a related position)
 - [ ] Reorder proposals: every click creates a new draft even if an open order already contains the same stocks; outside the panel the order scope is taken from the first rule
 
