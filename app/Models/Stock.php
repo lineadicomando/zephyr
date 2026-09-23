@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToScope;
 use App\Traits\HasDbCheck;
 use App\Traits\PreventRelatedDeletion;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -131,11 +132,10 @@ class Stock extends Model
 
     public static function dbCheck(bool $output = false): void
     {
-        $stocks = self::all();
         $count = 0;
-        $stocks->each(function (Stock $stock) use (&$count) {
-            $stock->updateStockByMovementItems(allowNegative: true);
-            $count++;
+        self::query()->chunkById(200, function (Collection $stocks) use (&$count) {
+            $stocks->each(fn (Stock $stock) => $stock->updateStockByMovementItems(allowNegative: true));
+            $count += $stocks->count();
         });
         if ($output) {
             self::info('Check Stock: '.$count.': OK');

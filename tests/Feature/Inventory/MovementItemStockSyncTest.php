@@ -14,6 +14,7 @@ use App\Models\ProductType;
 use App\Models\Scope;
 use App\Models\Stock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -137,3 +138,51 @@ it('recomputes stock totals when movement item is created updated and deleted', 
     expect((int) $incoming->stock)->toBe(0)
         ->and((int) $outgoing->stock)->toBe(10);
 });
+
+it('repairs stored stock that does not match the movement history instead of aborting the db check', function () {
+    [
+        'scope' => $scope,
+        'inventory' => $inventory,
+        'locationA' => $locationA,
+        'locationB' => $locationB,
+        'positionA' => $positionA,
+        'positionB' => $positionB,
+        'movementType' => $movementType,
+    ] = makeMovementDomain();
+
+    $load = Movement::factory()->create([
+        'scope_id' => $scope->id,
+        'movement_type_id' => $movementType->id,
+        'to_inventory_location_id' => $locationA->id,
+        'to_inventory_position_id' => $positionA->id,
+    ]);
+    $loadItem = MovementItem::query()->create([
+        'scope_id' => $scope->id,
+        'movement_id' => $load->id,
+        'inventory_id' => $inventory->id,
+        'stock' => 10,
+    ]);
+
+    $transfer = Movement::factory()->create([
+        'scope_id' => $scope->id,
+        'movement_type_id' => $movementType->id,
+        'from_inventory_location_id' => $locationA->id,
+        'from_inventory_position_id' => $positionA->id,
+        'to_inventory_location_id' => $locationB->id,
+        'to_inventory_position_id' => $positionB->id,
+    ]);
+    $transferItem = MovementItem::query()->create([
+        'scope_id' => $scope->id,
+        'movement_id' => $transfer->id,
+        'inventory_id' => $inventory->id,
+        'stock' => 5,
+    ]);
+
+    DB::table('movement_items')->where('id', $loadItem->id)->update(['stock' => 2]);
+
+    Inventory::dbCheck();
+
+    expect(Stock::find($transferItem->outcoming_stock_id)->stock)->toBe(-3)
+        ->and(Stock::find($transferItem->incoming_stock_id)->stock)->toBe(5);
+});
+

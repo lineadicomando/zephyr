@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToScope;
 use App\Traits\HasDbCheck;
 use App\Traits\PreventRelatedDeletion;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -130,26 +131,39 @@ class Inventory extends Model
         ];
     }
 
+    /**
+     * Refresh the denormalized summaries and stock references. The movement
+     * items are saved quietly, so a stored quantity that does not match the
+     * movement history cannot abort the check: every stock is recalculated at
+     * the end, negative values included.
+     */
     public static function dbCheck(bool $output = false): void
     {
         if ($output) {
             self::info('Syncing inventory summary');
         }
 
-        $inventories = Inventory::orderBy('id')->get();
-        $inventories->each(function (Inventory $inventory) {
-            $inventory->syncSummary(true);
+        Inventory::query()->chunkById(200, function (Collection $inventories) {
+            $inventories->each(fn (Inventory $inventory) => $inventory->syncSummary(true));
         });
-        self::info('Inventory summary updated successfully');
-        $movementsItems = MovementItem::orderBy('id')->get();
-        $movementsItems->each(function (MovementItem $movementItem) {
-            $movementItem->save();
+        if ($output) {
+            self::info('Inventory summary updated successfully');
+        }
+        MovementItem::query()->with(['movement', 'inventory'])->chunkById(200, function (Collection $movementItems) {
+            $movementItems->each(function (MovementItem $movementItem) {
+                $movementItem->syncStocks();
+                $movementItem->syncSummary();
+                $movementItem->saveQuietly();
+            });
         });
-        self::info('Movements summary updated successfully');
-        $stocks = Stock::orderBy('id')->get();
-        $stocks->each(function (Stock $stock) {
-            $stock->save();
+        if ($output) {
+            self::info('Movements summary updated successfully');
+        }
+        Stock::query()->chunkById(200, function (Collection $stocks) {
+            $stocks->each(fn (Stock $stock) => $stock->updateStockByMovementItems(allowNegative: true));
         });
-        self::info('Stock summary updated successfully');
+        if ($output) {
+            self::info('Stock summary updated successfully');
+        }
     }
 }

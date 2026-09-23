@@ -26,7 +26,6 @@
 Items left open after the September 2026 code reviews, ordered by priority. Fixed items are in the git history.
 
 ### P1 - High
-- [ ] `db:check` aborts on the data it should repair: `Inventory::dbCheck()` re-saves movement items with `allowNegative: false` and throws before `Stock::dbCheck()` runs, with no transaction; also loads every stock with `Stock::all()` (use `chunkById()`)
 - [ ] `UserPolicy::canManageAccount` lets an admin edit email/password or delete a user sharing just one scope, even if the user belongs to scopes the admin is not in (account takeover across scopes)
 - [ ] `InventoryResource\RelationManagers\TasksRelationManager` shows other users' tasks to non-admin users (no `user_id` filter like `TaskResource`), and `DetachAction` works on any task (`TaskPolicy` has no `detach`)
 
