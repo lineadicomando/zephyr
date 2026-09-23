@@ -4,6 +4,7 @@ use App\Models\Inventory;
 use App\Models\InventoryLocation;
 use App\Models\InventoryPosition;
 use App\Models\Movement;
+use App\Models\MovementItem;
 use App\Models\Product;
 use App\Models\Scope;
 use App\Models\Stock;
@@ -84,4 +85,21 @@ it('copies a renamed position to the path of its stocks with a bulk update', fun
 
     expect(Stock::query()->where('inventory_position_id', $position->id)->sole()->path)->toBe('Warehouse \ Shelf 9: 3')
         ->and($queries)->toBeLessThan(6);
+});
+
+it('computes whether movement items are the last of their inventory in the table query', function () {
+    $inventory = Inventory::factory()->create(['scope_id' => $this->scope->id]);
+    $movement = Movement::factory()->create(['scope_id' => $this->scope->id]);
+    $itemIds = collect(range(1, 3))->map(fn (): int => DB::table('movement_items')->insertGetId([
+        'scope_id' => $this->scope->id,
+        'movement_id' => $movement->id,
+        'inventory_id' => $inventory->id,
+        'stock' => 1,
+    ]));
+
+    $items = MovementItem::query()->withIsLast()->orderBy('id')->get();
+
+    expect(queriesRunBy(fn () => $items->map->isLast()->all()))->toBe(0)
+        ->and($items->map->isLast()->all())->toBe([false, false, true])
+        ->and(MovementItem::query()->find($itemIds->last())->isLast())->toBeTrue();
 });

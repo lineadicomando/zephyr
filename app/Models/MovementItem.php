@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -26,14 +27,32 @@ class MovementItem extends Model
         'stock',
     ];
 
+    /**
+     * Whether no later movement item exists for the same inventory. Tables
+     * compute it for every row at once with the withIsLast() scope.
+     */
     public function isLast(): bool
     {
-        $count = self::where('id', '>', $this->id)->where('inventory_id', $this->inventory_id)->count();
-        if ($count == 0) {
-            return true;
+        if (array_key_exists('is_last', $this->attributes)) {
+            return (bool) $this->attributes['is_last'];
         }
 
-        return false;
+        return self::withoutGlobalScopes()
+            ->where('id', '>', $this->id)
+            ->where('inventory_id', $this->inventory_id)
+            ->doesntExist();
+    }
+
+    /**
+     * Add the is_last column used by isLast().
+     */
+    public function scopeWithIsLast(Builder $query): Builder
+    {
+        return $query->addSelect(['is_last' => DB::table('movement_items as later_items')
+            ->selectRaw('count(*) = 0')
+            ->whereColumn('later_items.inventory_id', 'movement_items.inventory_id')
+            ->whereColumn('later_items.id', '>', 'movement_items.id'),
+        ]);
     }
 
     /**

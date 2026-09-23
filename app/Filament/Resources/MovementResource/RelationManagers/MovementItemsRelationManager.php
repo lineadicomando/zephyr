@@ -81,6 +81,7 @@ class MovementItemsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->withIsLast())
             ->recordTitleAttribute('inventory_summary')
             ->columns([
                 TextColumn::make('inventory_summary')
