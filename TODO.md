@@ -40,7 +40,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### Code quality
 
 ### Tests
-- [ ] `php artisan test` on the whole suite exceeds the 128M memory limit (the `arch()` test together with the others): run `php -d memory_limit=1G vendor/bin/pest` meanwhile
 - [ ] `UserFactory` attaches every user to the `default` scope, and `StockFactory`/`MovementFactory` create related records in different scopes: this hides cross-scope issues in tests
 - [ ] Missing coverage: interactive `zephyr:setup` flow, URL tampering across tenants for Movement/Reorder/Location/Task resources (manually verified safe in the second review), scope purge with full domain data, changing origin/destination of an existing movement
 
