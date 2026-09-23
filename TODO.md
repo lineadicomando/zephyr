@@ -36,7 +36,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### Operations and setup
 
 ### Performance
-- [ ] Missing indexes: `tasks` (`task_type_id`, `task_status_id`, `user_id`, `starts_at`), movement foreign keys, `inventories.product_id`, product foreign keys
 
 ### Code quality
 - [ ] Add Larastan (new dependency, needs approval): plain PHPStan reports ~290 mostly false positive errors on Eloquent magic
