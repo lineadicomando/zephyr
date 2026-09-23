@@ -2,6 +2,7 @@
 
 namespace App\Filament\Tables\Filters;
 
+use App\Models\Tag;
 use Closure;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,6 +35,31 @@ class InventoryFilters
             $brandFilter,
             self::select('product_model', 'Model', "{$productPrefix}product_model", 'name', self::limitedTo($brandFilter, 'product_brand_id')),
         ];
+    }
+
+    /**
+     * Inventories having any of the selected tags, directly or through their product.
+     */
+    public static function tags(): SelectFilter
+    {
+        return SelectFilter::make('tags')
+            ->label('Tags')
+            ->translateLabel()
+            ->multiple()
+            ->searchable()
+            ->preload()
+            ->options(fn (): array => Tag::query()->orderBy('name')->pluck('name', 'id')->all())
+            ->query(function (Builder $query, array $data): Builder {
+                $tagIds = $data['values'] ?? [];
+
+                if ($tagIds === []) {
+                    return $query;
+                }
+
+                return $query->where(fn (Builder $query): Builder => $query
+                    ->whereHas('tags', fn (Builder $tags): Builder => $tags->whereKey($tagIds))
+                    ->orWhereHas('product.tags', fn (Builder $tags): Builder => $tags->whereKey($tagIds)));
+            });
     }
 
     private static function select(string $name, string $label, string $relationship, string $titleAttribute, ?Closure $modifyQueryUsing = null): SelectFilter

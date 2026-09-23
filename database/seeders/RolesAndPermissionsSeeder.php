@@ -114,6 +114,6 @@ class RolesAndPermissionsSeeder extends Seeder
         [$affix, $subject] = array_pad(explode(':', $permission, 2), 2, '');
 
         return ! in_array($affix, ['View', 'ViewAny'], true)
-            && in_array($subject, ['Product', 'ProductBrand', 'ProductGroup', 'ProductModel', 'ProductType', 'TaskStatus', 'TaskType'], true);
+            && in_array($subject, ['ChecklistTemplate', 'Product', 'ProductBrand', 'ProductGroup', 'ProductModel', 'ProductType', 'Tag', 'TaskStatus', 'TaskType'], true);
     }
 }

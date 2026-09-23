@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Forms\Components\BarcodeScannerInput;
 use App\Filament\Resources\InventoryResource\Pages;
+use App\Filament\Resources\InventoryResource\RelationManagers\ChecklistsRelationManager;
 use App\Filament\Resources\InventoryResource\RelationManagers\MovementsRelationManager;
 use App\Filament\Resources\InventoryResource\RelationManagers\StocksRelationManager;
 use App\Filament\Resources\InventoryResource\RelationManagers\TasksRelationManager;
@@ -12,12 +13,14 @@ use App\Filament\Resources\StockResource\Pages\ListStocks;
 use App\Filament\Tables\Filters\InventoryFilters;
 use App\Models\Inventory;
 use App\Models\Product;
+use App\Models\Tag;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -90,12 +93,29 @@ class InventoryResource extends Resource
             TextInput::make('url')
                 ->translateLabel()
                 ->url(),
+            TagResource::getRelationshipSelect()
+                ->helperText(fn (Get $get): string => self::inheritedTagsDescription($get('product_id'))),
             Textarea::make('note')
                 ->translateLabel(),
             TextInput::make('summary')
                 ->translateLabel()
                 ->disabled(),
         ];
+    }
+
+    /**
+     * Helper text of the tags field, listing the tags inherited from the product.
+     */
+    public static function inheritedTagsDescription(mixed $productId): string
+    {
+        $inheritedTags = Tag::query()
+            ->whereHas('products', fn (Builder $products): Builder => $products->whereKey($productId))
+            ->orderBy('name')
+            ->pluck('name');
+
+        return $inheritedTags->isEmpty()
+            ? __('In addition to the tags inherited from the product.')
+            : __('Inherited from the product: :tags.', ['tags' => $inheritedTags->implode(', ')]);
     }
 
     public static function form(Schema $schema): Schema
@@ -172,6 +192,11 @@ class InventoryResource extends Resource
                 TextColumn::make('url')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('tags.name')
+                    ->label('Tags')
+                    ->translateLabel()
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->translateLabel()
                     ->sortable()
@@ -199,6 +224,7 @@ class InventoryResource extends Resource
                         blank: fn (Builder $query) => $query, // In this example, we do not want to filter the query when it is blank.
                     ),
                 ...InventoryFilters::make(stockRelation: 'non_zero_stocks', productRelation: 'product'),
+                InventoryFilters::tags(),
             ])
             ->persistFiltersInSession()
             ->recordUrl(function ($record) {
@@ -225,6 +251,7 @@ class InventoryResource extends Resource
             StocksRelationManager::class,
             MovementsRelationManager::class,
             TasksRelationManager::class,
+            ChecklistsRelationManager::class,
         ];
     }
 

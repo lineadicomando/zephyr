@@ -56,6 +56,8 @@ it('loads critical panel pages for a super admin', function () {
     $this->get("/{$slug}/movements")->assertOk();
     $this->get("/{$slug}/reorder-orders")->assertOk();
     $this->get("/{$slug}/tasks")->assertOk();
+    $this->get("/{$slug}/checklist-templates")->assertOk();
+    $this->get("/{$slug}/tags")->assertOk();
     $this->get("/{$slug}/task-calendars")->assertOk();
     $this->get("/{$slug}/products/create")->assertOk();
     $this->get("/{$slug}/shield/roles")->assertOk();
@@ -79,6 +81,8 @@ it('loads configuration create pages for a super admin', function () {
         "/{$slug}/movement-types/create",
         "/{$slug}/inventory-locations/create",
         "/{$slug}/inventory-positions/create",
+        "/{$slug}/checklist-templates/create",
+        "/{$slug}/tags/create",
     ];
 
     foreach ($createPages as $path) {

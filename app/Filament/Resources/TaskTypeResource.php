@@ -10,6 +10,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\ColorPicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Fieldset;
@@ -18,6 +19,7 @@ use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TaskTypeResource extends Resource
 {
@@ -62,6 +64,13 @@ class TaskTypeResource extends Resource
                 ->required()
                 ->translateLabel()
                 ->unique(ignoreRecord: true),
+            Select::make('checklist_template_id')
+                ->label('Checklist template')
+                ->translateLabel()
+                ->helperText(__('Suggested for the new tasks of this type.'))
+                ->relationship('checklist_template', 'name', fn (Builder $query): Builder => $query->where('is_active', true))
+                ->searchable()
+                ->preload(),
             Fieldset::make(__('Chart'))
                 ->schema([
                     Checkbox::make('chart')->translateLabel()->default(false),

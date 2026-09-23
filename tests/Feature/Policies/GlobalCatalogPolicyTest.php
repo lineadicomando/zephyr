@@ -1,10 +1,12 @@
 <?php
 
+use App\Models\ChecklistTemplate;
 use App\Models\Product;
 use App\Models\ProductBrand;
 use App\Models\ProductGroup;
 use App\Models\ProductModel;
 use App\Models\ProductType;
+use App\Models\Tag;
 use App\Models\TaskStatus;
 use App\Models\TaskType;
 use App\Models\User;
@@ -19,11 +21,13 @@ beforeEach(function () {
 });
 
 dataset('global catalog models', [
+    'checklist template' => ChecklistTemplate::class,
     'product' => Product::class,
     'product brand' => ProductBrand::class,
     'product group' => ProductGroup::class,
     'product model' => ProductModel::class,
     'product type' => ProductType::class,
+    'tag' => Tag::class,
     'task status' => TaskStatus::class,
     'task type' => TaskType::class,
 ]);

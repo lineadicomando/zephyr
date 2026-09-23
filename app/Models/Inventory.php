@@ -148,11 +148,45 @@ class Inventory extends Model
     }
 
     /**
-     * @return BelongsToMany<Task, $this>
+     * @return BelongsToMany<Task, $this, TaskInventory>
      */
     public function tasks(): BelongsToMany
     {
-        return $this->belongsToMany(Task::class, 'task_inventory')->withTimestamps();
+        return $this->belongsToMany(Task::class, 'task_inventory')
+            ->using(TaskInventory::class)
+            ->withPivot(TaskInventory::PIVOT_COLUMNS)
+            ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<TaskInventory, $this>
+     */
+    public function task_inventories(): HasMany
+    {
+        return $this->hasMany(TaskInventory::class);
+    }
+
+    /**
+     * @return BelongsToMany<Tag, $this>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
+
+    /**
+     * Ids of the tags of the inventory and of the tags inherited from its product.
+     *
+     * @return list<int>
+     */
+    public function effectiveTagIds(): array
+    {
+        return collect($this->tags->modelKeys())
+            ->merge($this->product?->tags->modelKeys() ?? [])
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function preventDeletionBy()

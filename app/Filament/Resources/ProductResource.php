@@ -144,6 +144,8 @@ class ProductResource extends Resource
                 ),
             TextInput::make('code')->translateLabel(),
             TextInput::make('name')->required()->translateLabel(),
+            TagResource::getRelationshipSelect()
+                ->helperText(__('The inventories of the product inherit its tags.')),
             Textarea::make('note')->translateLabel(),
         ];
     }

@@ -5,29 +5,29 @@ namespace App\Models;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class TaskType extends Model
+class ChecklistTemplate extends Model
 {
     use HasFactory;
     use PreventRelatedDeletion;
 
     protected $fillable = [
         'name',
-        'chart',
-        'chart_color',
-        'checklist_template_id',
+        'description',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     /**
-     * Checklist template suggested for the tasks of this type.
-     *
-     * @return BelongsTo<ChecklistTemplate, $this>
+     * @return HasMany<ChecklistTemplateItem, $this>
      */
-    public function checklist_template(): BelongsTo
+    public function items(): HasMany
     {
-        return $this->belongsTo(ChecklistTemplate::class);
+        return $this->hasMany(ChecklistTemplateItem::class)->orderBy('sort');
     }
 
     /**
@@ -38,8 +38,19 @@ class TaskType extends Model
         return $this->hasMany(Task::class);
     }
 
+    /**
+     * @return HasMany<TaskType, $this>
+     */
+    public function task_types(): HasMany
+    {
+        return $this->hasMany(TaskType::class);
+    }
+
     public function preventDeletionBy()
     {
-        return ['tasks'];
+        return [
+            'tasks',
+            'task_types',
+        ];
     }
 }

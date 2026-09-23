@@ -39,6 +39,15 @@ class TaskPolicy
         return $this->update($user, $model);
     }
 
+    /**
+     * Only the technician assigned to the task and the admins fill the
+     * checklists of its inventories.
+     */
+    public function fillChecklist(User $user, ?Task $model = null): bool
+    {
+        return $this->update($user, $model);
+    }
+
     public function detachAny(User $user): bool
     {
         return $user->can('Update:Task');

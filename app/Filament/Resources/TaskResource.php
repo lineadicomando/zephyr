@@ -8,6 +8,8 @@ use App\Filament\Resources\TaskResource\RelationManagers\InventoriesRelationMana
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\TaskType;
+use App\Services\Checklists\ChecklistService;
+use Closure;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -21,6 +23,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -155,12 +159,27 @@ class TaskResource extends Resource
                 ->required()
                 ->translateLabel()
                 ->relationship('task_type', 'name')
+                ->live()
+                ->afterStateUpdated(fn (Set $set, mixed $state) => $set(
+                    'checklist_template_id',
+                    TaskType::query()->whereKey($state)->value('checklist_template_id'),
+                ))
                 ->createOptionForm(
                     auth()->user()?->can('create', TaskType::class) ? TaskTypeResource::getFormDefinition() : null,
                 )
                 ->editOptionForm(
                     auth()->user()?->can('update', TaskType::class) ? TaskTypeResource::getFormDefinition() : null,
                 ),
+            Select::make('checklist_template_id')
+                ->label('Checklist template')
+                ->translateLabel()
+                ->searchable()
+                ->preload()
+                ->relationship('checklist_template', 'name', fn (Builder $query): Builder => $query->where('is_active', true))
+                ->disabled(fn (?Task $record): bool => $record?->task_inventories()->whereNotNull('completed_at')->exists() ?? false)
+                ->helperText(fn (?Task $record): ?string => $record?->task_inventories()->whereNotNull('completed_at')->exists()
+                    ? __('The template cannot be changed after filling a checklist.')
+                    : null),
             Select::make('task_status_id')
                 ->label('Status')
                 ->searchable()
@@ -168,6 +187,17 @@ class TaskResource extends Resource
                 ->required()
                 ->translateLabel()
                 ->default(TaskStatus::getDefaultId())
+                ->rule(fn (?Task $record, Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($record, $get): void {
+                    if ($record === null || ! TaskStatus::query()->whereKey($value)->where('completed', true)->exists()) {
+                        return;
+                    }
+
+                    $task = (clone $record)->forceFill(['checklist_template_id' => $get('checklist_template_id') ?? $record->checklist_template_id]);
+
+                    if (app(ChecklistService::class)->hasIncompleteChecklists($task)) {
+                        $fail(__('The task cannot be completed until every checklist with required items is filled.'));
+                    }
+                })
                 ->relationship(
                     'task_status',
                     'name',
