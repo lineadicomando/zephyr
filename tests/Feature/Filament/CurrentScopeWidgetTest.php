@@ -1,6 +1,9 @@
 <?php
 
+use App\Filament\Resources\MovementResource\Widgets\MovementChart;
+use App\Filament\Resources\TaskResource\Widgets\TaskChart;
 use App\Filament\Widgets\CurrentScopeWidget;
+use App\Filament\Widgets\StatsOverview;
 use App\Models\Scope;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -33,3 +36,26 @@ it('shows current scope and type in dashboard widget', function () {
         ->assertSee('Type: company')
         ->assertSee('scope-widget');
 });
+
+it('shows dashboard widgets only to users with their shield permission', function (string $widget) {
+    $scope = Scope::factory()->create(['is_active' => true]);
+
+    $withoutPermission = User::factory()->create();
+    $withoutPermission->syncRoles([]);
+    $withoutPermission->scopes()->attach($scope);
+
+    $withPreset = User::factory()->create();
+    $withPreset->syncRoles(['user']);
+    $withPreset->scopes()->attach($scope);
+
+    $this->actingAs($withoutPermission);
+    expect($widget::canView())->toBeFalse();
+
+    $this->actingAs($withPreset);
+    expect($widget::canView())->toBeTrue();
+})->with([
+    CurrentScopeWidget::class,
+    StatsOverview::class,
+    MovementChart::class,
+    TaskChart::class,
+]);

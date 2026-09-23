@@ -9,6 +9,7 @@ use App\Models\Reorder;
 use App\Models\Stock;
 use App\Models\Task;
 use App\Models\TaskStatus;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -17,6 +18,8 @@ use Flowframe\Trend\TrendValue;
 
 class StatsOverview extends BaseWidget
 {
+    use HasWidgetShield;
+
     protected static ?int $sort = 1;
 
     protected function getColumns(): int

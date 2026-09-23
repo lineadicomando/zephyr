@@ -28,7 +28,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P1 - High
 
 ### P2 - Medium
-- [ ] Dashboard widgets (`StatsOverview`, `MovementChart`, `TaskChart`, `CurrentScopeWidget`) ignore the Shield widget permissions (no `HasWidgetShield`/`canView()`)
 - [ ] Product edits: `Product::onSaved` goes through the Filament tenant scope, so stocks/inventories of other scopes keep stale product columns; renaming a product leaves the old name on stocks and movement items (stocks re-saved before `syncSummary()`, which saves quietly). Fix together with the cascading saves item below
 - [ ] Docker entrypoint: if the first-boot seed fails after the migrations (e.g. placeholder `BOOTSTRAP_ADMIN_PASSWORD`), the restart sees migrations as `Ran` and never seeds again: no admin
 - [ ] Docker: `SEED_DEMO_DATA=true` always fails (Faker is dev-only, image built with `--no-dev`) but the README suggests it

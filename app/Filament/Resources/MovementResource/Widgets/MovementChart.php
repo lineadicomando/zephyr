@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MovementResource\Widgets;
 
 use App\Models\Movement;
 use App\Models\MovementType;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
@@ -11,6 +12,8 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class MovementChart extends ChartWidget
 {
+    use HasWidgetShield;
+
     protected ?string $heading = 'Movements';
 
     protected static ?int $sort = 3;

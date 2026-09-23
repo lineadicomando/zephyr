@@ -87,6 +87,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_inventory_position',
             'view_any_scope',
             'view_scope',
+            'view_current_scope_widget',
+            'view_stats_overview',
+            'view_movement_chart',
+            'view_task_chart',
         ];
 
         $userPermissionIds = Permission::query()

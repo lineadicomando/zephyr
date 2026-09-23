@@ -3,11 +3,14 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Scope;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class CurrentScopeWidget extends BaseWidget
 {
+    use HasWidgetShield;
+
     protected static ?int $sort = 0;
 
     protected function getColumns(): int

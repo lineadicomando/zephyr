@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TaskResource\Widgets;
 
 use App\Models\Task;
 use App\Models\TaskType;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
@@ -11,6 +12,8 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class TaskChart extends ChartWidget
 {
+    use HasWidgetShield;
+
     protected ?string $heading = 'Tasks';
 
     protected static ?int $sort = 3;
