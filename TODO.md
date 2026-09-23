@@ -30,7 +30,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P2 - Medium
 
 ### P3 - Low
-- [ ] `InventoryLocationPolicy`, `InventoryPositionPolicy`, `MovementTypePolicy` do not check scope membership (`ChecksScopeAccess`); isolation relies only on the Filament tenant scope
 - [ ] Scope slug can be changed to `api` (rejected by the tenant route pattern): the scope becomes unreachable
 - [ ] `GET /api/user` has no token ability check
 - [ ] `composer run setup` produces an insecure install (`APP_DEBUG=true`, `admin@example.com`/`password`) without warnings in the README

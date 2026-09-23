@@ -4,9 +4,12 @@ namespace App\Policies;
 
 use App\Models\InventoryLocation;
 use App\Models\User;
+use App\Policies\Concerns\ChecksScopeAccess;
 
 class InventoryLocationPolicy
 {
+    use ChecksScopeAccess;
+
     public function viewAny(User $user): bool
     {
         return $user->can('view_any_inventory_location');
@@ -14,7 +17,7 @@ class InventoryLocationPolicy
 
     public function view(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('view_inventory_location');
+        return $user->can('view_inventory_location') && $this->canAccessModelScope($user, $model);
     }
 
     public function create(User $user): bool
@@ -24,7 +27,7 @@ class InventoryLocationPolicy
 
     public function update(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('update_inventory_location');
+        return $user->can('update_inventory_location') && $this->canAccessModelScope($user, $model);
     }
 
     public function deleteAny(User $user): bool
@@ -34,7 +37,7 @@ class InventoryLocationPolicy
 
     public function delete(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('delete_inventory_location');
+        return $user->can('delete_inventory_location') && $this->canAccessModelScope($user, $model);
     }
 
     public function restoreAny(User $user): bool
@@ -44,7 +47,7 @@ class InventoryLocationPolicy
 
     public function restore(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('restore_inventory_location');
+        return $user->can('restore_inventory_location') && $this->canAccessModelScope($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
@@ -54,6 +57,6 @@ class InventoryLocationPolicy
 
     public function forceDelete(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('force_delete_inventory_location');
+        return $user->can('force_delete_inventory_location') && $this->canAccessModelScope($user, $model);
     }
 }
