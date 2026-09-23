@@ -55,13 +55,24 @@ class Movement extends Model
         static::deleting(fn (Movement $movement) => $movement->onDeleted());
     }
 
+    /**
+     * Each side of the movement is either empty or a position: the location
+     * is always the one of the position, and a location without a position
+     * stands for its default position. So every stock has a position.
+     */
     public function onSaving()
     {
-        if ($this->to_inventory_position_id && ! $this->to_inventory_location_id) {
-            $this->to_inventory_location_id = $this->to_inventory_position?->inventory_location_id;
-        }
-        if ($this->from_inventory_position_id && ! $this->from_inventory_location_id) {
-            $this->from_inventory_location_id = $this->from_inventory_position?->inventory_location_id;
+        foreach (['from', 'to'] as $side) {
+            $positionKey = "{$side}_inventory_position_id";
+            $locationKey = "{$side}_inventory_location_id";
+
+            if (blank($this->{$positionKey}) && filled($this->{$locationKey})) {
+                $this->{$positionKey} = InventoryLocation::query()->find($this->{$locationKey})?->defaultPosition()->getKey();
+            }
+
+            $this->{$locationKey} = filled($this->{$positionKey})
+                ? InventoryPosition::query()->whereKey($this->{$positionKey})->value('inventory_location_id')
+                : null;
         }
     }
 
