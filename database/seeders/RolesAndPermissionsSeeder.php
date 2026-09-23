@@ -91,6 +91,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'View:StatsOverview',
             'View:MovementChart',
             'View:TaskChart',
+            'View:ChecklistAnomaliesWidget',
         ];
 
         $userPermissionIds = Permission::query()

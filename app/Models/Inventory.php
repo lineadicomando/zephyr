@@ -167,6 +167,16 @@ class Inventory extends Model
     }
 
     /**
+     * Latest completed checklist of the inventory, when it found anomalies.
+     *
+     * @return HasMany<TaskInventory, $this>
+     */
+    public function open_anomaly_checklists(): HasMany
+    {
+        return $this->task_inventories()->withOpenAnomalies();
+    }
+
+    /**
      * @return BelongsToMany<Tag, $this>
      */
     public function tags(): BelongsToMany

@@ -19,6 +19,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -126,6 +127,21 @@ class InventoriesRelationManager extends RelationManager
                 // ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('checklist')
+                    ->label('Checklist')
+                    ->translateLabel()
+                    ->visible(fn (): bool => $this->hasChecklist())
+                    ->options([
+                        'to_do' => __('To do'),
+                        'ok' => __('OK'),
+                        'anomalies' => __('Anomalies'),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => match ($data['value'] ?? null) {
+                        'to_do' => $query->whereNull('task_inventory.completed_at'),
+                        'ok' => $query->whereNotNull('task_inventory.completed_at')->where('task_inventory.has_anomalies', false),
+                        'anomalies' => $query->where('task_inventory.has_anomalies', true),
+                        default => $query,
+                    }),
                 ...InventoryFilters::make(stockRelation: 'non_zero_stocks', productRelation: 'product'),
             ])
             ->filtersFormColumns(2)

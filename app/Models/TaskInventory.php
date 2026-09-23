@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * Inventory of a task, with the checklist filled for it.
@@ -75,6 +77,40 @@ class TaskInventory extends Pivot
 
         $this->inventory_position_id = $stock?->inventory_position_id;
         $this->position_path = $stock?->inventory_position?->path;
+    }
+
+    /**
+     * Completed checklists that are the latest completed checklist of their
+     * inventory.
+     *
+     * @param  Builder<TaskInventory>  $query
+     * @return Builder<TaskInventory>
+     */
+    public function scopeLatestCompleted(Builder $query): Builder
+    {
+        return $query
+            ->whereNotNull('task_inventory.completed_at')
+            ->whereNotExists(fn (QueryBuilder $later): QueryBuilder => $later
+                ->from('task_inventory as later')
+                ->whereColumn('later.inventory_id', 'task_inventory.inventory_id')
+                ->whereNotNull('later.completed_at')
+                ->where(fn (QueryBuilder $newer): QueryBuilder => $newer
+                    ->whereColumn('later.completed_at', '>', 'task_inventory.completed_at')
+                    ->orWhere(fn (QueryBuilder $sameTime): QueryBuilder => $sameTime
+                        ->whereColumn('later.completed_at', 'task_inventory.completed_at')
+                        ->whereColumn('later.id', '>', 'task_inventory.id'))));
+    }
+
+    /**
+     * Anomalies still open: found by the latest completed checklist of the
+     * inventory. A later checklist without anomalies closes them.
+     *
+     * @param  Builder<TaskInventory>  $query
+     * @return Builder<TaskInventory>
+     */
+    public function scopeWithOpenAnomalies(Builder $query): Builder
+    {
+        return $query->latestCompleted()->where('task_inventory.has_anomalies', true);
     }
 
     public function isCompleted(): bool

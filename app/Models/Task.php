@@ -12,6 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @property-read int|null $task_inventories_count
+ * @property-read int|null $completed_checklists_count checklists completed, loaded by the task list
+ * @property-read int|null $anomalous_checklists_count checklists with anomalies, loaded by the task list
+ */
 class Task extends Model
 {
     use BelongsToScope;

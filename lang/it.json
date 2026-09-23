@@ -231,5 +231,11 @@
     "Reschedule": "Ripianifica",
     "A new task with the same type, checklist template and inventories.": "Una nuova attività con lo stesso tipo, modello di checklist e inventari.",
     "Task rescheduled": "Attività ripianificata",
-    "Split into": "Suddivisione"
+    "Split into": "Suddivisione",
+    "Anomalies found by the latest checklist": "Anomalie all'ultimo controllo",
+    "No open anomalies": "Nessuna anomalia aperta",
+    "With anomalies": "Con anomalie",
+    "To fill": "Da compilare",
+    "All filled": "Tutte compilate",
+    "{1} :count checklist with anomalies|[2,*] :count checklists with anomalies": "{1} :count checklist con anomalie|[2,*] :count checklist con anomalie"
 }

@@ -225,6 +225,11 @@ class InventoryResource extends Resource
                     ),
                 ...InventoryFilters::make(stockRelation: 'non_zero_stocks', productRelation: 'product'),
                 InventoryFilters::tags(),
+                Filter::make('open_anomalies')
+                    ->label('Anomalies found by the latest checklist')
+                    ->translateLabel()
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->has('open_anomaly_checklists')),
             ])
             ->persistFiltersInSession()
             ->recordUrl(function ($record) {

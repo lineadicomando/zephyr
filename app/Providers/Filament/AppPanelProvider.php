@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Resources\MovementResource\Widgets\MovementChart;
 use App\Filament\Resources\RoleResource;
 use App\Filament\Resources\TaskResource\Widgets\TaskChart;
+use App\Filament\Widgets\ChecklistAnomaliesWidget;
 use App\Filament\Widgets\CurrentScopeWidget;
 use App\Filament\Widgets\StatsOverview;
 use App\Http\Middleware\SetPermissionsTeamFromTenant;
@@ -87,6 +88,7 @@ class AppPanelProvider extends PanelProvider
             ->widgets([
                 CurrentScopeWidget::class,
                 StatsOverview::class,
+                ChecklistAnomaliesWidget::class,
                 MovementChart::class,
                 TaskChart::class,
             ])

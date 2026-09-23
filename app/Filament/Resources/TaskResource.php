@@ -277,7 +277,11 @@ class TaskResource extends Resource
                     $query->where('user_id', auth()->user()->id);
                 }
 
-                return $query;
+                return $query->withCount([
+                    'task_inventories',
+                    'task_inventories as completed_checklists_count' => fn (Builder $taskInventories): Builder => $taskInventories->whereNotNull('completed_at'),
+                    'task_inventories as anomalous_checklists_count' => fn (Builder $taskInventories): Builder => $taskInventories->where('has_anomalies', true),
+                ]);
             })
             ->columns([
                 TextColumn::make('id')
@@ -307,6 +311,23 @@ class TaskResource extends Resource
                 TextColumn::make('task_type.name')
                     ->translateLabel()
                     ->sortable(),
+                TextColumn::make('checklist_progress')
+                    ->label('Checklist')
+                    ->translateLabel()
+                    ->badge()
+                    ->state(fn (Task $record): ?string => $record->checklist_template_id === null
+                        ? null
+                        : "{$record->completed_checklists_count}/{$record->task_inventories_count}")
+                    ->color(fn (Task $record): string => match (true) {
+                        $record->anomalous_checklists_count > 0 => 'danger',
+                        $record->completed_checklists_count === $record->task_inventories_count => 'success',
+                        default => 'warning',
+                    })
+                    ->icon(fn (Task $record): ?string => $record->anomalous_checklists_count > 0 ? 'heroicon-o-exclamation-triangle' : null)
+                    ->tooltip(fn (Task $record): ?string => $record->anomalous_checklists_count > 0
+                        ? trans_choice('{1} :count checklist with anomalies|[2,*] :count checklists with anomalies', $record->anomalous_checklists_count)
+                        : null)
+                    ->toggleable(),
                 TextColumn::make('inventories.summary')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->label('Inventory')
@@ -344,6 +365,23 @@ class TaskResource extends Resource
                 SelectFilter::make('task_type')
                     ->translateLabel()
                     ->relationship('task_type', 'name'),
+                SelectFilter::make('checklist')
+                    ->label('Checklist')
+                    ->translateLabel()
+                    ->options([
+                        'anomalies' => __('With anomalies'),
+                        'to_do' => __('To fill'),
+                        'completed' => __('All filled'),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => match ($data['value'] ?? null) {
+                        'anomalies' => $query->whereHas('task_inventories', fn (Builder $taskInventories): Builder => $taskInventories->where('has_anomalies', true)),
+                        'to_do' => $query->whereNotNull('checklist_template_id')
+                            ->whereHas('task_inventories', fn (Builder $taskInventories): Builder => $taskInventories->whereNull('completed_at')),
+                        'completed' => $query->whereNotNull('checklist_template_id')
+                            ->has('task_inventories')
+                            ->whereDoesntHave('task_inventories', fn (Builder $taskInventories): Builder => $taskInventories->whereNull('completed_at')),
+                        default => $query,
+                    }),
             ])
             ->persistFiltersInSession()
             ->recordUrl(function ($record) {
