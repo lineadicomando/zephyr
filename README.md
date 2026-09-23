@@ -66,7 +66,7 @@ composer run dev
 ```
 
 ### Setup Workflows
-`zephyr:setup` is the recommended first-run flow: it interactively creates `.env` from `.env.example`, asks for the environment (`production` by default, with `LOG_LEVEL=error`), DB / locale / bootstrap admin values, the backup archive password and whether to load demo data, then runs `migrate:seed` or `migrate:seed_demo`.
+`zephyr:setup` is the recommended first-run flow: it interactively creates `.env` from `.env.example` (keeping the values customized in an existing `.env`, which are also offered as defaults), asks for the environment (`production` by default, with `LOG_LEVEL=error`), DB / locale / bootstrap admin values, the backup archive password and whether to load demo data, then runs `migrate:seed` or `migrate:seed_demo`.
 
 `migrate:seed` and `migrate:seed_demo` run `migrate:fresh` by default, which **drops all tables**: in production they ask for confirmation (skip it with `--force`), and `--no-fresh` runs only the pending migrations and keeps the data.
 

@@ -28,7 +28,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P1 - High
 
 ### P2 - Medium
-- [ ] `zephyr:setup` rebuilds `.env` from `.env.example` keeping only `APP_KEY`: re-running it resets `TRUSTED_PROXIES`, `MAIL_*`, drivers and other custom values
 - [ ] `zephyr:setup` leaves the bootstrap admin password in `.env` when migration/seed fails (and `.env` gets backed up)
 
 ### P3 - Low

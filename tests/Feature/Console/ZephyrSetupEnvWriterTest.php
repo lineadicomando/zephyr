@@ -106,3 +106,23 @@ it('asks again for a password until the confirmation matches', function () {
 it('does not accept an empty required password', function () {
     expect(promptZephyrSetupPassword(['', 's', 's'], 'Bootstrap admin password', false))->toBe('s');
 });
+
+it('keeps the customized values of the existing env file when generating it again', function () {
+    $template = "APP_NAME=Zephyr\nTRUSTED_PROXIES=\nMAIL_FROM_NAME=\"\${APP_NAME}\"\nDB_PASSWORD=password\n";
+    $existing = "APP_NAME=Zephyr\nTRUSTED_PROXIES=10.0.0.1\nMAIL_FROM_NAME=\"\${APP_NAME}\"\nDB_PASSWORD=old\nCUSTOM_KEY='kept value'\n";
+
+    $customized = callZephyrSetup(
+        'customizedValues',
+        callZephyrSetup('parseEnv', $existing),
+        callZephyrSetup('parseEnv', $template),
+    );
+
+    $content = callZephyrSetup('applyValuesToTemplate', $template, array_merge($customized, ['DB_PASSWORD' => 'new']));
+
+    expect($customized)->toBe(['TRUSTED_PROXIES' => '10.0.0.1', 'DB_PASSWORD' => 'old', 'CUSTOM_KEY' => 'kept value'])
+        ->and(Dotenv::parse($content))
+        ->TRUSTED_PROXIES->toBe('10.0.0.1')
+        ->MAIL_FROM_NAME->toBe('Zephyr')
+        ->DB_PASSWORD->toBe('new')
+        ->CUSTOM_KEY->toBe('kept value');
+});

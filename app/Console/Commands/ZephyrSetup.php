@@ -31,9 +31,10 @@ class ZephyrSetup extends Command
             return self::FAILURE;
         }
 
-        $existingAppKey = File::exists($envPath)
-            ? ($this->parseEnv(File::get($envPath))['APP_KEY'] ?? '')
-            : '';
+        $existingEnv = File::exists($envPath)
+            ? $this->parseEnv(File::get($envPath))
+            : [];
+        $existingAppKey = $existingEnv['APP_KEY'] ?? '';
 
         if (File::exists($envPath) && ! $this->option('force')) {
             if (
@@ -49,7 +50,9 @@ class ZephyrSetup extends Command
         }
 
         $template = File::get($envExamplePath);
-        $defaults = $this->parseEnv($template);
+        $templateValues = $this->parseEnv($template);
+        $customizedValues = $this->customizedValues($existingEnv, $templateValues);
+        $defaults = array_merge($templateValues, $customizedValues);
 
         $this->info('Zephyr interactive setup');
 
@@ -84,7 +87,7 @@ class ZephyrSetup extends Command
             $effectiveEnv['APP_KEY'] = $existingAppKey;
         }
 
-        $envContent = $this->applyValuesToTemplate($template, $values);
+        $envContent = $this->applyValuesToTemplate($template, array_merge($customizedValues, $values));
         File::put($envPath, $envContent);
 
         $this->info('.env generated successfully.');
@@ -485,6 +488,25 @@ class ZephyrSetup extends Command
 
             return false;
         }
+    }
+
+    /**
+     * Values of the existing .env that differ from .env.example (custom keys
+     * included): they are kept when the file is generated again. Values equal
+     * to the template are left to the template, which keeps their original
+     * form (e.g. `${APP_NAME}` references).
+     *
+     * @param  array<string, string>  $existingEnv
+     * @param  array<string, string>  $templateValues
+     * @return array<string, string>
+     */
+    private function customizedValues(array $existingEnv, array $templateValues): array
+    {
+        return array_filter(
+            $existingEnv,
+            fn (string $value, string $key): bool => ! array_key_exists($key, $templateValues) || $templateValues[$key] !== $value,
+            ARRAY_FILTER_USE_BOTH,
+        );
     }
 
     /**
