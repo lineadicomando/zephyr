@@ -206,7 +206,7 @@ The archive is written to `storage/app/private/<APP_NAME>/` (in Docker, inside t
 
 ## API
 
-The REST API (`/api/products`) authenticates with Sanctum personal access tokens. Tokens need an ability for each group of endpoints: `products:read` for `GET` and `products:write` for `POST`/`PUT`/`PATCH` (the user permissions still apply, and writing the global catalog requires a super admin):
+The REST API (`/api/products`) authenticates with Sanctum personal access tokens. Tokens need an ability for each group of endpoints: `products:read` for `GET` and `products:write` for `POST`/`PUT`/`PATCH` (the user permissions still apply, and writing the global catalog requires a super admin), `user:read` for `GET /api/user` (the token owner):
 
 ```bash
 php artisan tinker --execute '$user = App\Models\User::where("email", "ansible@example.com")->first(); echo $user->createToken("ansible", ["products:read", "products:write"])->plainTextToken;'

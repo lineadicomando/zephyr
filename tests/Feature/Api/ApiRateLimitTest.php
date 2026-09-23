@@ -12,7 +12,7 @@ it('throttles api requests', function () {
     config()->set('sanctum.rate_limit_per_minute', 2);
     RateLimiter::clear('api');
 
-    Sanctum::actingAs(User::factory()->create());
+    Sanctum::actingAs(User::factory()->create(), ['user:read']);
 
     $this->getJson('/api/user')->assertOk();
     $this->getJson('/api/user')->assertOk();
@@ -43,3 +43,14 @@ it('accepts api tokens within the configured expiration', function () {
         ->assertOk()
         ->assertJsonPath('id', $user->id);
 });
+
+it('needs the user:read ability to read the token owner', function (array $abilities, int $status) {
+    $token = User::factory()->create()->createToken('integration', $abilities);
+
+    $this->withToken($token->plainTextToken)
+        ->getJson('/api/user')
+        ->assertStatus($status);
+})->with([
+    'products only' => [['products:read'], 403],
+    'user:read' => [['user:read'], 200],
+]);
