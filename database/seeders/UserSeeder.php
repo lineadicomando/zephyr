@@ -16,7 +16,13 @@ class UserSeeder extends Seeder
         $adminRole = Role::where('name', 'admin')->first();
         $userRole = Role::where('name', 'user')->first();
 
-        $password = Hash::make('password');
+        /*
+         * The well known demo password is used only outside production: in
+         * production the demo accounts get a random password, to be reset by
+         * the bootstrap admin before use.
+         */
+        $password = Hash::make(app()->isProduction() ? Str::random(40) : 'password');
+        $demoUserIds = collect();
 
         $admins = [
             ['Marco Bianchi', 'marco.bianchi@example.local'],
@@ -33,6 +39,8 @@ class UserSeeder extends Seeder
                     'remember_token' => Str::random(10),
                 ],
             );
+
+            $demoUserIds->push($user->id);
 
             if (! $user->hasRole($adminRole)) {
                 $user->assignRole($adminRole);
@@ -59,6 +67,8 @@ class UserSeeder extends Seeder
                 ],
             );
 
+            $demoUserIds->push($user->id);
+
             if (! $user->hasRole($userRole)) {
                 $user->assignRole($userRole);
             }
@@ -66,7 +76,7 @@ class UserSeeder extends Seeder
 
         $scopeIds = DB::table('scopes')->where('is_active', true)->pluck('id');
 
-        User::query()->each(function (User $user) use ($scopeIds): void {
+        User::query()->whereKey($demoUserIds)->each(function (User $user) use ($scopeIds): void {
             $missingScopeIds = $scopeIds->diff(
                 $user->scopes()->pluck('scopes.id'),
             );
