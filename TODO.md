@@ -26,7 +26,6 @@
 Items left open after the September 2026 code reviews, ordered by priority. Fixed items are in the git history.
 
 ### P1 - High
-- [ ] `InventoryResource\RelationManagers\TasksRelationManager` shows other users' tasks to non-admin users (no `user_id` filter like `TaskResource`), and `DetachAction` works on any task (`TaskPolicy` has no `detach`)
 
 ### P2 - Medium
 - [ ] Open redirect: `ViewHeaderAction` stores any Referer matching `?page=N` (external too) as the Close button URL

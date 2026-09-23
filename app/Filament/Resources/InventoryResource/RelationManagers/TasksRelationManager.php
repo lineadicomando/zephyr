@@ -13,6 +13,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class TasksRelationManager extends RelationManager
@@ -33,6 +34,13 @@ class TasksRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('description')
+            ->modifyQueryUsing(function (Builder $query) {
+                if (! auth()->user()->isAdmin()) {
+                    $query->where('tasks.user_id', auth()->user()->id);
+                }
+
+                return $query;
+            })
             ->columns([
                 TextColumn::make('starts_at')
                     ->date('Y-m-d')

@@ -30,6 +30,20 @@ class TaskPolicy
         return $user->can('update_task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
     }
 
+    /**
+     * Detaching a task from an inventory changes the task: it needs the same
+     * access as updating it.
+     */
+    public function detach(User $user, ?Task $model = null): bool
+    {
+        return $this->update($user, $model);
+    }
+
+    public function detachAny(User $user): bool
+    {
+        return $user->can('update_task');
+    }
+
     public function deleteAny(User $user): bool
     {
         return $user->can('delete_any_task');

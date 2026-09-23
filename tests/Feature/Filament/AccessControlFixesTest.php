@@ -1,10 +1,14 @@
 <?php
 
+use App\Filament\Resources\InventoryResource;
+use App\Filament\Resources\InventoryResource\Pages\EditInventory;
+use App\Filament\Resources\InventoryResource\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\ReorderOrderResource;
 use App\Filament\Resources\ReorderOrderResource\Pages\ListReorderOrders;
 use App\Filament\Resources\TaskResource;
 use App\Filament\Resources\TaskResource\Pages\CreateTask;
 use App\Filament\Resources\TaskResource\Widgets\TaskCalendarWidget;
+use App\Models\Inventory;
 use App\Models\ReorderOrder;
 use App\Models\Scope;
 use App\Models\Task;
@@ -172,3 +176,26 @@ it('creates the transition permission for existing installations', function () {
     expect(Role::findByName('user')->hasPermissionTo('transition_reorder_order'))->toBeTrue()
         ->and(Role::findByName('admin')->hasPermissionTo('transition_reorder_order'))->toBeTrue();
 });
+
+it('shows non admin users only their own tasks on the inventory tasks tab', function () {
+    $user = accessControlUser($this, 'view_any_task', 'view_task', 'update_task');
+    $colleague = accessControlUser($this);
+
+    $ownTask = accessControlTask($this, $user);
+    $colleagueTask = accessControlTask($this, $colleague);
+
+    $inventory = Inventory::factory()->create(['scope_id' => $this->scope->id]);
+    $inventory->tasks()->attach([$ownTask->id, $colleagueTask->id]);
+
+    $this->actingAs($user);
+    activateFilamentTenant($this->scope, [InventoryResource::class, TaskResource::class]);
+
+    Livewire::test(TasksRelationManager::class, ['ownerRecord' => $inventory, 'pageClass' => EditInventory::class])
+        ->assertCanSeeTableRecords([$ownTask])
+        ->assertCanNotSeeTableRecords([$colleagueTask])
+        ->assertActionVisible(TestAction::make('detach')->table($ownTask));
+
+    expect($user->can('detach', $colleagueTask))->toBeFalse()
+        ->and($user->can('detach', $ownTask))->toBeTrue();
+});
+
