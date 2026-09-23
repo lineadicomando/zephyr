@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Actions\RescheduleTaskAction;
 use App\Filament\Resources\TaskResource\Pages;
 use App\Filament\Resources\TaskResource\Pages\CalendarTask;
 use App\Filament\Resources\TaskResource\RelationManagers\InventoriesRelationManager;
@@ -358,7 +359,7 @@ class TaskResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
-                ActionGroup::make([DeleteAction::make()]),
+                ActionGroup::make([RescheduleTaskAction::make(), DeleteAction::make()]),
             ])
             ->bulkActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }

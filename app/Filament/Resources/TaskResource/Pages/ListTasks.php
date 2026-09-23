@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TaskResource\Pages;
 
+use App\Filament\Actions\PlanChecklistsAction;
 use App\Filament\Resources\TaskResource;
 use App\Models\TaskStatus;
 use Filament\Actions;
@@ -17,6 +18,7 @@ class ListTasks extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            PlanChecklistsAction::make(),
             Actions\CreateAction::make()->icon('heroicon-o-plus'),
         ];
     }

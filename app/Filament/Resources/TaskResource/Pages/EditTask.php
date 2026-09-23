@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TaskResource\Pages;
 
+use App\Filament\Actions\RescheduleTaskAction;
 use App\Filament\Resources\TaskResource;
 use App\Traits\CancelToCloseAction;
 use Filament\Actions;
@@ -16,6 +17,7 @@ class EditTask extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            RescheduleTaskAction::make(),
             Actions\DeleteAction::make(),
         ];
     }
