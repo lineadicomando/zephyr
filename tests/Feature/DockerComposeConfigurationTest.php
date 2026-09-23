@@ -32,3 +32,13 @@ it('connects the php services to an external database network in the override', 
 it('enables the bundled database by default in the docker environment template', function () {
     expect(file_get_contents(base_path('.env.docker')))->toMatch('/^COMPOSE_PROFILES=database$/m');
 });
+
+it('creates the public volume mount point owned by the user running the entrypoint', function () {
+    $mountPoint = collect(composeFile('docker-compose.yml')['services']['app']['volumes'])
+        ->map(fn (string $volume): string => explode(':', $volume)[1])
+        ->first(fn (string $target): bool => str_ends_with($target, '/public-vol'));
+
+    expect(file_get_contents(base_path('docker/php/Dockerfile')))
+        ->toContain("mkdir -p {$mountPoint}")
+        ->toMatch('/chown -R www-data:www-data[^\n]*(\\\\\n[^\n]*)*'.preg_quote($mountPoint, '/').'/');
+});

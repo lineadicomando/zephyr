@@ -30,7 +30,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P2 - Medium
 
 ### P3 - Low
-- [ ] Docker: `public-vol` mount point does not exist in the image; on Docker (not Podman) the volume may be root-owned and `rsync` fails as `www-data`
 - [ ] Roles are global (`permission.teams => false`): an admin is admin in every scope they belong to; per-scope roles require spatie/permission teams
 
 ### Data integrity (structural)

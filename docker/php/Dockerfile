@@ -63,9 +63,13 @@ RUN <<EOF
 composer dump-autoload --optimize --no-dev --no-interaction
 # public/storage link (the entrypoint runs as www-data and cannot write public/)
 ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
+# mount point of the public volume shared with nginx: Docker initializes a new
+# named volume with the owner of this directory, so www-data can sync into it
+mkdir -p /var/www/html/public-vol
 chown -R www-data:www-data \
     /var/www/html/storage \
-    /var/www/html/bootstrap/cache
+    /var/www/html/bootstrap/cache \
+    /var/www/html/public-vol
 chmod -R 775 \
     /var/www/html/storage \
     /var/www/html/bootstrap/cache
