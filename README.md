@@ -78,7 +78,7 @@ The bootstrap admin (`BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_EMAIL`) gets the 
 
 ## Docker Deploy
 
-The repository ships a `docker-compose.yml` with six services: `app` (PHP-FPM 8.5), `nginx`, `db` (MariaDB 11), `redis`, `queue`, and `scheduler`. On first boot the `app` container runs migrations and seeds the database; subsequent restarts only apply pending migrations and skip seeding.
+The repository ships a `docker-compose.yml` with six services: `app` (PHP-FPM 8.5), `nginx`, `db` (MariaDB 11), `redis`, `queue`, and `scheduler`. On first boot the `app` container runs migrations and seeds the database; subsequent restarts only apply pending migrations and skip seeding. Seeding is retried on every boot until the database has a user, so a first boot that failed (for example because of a placeholder `BOOTSTRAP_ADMIN_PASSWORD`) recovers once `.env` is fixed and the container restarts.
 
 ### Requirements
 
@@ -148,7 +148,7 @@ DB_PASSWORD=...
 
 Requirements:
 
-- Use a **dedicated, empty database**: on first boot the entrypoint runs the migrations and the seeders when no migration has been run yet, and on every boot it runs the pending migrations. Do not share the database with other applications.
+- Use a **dedicated, empty database**: on every boot the entrypoint runs the pending migrations, and the seeders too while the database has no users. Do not share the database with other applications.
 - The user needs full privileges on that database (tables are created, altered and dropped by migrations):
 
   ```sql

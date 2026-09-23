@@ -21,17 +21,13 @@ mkdir -p /var/www/html/storage/{app/public,logs,framework/{cache,sessions,views}
 echo "[entrypoint] Syncing public assets to shared volume..."
 rsync -a --delete /var/www/html/public/ /var/www/html/public-vol/
 
-echo "[entrypoint] Checking migration status..."
-if php artisan migrate:status --no-ansi 2>/dev/null | grep -q " Ran"; then
-    echo "[entrypoint] Database already migrated — running pending migrations..."
-    php artisan migrate --force
+# The baseline data is seeded until the database has a user, so a first boot
+# whose seed failed (e.g. placeholder admin password) is retried on restart.
+echo "[entrypoint] Running migrations (seeding when the database has no users)..."
+if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
+    php artisan migrate:seed_demo --no-fresh --if-not-seeded
 else
-    echo "[entrypoint] Fresh database — running migrations and seeding..."
-    if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
-        php artisan migrate:seed_demo --no-fresh
-    else
-        php artisan migrate:seed --no-fresh
-    fi
+    php artisan migrate:seed --no-fresh --if-not-seeded
 fi
 
 if [ "${APP_ENV}" = "production" ]; then

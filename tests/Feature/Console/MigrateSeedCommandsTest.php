@@ -2,8 +2,12 @@
 
 use App\Console\Commands\MigrateSeed;
 use App\Console\Commands\MigrateSeedDemo;
+use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+
+uses(RefreshDatabase::class);
 
 it('migrate seed disables demo data while seeding and restores the previous value', function () {
     config()->set('app.seed_demo_data', true);
@@ -29,6 +33,7 @@ it('migrate seed demo enables demo data while seeding and restores the previous 
 
     $command = Mockery::mock(MigrateSeedDemo::class)->makePartial();
     $command->shouldReceive('option')->once()->with('no-fresh')->andReturnTrue();
+    $command->shouldReceive('option')->once()->with('if-not-seeded')->andReturnFalse();
     $command->shouldNotReceive('confirmToProceed');
     $command->shouldReceive('call')->once()->with('migrate', [
         '--seed' => true,
@@ -62,3 +67,23 @@ it('does not run the fresh migration when confirmation is declined', function ()
 
     expect($command->handle())->toBe(MigrateSeed::FAILURE);
 });
+
+it('seeds with --if-not-seeded only while the database has no users', function (string $class, bool $hasUsers, bool $seeds) {
+    if ($hasUsers) {
+        User::factory()->create();
+    }
+
+    $command = Mockery::mock($class)->makePartial()->shouldAllowMockingProtectedMethods();
+    $command->shouldReceive('option')->once()->with('no-fresh')->andReturnTrue();
+    $command->shouldReceive('option')->once()->with('if-not-seeded')->andReturnTrue();
+    $command->shouldReceive('call')->once()->with('migrate', [
+        '--seed' => $seeds,
+        '--force' => true,
+    ])->andReturn(0);
+
+    expect($command->handle())->toBe(0);
+})->with(['migrate:seed' => [MigrateSeed::class], 'migrate:seed_demo' => [MigrateSeedDemo::class]])->with([
+    'no users (first boot or failed first seed)' => [false, true],
+    'already seeded' => [true, false],
+]);
+

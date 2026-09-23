@@ -28,7 +28,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P1 - High
 
 ### P2 - Medium
-- [ ] Docker entrypoint: if the first-boot seed fails after the migrations (e.g. placeholder `BOOTSTRAP_ADMIN_PASSWORD`), the restart sees migrations as `Ran` and never seeds again: no admin
 - [ ] Docker: `SEED_DEMO_DATA=true` always fails (Faker is dev-only, image built with `--no-dev`) but the README suggests it
 - [ ] Demo seed creates admin users with password `password` and attaches every user to every scope; `zephyr:setup` offers it in production too
 - [ ] `zephyr:setup` rebuilds `.env` from `.env.example` keeping only `APP_KEY`: re-running it resets `TRUSTED_PROXIES`, `MAIL_*`, drivers and other custom values
