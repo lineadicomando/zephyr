@@ -104,15 +104,21 @@ class Stock extends Model
      * stock negative (or more negative than it already is) is rejected, unless
      * $allowNegative is true (used to repair the stored values).
      *
+     * The stock row is locked first, so concurrent recalculations of the same
+     * stock run one after the other; with the READ COMMITTED isolation level
+     * each one sees the movement items committed by the previous one.
+     *
      * @throws ValidationException
      */
     public function updateStockByMovementItems(bool $allowNegative = false): void
     {
+        $storedStock = (int) DB::table('stocks')->where('id', $this->id)->lockForUpdate()->value('stock');
+
         $incomingStockTotal = MovementItem::where('incoming_stock_id', $this->id)->sum('stock');
         $outcomingStockTotal = MovementItem::where('outcoming_stock_id', $this->id)->sum('stock');
         $stock = $incomingStockTotal - $outcomingStockTotal;
 
-        if (! $allowNegative && $stock < 0 && $stock < (int) DB::table('stocks')->where('id', $this->id)->value('stock')) {
+        if (! $allowNegative && $stock < 0 && $stock < $storedStock) {
             throw ValidationException::withMessages([
                 'stock' => __('Insufficient availability, impossible to proceed'),
             ]);

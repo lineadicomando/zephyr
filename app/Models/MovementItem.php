@@ -156,26 +156,25 @@ class MovementItem extends Model
         return $this->belongsTo(Inventory::class);
     }
 
+    /**
+     * Recompute every stock touched by this item. The stocks are locked in id
+     * order, so two items moving stock in opposite directions cannot deadlock.
+     */
     public function updateStock()
     {
-        if (! empty($this->incoming_stock)) {
-            $this->incoming_stock->updateStockByMovementItems();
+        $stockIds = collect([
+            $this->incoming_stock_id,
+            $this->outcoming_stock_id,
+            $this->oldIncomingStockId,
+            $this->oldOutcomingStockId,
+        ])->filter()->unique()->sort()->values();
+
+        if ($stockIds->isEmpty()) {
+            return;
         }
-        if (! empty($this->outcoming_stock)) {
-            $this->outcoming_stock->updateStockByMovementItems();
-        }
-        if (! empty($this->oldIncomingStockId)) {
-            $stock = Stock::find($this->oldIncomingStockId);
-            if ($stock) {
-                $stock->updateStockByMovementItems();
-            }
-        }
-        if (! empty($this->oldOutcomingStockId)) {
-            $stock = Stock::find($this->oldOutcomingStockId);
-            if ($stock) {
-                $stock->updateStockByMovementItems();
-            }
-        }
+
+        Stock::query()->whereKey($stockIds)->orderBy('id')->lockForUpdate()->get()
+            ->each(fn (Stock $stock) => $stock->updateStockByMovementItems());
     }
 
     public function incoming_stock()

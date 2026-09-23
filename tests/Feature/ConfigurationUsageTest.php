@@ -95,6 +95,15 @@ it('verifies the server certificate of database dumps only against the configure
     'CA' => ['/var/www/html/storage/app/db-ca.pem', "--ssl-ca='/var/www/html/storage/app/db-ca.pem'"],
 ]);
 
+it('reads committed data in mysql transactions so locked stock recalculations see concurrent movements', function (string $connection, ?string $level, string $expected) {
+    $config = configWithEnvironment('database', ['DB_ISOLATION_LEVEL' => $level]);
+
+    expect($config['connections'][$connection]['isolation_level'])->toBe($expected);
+})->with(['mariadb', 'mysql'])->with([
+    'default' => [null, 'READ COMMITTED'],
+    'custom' => ['SERIALIZABLE', 'SERIALIZABLE'],
+]);
+
 arch('environment variables are only read in the config directory')
     ->expect('env')
     ->not->toBeUsedIn(['App', 'Database\Seeders']);
