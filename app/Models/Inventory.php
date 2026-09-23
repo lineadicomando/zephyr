@@ -24,13 +24,28 @@ class Inventory extends Model
     public function onSaved()
     {
         $this->autoInventoryNumber(true);
+        $this->syncCopies();
+    }
+
+    /**
+     * Refresh the summary and, with bulk updates, the inventory and product
+     * data copied by the stocks and movement items of the inventory.
+     */
+    public function syncCopies(): void
+    {
+        $this->unsetRelation('product');
         $this->syncSummary(true);
-        $this->stocks()->each(function (Stock $stock) {
-            $stock->update();
-        });
-        $this->movement_items()->each(function (MovementItem $movementItem) {
-            $movementItem->update();
-        });
+
+        Stock::withoutGlobalScopes()->where('inventory_id', $this->id)->update([
+            'product_id' => $this->product_id,
+            'product_group_id' => $this->product?->product_group_id,
+            'product_type_id' => $this->product?->product_type_id,
+            'product_brand_id' => $this->product?->product_brand_id,
+            'product_model_id' => $this->product?->product_model_id,
+            'inventory_summary' => $this->summary,
+        ]);
+
+        MovementItem::withoutGlobalScopes()->where('inventory_id', $this->id)->update(['inventory_summary' => $this->summary]);
     }
 
     public function autoInventoryNumber($save = false): string

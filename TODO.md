@@ -36,7 +36,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### Operations and setup
 
 ### Performance
-- [ ] Cascading saves: `Inventory`, `InventoryLocation`, `ProductType` re-save every related stock/movement item on save; replace with bulk updates of the changed columns
 - [ ] `MovementItem::isLast()` runs one query per table row (twice in `MovementItemsRelationManager`): compute it with a subquery
 - [ ] Missing indexes: `tasks` (`task_type_id`, `task_status_id`, `user_id`, `starts_at`), movement foreign keys, `inventories.product_id`, product foreign keys
 

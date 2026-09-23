@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToScope;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class InventoryPosition extends Model
 {
@@ -40,14 +41,21 @@ class InventoryPosition extends Model
         // \Illuminate\Support\Facades\Log::debug('InventoryPosition::onSaving>>');
     }
 
+    /**
+     * Refresh the location and path copied by the stocks of the position with
+     * a bulk update (the stock path is "<position path>: <quantity>").
+     */
     public function onSaved()
     {
-        // \Illuminate\Support\Facades\Log::debug('<<InventoryPosition::onSaved');
-        $stocks = Stock::where('inventory_position_id', $this->id)->get();
-        $stocks->each(function (Stock $stock) {
-            $stock->save();
-        });
-        // \Illuminate\Support\Facades\Log::debug('InventoryPosition::onSaved>>');
+        $connection = $this->getConnection();
+        $path = $connection->getPdo()->quote($this->path);
+
+        Stock::withoutGlobalScopes()->where('inventory_position_id', $this->id)->update([
+            'inventory_location_id' => $this->inventory_location_id,
+            'path' => DB::raw($connection->getDriverName() === 'sqlite'
+                ? "{$path} || ': ' || COALESCE(stock, 0)"
+                : "CONCAT({$path}, ': ', COALESCE(stock, 0))"),
+        ]);
     }
 
     public function inventory_location()
