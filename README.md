@@ -11,7 +11,7 @@ An open-source IT asset management system built with Laravel and Filament.
 
 ## Features
 
-- **Multi-scope operations** — users can belong to multiple scopes and switch `active_scope_id` at runtime; scoped models are filtered by active scope.
+- **Multi-scope operations** — users can belong to multiple scopes and switch between them from the panel; the current scope is part of the URL and scoped records are filtered by it.
 - **Scope lifecycle guardrails** — protected scopes cannot be deactivated/deleted; inactive scopes are deletion-requested with grace period and purged by scheduler.
 - **Inventory domain** — inventories, inventory locations/positions, stocks, movements, and movement items with scope isolation.
 - **Task management with calendar** — tasks linked to inventories with FullCalendar integration (drag/drop and date updates).
@@ -233,9 +233,9 @@ Zephyr supports multiple flat operational scopes through a neutral `scopes` enti
 
 - Global entities: `users`, `products`, product catalog dictionaries (`product_brands`, `product_groups`, `product_models`, `product_types`) and task dictionaries (`task_statuses`, `task_types`).
 - Scoped entities: operational records (inventory, movements, tasks, reorders, orders).
-- Runtime context: one `active_scope_id` in session per authenticated user.
-- Access model: users can be assigned to one or more scopes and can switch active scope from the Filament user menu.
-- Console bypass policy: scope filtering bypass is limited to maintenance commands (`migrate*`, `db:seed`, `db:wipe`) via `config/scopes.php`.
+- Runtime context: the scope is the Filament tenant, taken from the first URL segment (`/<scope-slug>/...`); the slug `api` is reserved.
+- Access model: users can be assigned to one or more scopes and can switch scope from the Filament tenant menu.
+- Outside the panel (console commands, API) there is no current scope: queries are not filtered by scope.
 
 See [docs/architecture/global-scopes.md](docs/architecture/global-scopes.md) for architecture details.
 

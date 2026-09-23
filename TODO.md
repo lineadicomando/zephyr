@@ -30,7 +30,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P2 - Medium
 
 ### P3 - Low
-- [ ] README: remove the session `active_scope_id` description (scope comes from the tenant URL) and the `console_bypass_commands` mention
 - [ ] Docker: `public-vol` mount point does not exist in the image; on Docker (not Podman) the volume may be root-owned and `rsync` fails as `www-data`
 - [ ] Roles are global (`permission.teams => false`): an admin is admin in every scope they belong to; per-scope roles require spatie/permission teams
 
@@ -51,7 +50,7 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 
 ### Code quality
 - [ ] Add Larastan (new dependency, needs approval): plain PHPStan reports ~290 mostly false positive errors on Eloquent magic
-- [ ] Remove dead code: `UserResource\RelationManagers\GroupsRelationManager` (no `groups` relation), `config/scopes.php` `console_bypass_commands` (unused), unused static helpers in `InventoryResource` (lines ~62-94)
+- [ ] Remove dead code: `UserResource\RelationManagers\GroupsRelationManager` (no `groups` relation), unused static helpers in `InventoryResource` (lines ~62-94)
 - [ ] Deduplicate the inventory table/filters (`InventoryResource`, `TaskResource\InventoriesRelationManager`, `StockResource`) and the `requestDeletion` action (`ScopeResource`, `EditScope`)
 
 ### Tests
