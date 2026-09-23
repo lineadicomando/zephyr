@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InventoryPositionResource\Pages;
+use App\Models\InventoryLocation;
 use App\Models\InventoryPosition;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -54,8 +55,8 @@ class InventoryPositionResource extends Resource
             Select::make('inventory_location_id')
                 ->translateLabel()
                 ->relationship('inventory_location', 'name')
-                ->createOptionForm(InventoryLocationResource::getFormDefinition())
-                ->editOptionForm(InventoryLocationResource::getFormDefinition()),
+                ->createOptionForm(auth()->user()?->can('create', InventoryLocation::class) ? InventoryLocationResource::getFormDefinition() : null)
+                ->editOptionForm(auth()->user()?->can('update', InventoryLocation::class) ? InventoryLocationResource::getFormDefinition() : null),
             TextInput::make('name')
                 ->required()
                 ->translateLabel()

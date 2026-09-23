@@ -11,6 +11,7 @@ use App\Filament\Resources\ProductResource\Pages\ListProducts;
 use App\Filament\Resources\StockResource\Pages\ListStocks;
 use App\Models\Inventory;
 use App\Models\InventoryPosition;
+use App\Models\Product;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
@@ -95,8 +96,6 @@ class InventoryResource extends Resource
 
     public static function getFormDefinition()
     {
-        $userIsAdmin = auth()->user()?->isAdmin();
-
         return [
             TextInput::make('inventory_number')
                 ->unique(
@@ -118,8 +117,8 @@ class InventoryResource extends Resource
                 ->preload()
                 ->relationship('product', 'name')
                 ->live()
-                ->createOptionForm($userIsAdmin ? ProductResource::getFormDefinition() : null)
-                ->editOptionForm($userIsAdmin ? ProductResource::getFormDefinition() : null),
+                ->createOptionForm(auth()->user()?->can('create', Product::class) ? ProductResource::getFormDefinition() : null)
+                ->editOptionForm(auth()->user()?->can('update', Product::class) ? ProductResource::getFormDefinition() : null),
             TextInput::make('description')
                 ->translateLabel(),
             TextInput::make('mac_address')

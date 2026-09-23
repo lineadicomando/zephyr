@@ -7,6 +7,7 @@ use App\Filament\Resources\TaskResource\Pages\CalendarTask;
 use App\Filament\Resources\TaskResource\RelationManagers\InventoriesRelationManager;
 use App\Models\Task;
 use App\Models\TaskStatus;
+use App\Models\TaskType;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -157,10 +158,10 @@ class TaskResource extends Resource
                 ->translateLabel()
                 ->relationship('task_type', 'name')
                 ->createOptionForm(
-                    $userIsAdmin ? TaskTypeResource::getFormDefinition() : null,
+                    auth()->user()?->can('create', TaskType::class) ? TaskTypeResource::getFormDefinition() : null,
                 )
                 ->editOptionForm(
-                    $userIsAdmin ? TaskTypeResource::getFormDefinition() : null,
+                    auth()->user()?->can('update', TaskType::class) ? TaskTypeResource::getFormDefinition() : null,
                 ),
             Select::make('task_status_id')
                 ->label('Status')
@@ -196,12 +197,12 @@ class TaskResource extends Resource
                     },
                 )
                 ->createOptionForm(
-                    $userIsAdmin
+                    auth()->user()?->can('create', TaskStatus::class)
                         ? TaskStatusResource::getFormDefinition()
                         : null,
                 )
                 ->editOptionForm(
-                    $userIsAdmin
+                    auth()->user()?->can('update', TaskStatus::class)
                         ? TaskStatusResource::getFormDefinition()
                         : null,
                 ),

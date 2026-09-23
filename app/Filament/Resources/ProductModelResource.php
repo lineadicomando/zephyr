@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductModelResource\Pages;
+use App\Models\ProductBrand;
 use App\Models\ProductModel;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -55,8 +56,8 @@ class ProductModelResource extends Resource
             Select::make('product_brand_id')
                 ->translateLabel()
                 ->relationship('product_brand', 'name')
-                ->createOptionForm(ProductBrandResource::getFormDefinition())
-                ->editOptionForm(ProductBrandResource::getFormDefinition()),
+                ->createOptionForm(auth()->user()?->can('create', ProductBrand::class) ? ProductBrandResource::getFormDefinition() : null)
+                ->editOptionForm(auth()->user()?->can('update', ProductBrand::class) ? ProductBrandResource::getFormDefinition() : null),
             TextInput::make('name')
                 ->required()
                 ->translateLabel()

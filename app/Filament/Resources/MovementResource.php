@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\MovementItemResource\Pages\ListMovementItems;
 use App\Filament\Resources\MovementResource\Pages;
 use App\Filament\Resources\MovementResource\RelationManagers\MovementItemsRelationManager;
+use App\Models\InventoryPosition;
 use App\Models\Movement;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -49,7 +50,7 @@ class MovementResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        $userIsAdmin = auth()->user()?->isAdmin();
+        $user = auth()->user();
 
         return $schema->schema([
             DateTimePicker::make('date')
@@ -75,12 +76,12 @@ class MovementResource extends Resource
                     titleAttribute: 'path',
                 )
                 ->createOptionForm(
-                    $userIsAdmin
+                    $user?->can('create', InventoryPosition::class)
                         ? InventoryPositionResource::getFormDefinition()
                         : null,
                 )
                 ->editOptionForm(
-                    $userIsAdmin
+                    $user?->can('update', InventoryPosition::class)
                         ? InventoryPositionResource::getFormDefinition()
                         : null,
                 ),
@@ -96,12 +97,12 @@ class MovementResource extends Resource
                     titleAttribute: 'path',
                 )
                 ->createOptionForm(
-                    $userIsAdmin
+                    $user?->can('create', InventoryPosition::class)
                         ? InventoryPositionResource::getFormDefinition()
                         : null,
                 )
                 ->editOptionForm(
-                    $userIsAdmin
+                    $user?->can('update', InventoryPosition::class)
                         ? InventoryPositionResource::getFormDefinition()
                         : null,
                 ),

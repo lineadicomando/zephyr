@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
+use App\Models\ProductBrand;
 use App\Models\ProductModel;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -51,7 +52,7 @@ class ProductResource extends Resource
 
     public static function getFormDefinition()
     {
-        $userIsAdmin = auth()->user()?->isAdmin();
+        $user = auth()->user();
 
         return [
             Select::make('product_group_id')
@@ -79,12 +80,12 @@ class ProductResource extends Resource
                     $set('product_model_id', '');
                 })
                 ->createOptionForm(
-                    $userIsAdmin
+                    $user?->can('create', ProductBrand::class)
                         ? ProductBrandResource::getFormDefinition()
                         : null,
                 )
                 ->editOptionForm(
-                    $userIsAdmin
+                    $user?->can('update', ProductBrand::class)
                         ? ProductBrandResource::getFormDefinition()
                         : null,
                 ),
@@ -132,12 +133,12 @@ class ProductResource extends Resource
                     },
                 )
                 ->createOptionForm(
-                    $userIsAdmin
+                    $user?->can('create', ProductModel::class)
                         ? ProductModelResource::getFormDefinition()
                         : null,
                 )
                 ->editOptionForm(
-                    $userIsAdmin
+                    $user?->can('update', ProductModel::class)
                         ? ProductModelResource::getFormDefinition()
                         : null,
                 ),
