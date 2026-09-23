@@ -232,3 +232,36 @@ it('refreshes the product data copied in every scope when a product changes insi
         ->and($otherStock->inventory_summary)->toContain('Renamed product')
         ->and(Inventory::withoutGlobalScopes()->find($otherInventory->id)->summary)->toContain('Renamed product');
 });
+
+it('moves the stock when the destination of an existing movement changes', function () {
+    [
+        'scope' => $scope,
+        'inventory' => $inventory,
+        'positionA' => $positionA,
+        'positionB' => $positionB,
+        'movementType' => $movementType,
+    ] = makeMovementDomain();
+
+    $load = Movement::factory()->create([
+        'scope_id' => $scope->id,
+        'movement_type_id' => $movementType->id,
+        'to_inventory_position_id' => $positionA->id,
+    ]);
+    $item = MovementItem::query()->create([
+        'scope_id' => $scope->id,
+        'movement_id' => $load->id,
+        'inventory_id' => $inventory->id,
+        'stock' => 4,
+    ]);
+    $stockAtA = Stock::query()->find($item->incoming_stock_id);
+
+    $load->update(['to_inventory_position_id' => $positionB->id]);
+
+    $item->refresh();
+
+    expect($stockAtA->fresh()->stock)->toBe(0)
+        ->and(Stock::query()->find($item->incoming_stock_id))
+        ->inventory_position_id->toBe($positionB->id)
+        ->stock->toBe(4)
+        ->and($load->fresh()->to_inventory_location_id)->toBe($positionB->inventory_location_id);
+});

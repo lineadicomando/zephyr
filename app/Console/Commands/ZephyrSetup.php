@@ -22,8 +22,8 @@ class ZephyrSetup extends Command
 
     public function handle(): int
     {
-        $envExamplePath = base_path('.env.example');
-        $envPath = base_path('.env');
+        $envExamplePath = $this->laravel->environmentPath().DIRECTORY_SEPARATOR.'.env.example';
+        $envPath = $this->laravel->environmentFilePath();
 
         if (! File::exists($envExamplePath)) {
             $this->error('.env.example not found.');
