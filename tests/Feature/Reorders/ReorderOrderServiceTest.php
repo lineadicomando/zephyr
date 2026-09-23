@@ -110,3 +110,33 @@ it('rejects invalid state transitions', function () {
     expect(fn () => $service->cancel($order))->toThrow(ValidationException::class)
         ->and(fn () => $service->request($order))->toThrow(ValidationException::class);
 });
+
+it('checks the stored status instead of a stale copy of the order', function () {
+    makeRuleForOrderFlow();
+
+    $service = app(ReorderOrderService::class);
+    $order = app(ReorderProposalService::class)->createDraftFromCritical();
+    $order = $service->markOrdered($service->request($order));
+
+    $staleCopy = ReorderOrder::query()->findOrFail($order->id);
+    $service->cancel($order);
+
+    expect(fn () => $service->markReceived($staleCopy))->toThrow(ValidationException::class);
+    expect($order->fresh())
+        ->status->toBe(ReorderOrder::STATUS_CANCELLED)
+        ->received_at->toBeNull();
+});
+
+it('rolls back the received status when a reorder rule cannot be updated', function () {
+    $rule = makeRuleForOrderFlow();
+
+    $service = app(ReorderOrderService::class);
+    $order = app(ReorderProposalService::class)->createDraftFromCritical();
+    $order = $service->markOrdered($service->request($order));
+
+    Reorder::saving(fn () => throw new RuntimeException('Rule update failed'));
+
+    expect(fn () => $service->markReceived($order))->toThrow(RuntimeException::class);
+    expect($order->fresh()->status)->toBe(ReorderOrder::STATUS_ORDERED)
+        ->and($rule->fresh()->last_reorder_date)->toBeNull();
+});

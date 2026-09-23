@@ -30,7 +30,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P2 - Medium
 
 ### P3 - Low
-- [ ] `ReorderOrderService` status transitions are neither transactional nor locked (concurrent cancel/receive, partial `markReceived`)
 - [ ] `InventoryResource\RelationManagers\MovementsRelationManager` creates/updates `Movement` records while authorized with MovementItem permissions
 - [ ] `InventoryLocationPolicy`, `InventoryPositionPolicy`, `MovementTypePolicy` do not check scope membership (`ChecksScopeAccess`); isolation relies only on the Filament tenant scope
 - [ ] Scope slug can be changed to `api` (rejected by the tenant route pattern): the scope becomes unreachable
