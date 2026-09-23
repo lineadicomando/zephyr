@@ -255,3 +255,18 @@ it('loads view pages for existing records', function () {
         $this->assertContains($status, [200, 403], "Unexpected status [{$status}] for [{$path}]");
     }
 });
+
+it('keeps the close button of view pages on the application', function (string $referer, bool $isKept) {
+    [$user, $scope] = superAdminUserWithScope();
+    $location = InventoryLocation::factory()->create(['scope_id' => $scope->id]);
+
+    $this->actingAs($user)
+        ->withHeader('referer', $referer)
+        ->get("/{$scope->slug}/inventory-locations/{$location->id}/view")
+        ->assertOk();
+
+    expect(session('previousUrl') === $referer)->toBe($isKept);
+})->with([
+    'external page' => ['https://evil.example/?page=1', false],
+    'internal list page' => ['http://localhost/default/inventory-locations?page=2', true],
+]);

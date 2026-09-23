@@ -11,7 +11,8 @@ trait ViewHeaderAction
     {
         $rUrl = static::getResource()::getUrl();
         $previousUrl = url()->previous();
-        if ($previousUrl == $rUrl || preg_match('/.*\?page=[0-9]+.*/', $previousUrl)) {
+        $isInternalUrl = parse_url($previousUrl, PHP_URL_HOST) === request()->getHost();
+        if ($isInternalUrl && ($previousUrl == $rUrl || preg_match('/.*\?page=[0-9]+.*/', $previousUrl))) {
             session()->put('previousUrl', $previousUrl);
         }
         $previousUrl = session()->get('previousUrl', $rUrl);
