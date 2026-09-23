@@ -117,18 +117,21 @@ class ZephyrSetup extends Command
                 ? 'migrate:seed_demo'
                 : 'migrate:seed';
 
-        $seedExit = $this->call($seedCommand, [
-            '--no-fresh' => ! $fresh,
-            '--force' => true,
-        ]);
+        try {
+            $seedExit = $this->call($seedCommand, [
+                '--no-fresh' => ! $fresh,
+                '--force' => true,
+            ]);
+        } finally {
+            // The password is needed only to create the admin: never leave it in .env.
+            $this->clearBootstrapAdminPasswordFromEnv($envPath);
+        }
 
         if ($seedExit !== self::SUCCESS) {
             $this->error($seedCommand.' failed.');
 
             return self::FAILURE;
         }
-
-        $this->clearBootstrapAdminPasswordFromEnv($envPath);
 
         $this->call('storage:link', ['--force' => true]);
 

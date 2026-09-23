@@ -28,7 +28,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P1 - High
 
 ### P2 - Medium
-- [ ] `zephyr:setup` leaves the bootstrap admin password in `.env` when migration/seed fails (and `.env` gets backed up)
 
 ### P3 - Low
 - [ ] Demo data is inconsistent: seeded stocks do not match their movement items (140/180) and many demo inventories cannot be edited ("Insufficient availability")

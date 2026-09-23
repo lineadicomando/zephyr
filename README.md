@@ -72,7 +72,7 @@ composer run dev
 
 Demo data adds `@example.local` accounts (two admins and six users): outside production their password is `password`, in production it is random and must be reset by the bootstrap admin.
 
-The bootstrap admin (`BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_EMAIL`) gets the `super_admin` role. `BOOTSTRAP_ADMIN_PASSWORD` is required to create it and the placeholder values of the example files (`password`, `change-me-in-production`) are refused in production. The password is set only when the account is created, so seeding again never resets it; `zephyr:setup` removes it from `.env` once seeding is done.
+The bootstrap admin (`BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_EMAIL`) gets the `super_admin` role. `BOOTSTRAP_ADMIN_PASSWORD` is required to create it and the placeholder values of the example files (`password`, `change-me-in-production`) are refused in production. The password is set only when the account is created, so seeding again never resets it; `zephyr:setup` removes it from `.env` once seeding is done, even when seeding fails.
 
 `composer run setup` is the non-interactive bootstrap script: it installs dependencies, creates `.env` if missing, generates the app key, runs migrations, and builds frontend assets.
 
