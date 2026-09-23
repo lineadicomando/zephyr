@@ -30,7 +30,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P2 - Medium
 
 ### P3 - Low
-- [ ] Demo data is inconsistent: seeded stocks do not match their movement items (140/180) and many demo inventories cannot be edited ("Insufficient availability")
 - [ ] Soft-deleted ProductGroup/ProductType/MovementType/User keep their unique name/email forever (plain unique indexes, no restore UI): added trashed filter and restore/force delete actions, as for users
 - [ ] `ReorderOrderService` status transitions are neither transactional nor locked (concurrent cancel/receive, partial `markReceived`)
 - [ ] `InventoryResource\RelationManagers\MovementsRelationManager` creates/updates `Movement` records while authorized with MovementItem permissions

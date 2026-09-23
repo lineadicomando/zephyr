@@ -2,13 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\Inventory;
 use App\Models\InventoryLocation;
 use App\Models\Movement;
+use App\Models\MovementItem;
 use App\Models\MovementType;
-use App\Models\Scope;
 use App\Models\Stock;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class MovementSeeder extends Seeder
@@ -54,14 +55,15 @@ class MovementSeeder extends Seeder
             throw new RuntimeException('Warehouse location not found for scope in MovementSeeder.');
         }
 
-        // 8 Purchase movements: items arriving at warehouse (no from-location)
-        for ($i = 0; $i < 8; $i++) {
-            $toPosition =
-                $warehouse
-                    ->inventory_positions()
-                    ->where('default', false)
-                    ->inRandomOrder()
-                    ->first() ?? $warehouse->inventory_positions()->first();
+        $warehousePositions = $warehouse->inventory_positions()->where('default', false)->get();
+        if ($warehousePositions->isEmpty()) {
+            $warehousePositions = $warehouse->inventory_positions()->get();
+        }
+
+        // 8 Purchase movements: every item arrives at the warehouse
+        $inventoryIds = Inventory::query()->where('scope_id', $this->scopeId)->pluck('id')->shuffle();
+        foreach ($inventoryIds->split(8)->values() as $i => $batch) {
+            $toPosition = $warehousePositions->random();
 
             $movement = Movement::create([
                 'scope_id' => $this->scopeId,
@@ -72,44 +74,16 @@ class MovementSeeder extends Seeder
                 'description' => 'Hardware procurement — batch '.($i + 1),
             ]);
 
-            $stocks = Stock::whereHas(
-                'inventory_position',
-                fn ($q) => $q
-                    ->where('scope_id', $this->scopeId)
-                    ->where('inventory_location_id', $warehouse->id),
-            )
-                ->with('inventory')
-                ->inRandomOrder()
-                ->limit(rand(3, 5))
-                ->get();
-
-            foreach ($stocks as $stock) {
-                $this->insertMovementItem(
-                    $movement->id,
-                    $stock->inventory_id,
-                    null,
-                    $stock->id,
-                    $stock->inventory->summary ?? '',
-                    1,
-                );
-            }
+            $batch->each(fn (int $inventoryId) => $this->addMovementItem($movement, $inventoryId));
         }
 
-        // 10 Transfer movements: items moved from warehouse to offices
+        // 10 Transfer movements: items moved from the warehouse to offices
         for ($i = 0; $i < 10; $i++) {
             $toLocation = $locations->random();
-            $toPosition = $toLocation
-                ->inventory_positions()
-                ->inRandomOrder()
-                ->first();
-            $fromPosition =
-                $warehouse
-                    ->inventory_positions()
-                    ->where('default', false)
-                    ->inRandomOrder()
-                    ->first() ?? $warehouse->inventory_positions()->first();
+            $toPosition = $toLocation->inventory_positions()->inRandomOrder()->first();
+            $fromStocks = $this->stocksAtOnePosition($this->availableStocks([$warehouse->id]), rand(1, 3));
 
-            if (! $toPosition || ! $fromPosition) {
+            if (! $toPosition || $fromStocks->isEmpty()) {
                 continue;
             }
 
@@ -118,135 +92,84 @@ class MovementSeeder extends Seeder
                 'date' => fake()->dateTimeBetween('-5 months', '-1 month'),
                 'movement_type_id' => $transferType->id,
                 'from_inventory_location_id' => $warehouse->id,
-                'from_inventory_position_id' => $fromPosition->id,
+                'from_inventory_position_id' => $fromStocks->first()->inventory_position_id,
                 'to_inventory_location_id' => $toLocation->id,
                 'to_inventory_position_id' => $toPosition->id,
                 'description' => 'Deployment to '.$toLocation->name,
             ]);
 
-            $fromStocks = Stock::whereHas(
-                'inventory_position',
-                fn ($q) => $q
-                    ->where('scope_id', $this->scopeId)
-                    ->where('inventory_location_id', $warehouse->id),
-            )
-                ->with('inventory')
-                ->inRandomOrder()
-                ->limit(rand(1, 3))
-                ->get();
-
-            foreach ($fromStocks as $fromStock) {
-                $toStock = Stock::where(
-                    'inventory_id',
-                    $fromStock->inventory_id,
-                )
-                    ->where('inventory_position_id', $toPosition->id)
-                    ->first();
-
-                $this->insertMovementItem(
-                    $movement->id,
-                    $fromStock->inventory_id,
-                    $fromStock->id,
-                    $toStock?->id,
-                    $fromStock->inventory->summary ?? '',
-                    1,
-                );
-            }
+            $fromStocks->each(fn (Stock $stock) => $this->addMovementItem($movement, $stock->inventory_id));
         }
 
-        // 2 Return movements: items going back to warehouse
+        // 2 Return movements: items going back to the warehouse
         for ($i = 0; $i < 2; $i++) {
-            $fromLocation = $locations->random();
-            $fromPosition = $fromLocation
-                ->inventory_positions()
-                ->inRandomOrder()
-                ->first();
-            $toPosition =
-                $warehouse
-                    ->inventory_positions()
-                    ->where('default', false)
-                    ->inRandomOrder()
-                    ->first() ?? $warehouse->inventory_positions()->first();
+            $deployedStocks = $this->stocksAtOnePosition($this->availableStocks($locations->pluck('id')->all()), rand(1, 2));
 
-            $deployedStocks = Stock::whereHas(
-                'inventory_position',
-                fn ($q) => $q
-                    ->where('scope_id', $this->scopeId)
-                    ->where('inventory_location_id', $fromLocation->id),
-            )
-                ->with('inventory')
-                ->inRandomOrder()
-                ->limit(rand(1, 2))
-                ->get();
-
-            if ($deployedStocks->isEmpty() || ! $fromPosition || ! $toPosition) {
+            if ($deployedStocks->isEmpty()) {
                 continue;
             }
+
+            $fromLocation = $deployedStocks->first()->inventory_location;
 
             $movement = Movement::create([
                 'scope_id' => $this->scopeId,
                 'date' => fake()->dateTimeBetween('-1 month', 'now'),
                 'movement_type_id' => $returnType->id,
                 'from_inventory_location_id' => $fromLocation->id,
-                'from_inventory_position_id' => $fromPosition->id,
+                'from_inventory_position_id' => $deployedStocks->first()->inventory_position_id,
                 'to_inventory_location_id' => $warehouse->id,
-                'to_inventory_position_id' => $toPosition->id,
+                'to_inventory_position_id' => $warehousePositions->random()->id,
                 'description' => 'Return from '.$fromLocation->name,
             ]);
 
-            foreach ($deployedStocks as $deployedStock) {
-                $warehouseStock = Stock::where(
-                    'inventory_id',
-                    $deployedStock->inventory_id,
-                )
-                    ->whereHas(
-                        'inventory_position',
-                        fn ($q) => $q
-                            ->where('scope_id', $this->scopeId)
-                            ->where('inventory_location_id', $warehouse->id),
-                    )
-                    ->first();
-
-                $this->insertMovementItem(
-                    $movement->id,
-                    $deployedStock->inventory_id,
-                    $deployedStock->id,
-                    $warehouseStock?->id,
-                    $deployedStock->inventory->summary ?? '',
-                    1,
-                );
-            }
+            $deployedStocks->each(fn (Stock $stock) => $this->addMovementItem($movement, $stock->inventory_id));
         }
     }
 
-    private function insertMovementItem(
-        int $movementId,
-        int $inventoryId,
-        ?int $outcomingStockId,
-        ?int $incomingStockId,
-        string $summary,
-        int $stock,
-    ): void {
-        // Use DB::table() to bypass syncStocks() which incorrectly sets 0 instead of null
-        $now = now();
-        $scopeId = DB::table('movements')->where('id', $movementId)->value('scope_id');
-        if (! is_numeric($scopeId)) {
-            $scopeId = Scope::query()->where('slug', 'default')->value('id');
-        }
-        if (! is_numeric($scopeId)) {
-            throw new RuntimeException('Missing scope_id for movement item seed. Ensure scopes are seeded first.');
+    /**
+     * Stocks with availability in the given locations.
+     *
+     * @param  array<int, int>  $locationIds
+     * @return Collection<int, Stock>
+     */
+    private function availableStocks(array $locationIds): Collection
+    {
+        return Stock::query()
+            ->with('inventory_location')
+            ->where('scope_id', $this->scopeId)
+            ->whereIn('inventory_location_id', $locationIds)
+            ->where('stock', '>', 0)
+            ->get();
+    }
+
+    /**
+     * Up to $count of the stocks lying at one random position: a movement
+     * takes its items from a single position.
+     *
+     * @param  Collection<int, Stock>  $stocks
+     * @return Collection<int, Stock>
+     */
+    private function stocksAtOnePosition(Collection $stocks, int $count): Collection
+    {
+        if ($stocks->isEmpty()) {
+            return $stocks;
         }
 
-        DB::table('movement_items')->insert([
-            'scope_id' => (int) $scopeId,
-            'movement_id' => $movementId,
+        $atPosition = $stocks->where('inventory_position_id', $stocks->random()->inventory_position_id);
+
+        return $atPosition->random(min($count, $atPosition->count()))->values();
+    }
+
+    /**
+     * Save the item through the model, so the stocks follow the movements.
+     */
+    private function addMovementItem(Movement $movement, int $inventoryId): void
+    {
+        MovementItem::create([
+            'scope_id' => $this->scopeId,
+            'movement_id' => $movement->id,
             'inventory_id' => $inventoryId,
-            'outcoming_stock_id' => $outcomingStockId,
-            'incoming_stock_id' => $incomingStockId,
-            'inventory_summary' => $summary,
-            'stock' => $stock,
-            'created_at' => $now,
-            'updated_at' => $now,
+            'stock' => 1,
         ]);
     }
 }
