@@ -158,31 +158,39 @@ class ScopeResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
-                Action::make('requestDeletion')
-                    ->authorize('delete')
-                    ->label(__('Request deletion'))
-                    ->icon('heroicon-o-trash')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->action(function (Scope $record): void {
-                        try {
-                            $record->delete();
-
-                            Notification::make()
-                                ->success()
-                                ->title(__('Deletion requested'))
-                                ->body(__('Scope deletion has been scheduled.'))
-                                ->send();
-                        } catch (\Throwable $throwable) {
-                            Notification::make()
-                                ->danger()
-                                ->title(__('Deletion request failed'))
-                                ->body(__($throwable->getMessage()))
-                                ->send();
-                        }
-                    }),
+                self::requestDeletionAction(),
             ])
             ->bulkActions([]);
+    }
+
+    /**
+     * Schedule the deletion of the scope (see Scope::scheduleDeletionRequestOnDelete()).
+     */
+    public static function requestDeletionAction(): Action
+    {
+        return Action::make('requestDeletion')
+            ->authorize('delete')
+            ->label(__('Request deletion'))
+            ->icon('heroicon-o-trash')
+            ->color('danger')
+            ->requiresConfirmation()
+            ->action(function (Scope $record): void {
+                try {
+                    $record->delete();
+
+                    Notification::make()
+                        ->success()
+                        ->title(__('Deletion requested'))
+                        ->body(__('Scope deletion has been scheduled.'))
+                        ->send();
+                } catch (\Throwable $throwable) {
+                    Notification::make()
+                        ->danger()
+                        ->title(__('Deletion request failed'))
+                        ->body(__($throwable->getMessage()))
+                        ->send();
+                }
+            });
     }
 
     public static function getRelations(): array

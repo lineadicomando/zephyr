@@ -38,7 +38,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### Performance
 
 ### Code quality
-- [ ] Deduplicate the inventory table/filters (`InventoryResource`, `TaskResource\InventoriesRelationManager`, `StockResource`) and the `requestDeletion` action (`ScopeResource`, `EditScope`)
 
 ### Tests
 - [ ] `php artisan test` on the whole suite exceeds the 128M memory limit (the `arch()` test together with the others): run `php -d memory_limit=1G vendor/bin/pest` meanwhile

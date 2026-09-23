@@ -2,6 +2,7 @@
 
 use App\Filament\Resources\InventoryResource;
 use App\Filament\Resources\InventoryResource\Pages\EditInventory;
+use App\Filament\Resources\InventoryResource\Pages\ListInventories;
 use App\Filament\Resources\InventoryResource\RelationManagers\MovementsRelationManager;
 use App\Filament\Resources\InventoryResource\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\MovementItemResource;
@@ -15,6 +16,8 @@ use App\Filament\Resources\ReorderOrderResource\Pages\EditReorderOrder;
 use App\Filament\Resources\ReorderOrderResource\RelationManagers\ItemsRelationManager;
 use App\Filament\Resources\ReorderResource;
 use App\Filament\Resources\ReorderResource\Pages\CreateReorder;
+use App\Filament\Resources\StockResource;
+use App\Filament\Resources\StockResource\Pages\ListStocks;
 use App\Filament\Resources\TaskResource;
 use App\Filament\Resources\UserResource\Pages\CreateUser;
 use App\Models\Inventory;
@@ -59,6 +62,7 @@ beforeEach(function () {
         MovementTypeResource::class,
         ReorderResource::class,
         ReorderOrderResource::class,
+        StockResource::class,
         TaskResource::class,
     ]);
 });
@@ -199,4 +203,27 @@ it('restores a deleted product group so its name can be used again', function ()
         ->callAction(TestAction::make('restore')->table($group));
 
     expect($group->fresh()->trashed())->toBeFalse();
+});
+
+it('filters inventories and stocks by the location of their stock', function () {
+    $warehouse = InventoryLocation::factory()->create(['scope_id' => $this->scope->id]);
+    $office = InventoryLocation::factory()->create(['scope_id' => $this->scope->id]);
+    $stockAt = fn (InventoryLocation $location): Stock => Stock::factory()->create([
+        'scope_id' => $this->scope->id,
+        'inventory_id' => Inventory::factory()->create(['scope_id' => $this->scope->id])->id,
+        'inventory_position_id' => InventoryPosition::factory()->create(['scope_id' => $this->scope->id, 'inventory_location_id' => $location->id])->id,
+        'stock' => 1,
+    ]);
+    $warehouseStock = $stockAt($warehouse);
+    $officeStock = $stockAt($office);
+
+    Livewire::test(ListInventories::class)
+        ->filterTable('location', $warehouse->id)
+        ->assertCanSeeTableRecords([$warehouseStock->inventory])
+        ->assertCanNotSeeTableRecords([$officeStock->inventory]);
+
+    Livewire::test(ListStocks::class)
+        ->filterTable('location', $office->id)
+        ->assertCanSeeTableRecords([$officeStock])
+        ->assertCanNotSeeTableRecords([$warehouseStock]);
 });

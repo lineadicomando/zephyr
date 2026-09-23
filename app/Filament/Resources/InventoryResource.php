@@ -9,6 +9,7 @@ use App\Filament\Resources\InventoryResource\RelationManagers\StocksRelationMana
 use App\Filament\Resources\InventoryResource\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\ProductResource\Pages\ListProducts;
 use App\Filament\Resources\StockResource\Pages\ListStocks;
+use App\Filament\Tables\Filters\InventoryFilters;
 use App\Models\Inventory;
 use App\Models\Product;
 use Filament\Actions\EditAction;
@@ -20,7 +21,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -198,56 +198,7 @@ class InventoryResource extends Resource
                         false: fn (Builder $query) => $query->doesntHave('non_zero_stocks'),
                         blank: fn (Builder $query) => $query, // In this example, we do not want to filter the query when it is blank.
                     ),
-                $locationFilter = SelectFilter::make('location')
-                    ->label('Location')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('non_zero_stocks.inventory_location', 'name'),
-                SelectFilter::make('position')
-                    ->label('Position')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('non_zero_stocks.inventory_position', 'path', function (Builder $query) use (&$locationFilter) {
-                        $locationState = $locationFilter->getState();
-                        if (! empty($locationState['value'])) {
-                            return $query->where('inventory_location_id', $locationState['value']);
-                        }
-
-                        return $query;
-                    }),
-                SelectFilter::make('product_group_id')
-                    ->label('Group')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('product.product_group', 'name'),
-                SelectFilter::make('product_type_id')
-                    ->label('Type')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('product.product_type', 'name'),
-                $brandFilter = SelectFilter::make('product_brand_id')
-                    ->label('Brand')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('product.product_brand', 'name'),
-                SelectFilter::make('product_model_id')
-                    ->label('Model')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('product.product_model', 'name', function (Builder $query) use (&$brandFilter) {
-                        $brandeState = $brandFilter->getState();
-                        if (! empty($brandeState['value'])) {
-                            return $query->where('product_brand_id', $brandeState['value']);
-                        }
-
-                        return $query;
-                    }),
+                ...InventoryFilters::make(stockRelation: 'non_zero_stocks', productRelation: 'product'),
             ])
             ->persistFiltersInSession()
             ->recordUrl(function ($record) {

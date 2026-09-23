@@ -3,13 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\StockResource\Pages;
+use App\Filament\Tables\Filters\InventoryFilters;
 use App\Models\Stock;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class StockResource extends Resource
 {
@@ -131,56 +130,7 @@ class StockResource extends Resource
             ->persistSearchInSession()
             ->filtersFormColumns(2)
             ->filters([
-                $inventoryLocation = SelectFilter::make('inventory_location')
-                    ->label('Location')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('inventory_location', 'name'),
-                SelectFilter::make('inventory_position')
-                    ->label('Position')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('inventory_position', 'path', function (Builder $query) use ($inventoryLocation) {
-                        $locationState = $inventoryLocation->getState();
-                        if (! empty($locationState['value'])) {
-                            return $query->where('inventory_location_id', $locationState['value']);
-                        }
-
-                        return $query;
-                    }),
-                SelectFilter::make('product_group')
-                    ->label('Group')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('product_group', 'name'),
-                SelectFilter::make('product_type')
-                    ->label('Type')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('product_type', 'name'),
-                $productBrand = SelectFilter::make('product_brand')
-                    ->label('Brand')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('product_brand', 'name'),
-                SelectFilter::make('product_model')
-                    ->label('Model')
-                    ->translateLabel()
-                    ->searchable()
-                    ->preload()
-                    ->relationship('product_model', 'name', function (Builder $query) use ($productBrand) {
-                        $productBrandState = $productBrand->getState();
-                        if (! empty($productBrandState['value'])) {
-                            return $query->where('product_brand_id', $productBrandState['value']);
-                        }
-
-                        return $query;
-                    }),
+                ...InventoryFilters::make(),
             ])
             ->persistFiltersInSession()
             ->actions([
