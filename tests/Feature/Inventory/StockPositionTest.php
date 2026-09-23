@@ -88,3 +88,17 @@ it('moves the movement items of stocks without position to the stock of their po
         ->and(Stock::query()->where('inventory_position_id', $position->id)->sole()->stock)->toBe(3)
         ->and(DB::table('reorders')->count())->toBe(0);
 });
+
+it('deletes a location with only its default position, together with it', function () {
+    $defaultPosition = $this->location->defaultPosition();
+
+    expect($this->location->delete())->toBeTrue()
+        ->and(InventoryPosition::query()->find($defaultPosition->id))->toBeNull();
+});
+
+it('does not delete a location with positions created by the users', function () {
+    InventoryPosition::factory()->create(['scope_id' => $this->scope->id, 'inventory_location_id' => $this->location->id]);
+
+    expect($this->location->delete())->toBeFalse()
+        ->and($this->location->fresh())->not->toBeNull();
+});

@@ -16,6 +16,8 @@ class InventoryLocation extends Model
     protected static function booted(): void
     {
         static::saved(fn (InventoryLocation $inventoryLocation) => $inventoryLocation->onSaved());
+        // The default position belongs to the location: it goes with it.
+        static::deleted(fn (InventoryLocation $inventoryLocation) => $inventoryLocation->inventory_positions()->where('default', true)->delete());
     }
 
     public function onSaved()
@@ -44,6 +46,15 @@ class InventoryLocation extends Model
         return $this->hasMany(InventoryPosition::class);
     }
 
+    /**
+     * Positions created by the users: the default position, created with the
+     * location, does not prevent its deletion.
+     */
+    public function custom_positions()
+    {
+        return $this->inventory_positions()->where('default', false);
+    }
+
     public function stocks()
     {
         return $this->hasMany(Stock::class);
@@ -62,7 +73,7 @@ class InventoryLocation extends Model
     public function preventDeletionBy()
     {
         return [
-            'inventory_positions',
+            'custom_positions',
             'stocks',
             'from_movements',
             'to_movements',
