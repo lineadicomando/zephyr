@@ -17,7 +17,7 @@ class ProductFactory extends Factory
         return [
             'product_group_id' => ProductGroup::factory(),
             'product_type_id' => ProductType::factory(),
-            'product_brand_id' => $brand->id,
+            'product_brand_id' => $brand->getKey(),
             'product_model_id' => ProductModel::factory()->for($brand, 'product_brand'),
             'code' => fake()->optional(0.7)->bothify('??-###-??'),
             'name' => fake()->words(3, true),

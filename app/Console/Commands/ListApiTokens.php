@@ -27,7 +27,7 @@ class ListApiTokens extends Command
             ['#', 'User', 'Name', 'Abilities', 'Last used', 'Expires'],
             $tokens->map(fn (PersonalAccessToken $token): array => [
                 $token->getKey(),
-                $token->tokenable?->email,
+                $token->tokenable?->getAttribute('email'),
                 $token->name,
                 implode(', ', $token->abilities ?? []),
                 $token->last_used_at?->toDateTimeString() ?? '-',

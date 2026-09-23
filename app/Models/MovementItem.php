@@ -107,7 +107,7 @@ class MovementItem extends Model
 
     public function syncStocks()
     {
-        $scopeId = $this->scope_id ?? $this->movement?->scope_id ?? null;
+        $scopeId = $this->scope_id ?? $this->movement->scope_id ?? null;
 
         $outcomingStockId = null;
         if (! empty($this->movement->from_inventory_location_id)) {
@@ -138,7 +138,7 @@ class MovementItem extends Model
 
     public function syncSummary()
     {
-        $this->inventory_summary = $this->inventory?->summary ?? '';
+        $this->inventory_summary = $this->inventory->summary ?? '';
     }
 
     public function onSaving()

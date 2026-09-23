@@ -66,7 +66,7 @@ class MovementTypeResource extends Resource
                         ignoreRecord: true,
                         modifyRuleUsing: fn (Unique $rule) => $rule->where(
                             'scope_id',
-                            filament()->getTenant()?->id,
+                            filament()->getTenant()?->getKey(),
                         ),
                     ),
                 Fieldset::make(__('Chart'))
@@ -126,10 +126,10 @@ class MovementTypeResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', MovementType::class)) {
-                    return Pages\EditMovementType::getUrl([$record->id]);
+                    return Pages\EditMovementType::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewMovementType::getUrl([$record->id]);
+                return Pages\ViewMovementType::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

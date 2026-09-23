@@ -80,8 +80,8 @@ class Stock extends Model
         $this->product_brand_id = $this->inventory->product->product_brand_id;
         $this->product_model_id = $this->inventory->product->product_model_id;
         $this->inventory_summary = $this->inventory->summary;
-        $this->path = $this->stock;
-        if (! empty($this->inventory_position?->name)) {
+        $this->path = (string) $this->stock;
+        if (! empty($this->inventory_position->name)) {
             $this->inventory_location_id = $this->inventory_position->inventory_location_id;
             $this->path = $this->inventory_position->path.': '.$this->stock;
             // \Illuminate\Support\Facades\Log::debug($this->path);

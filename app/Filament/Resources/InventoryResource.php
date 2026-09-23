@@ -63,14 +63,14 @@ class InventoryResource extends Resource
             TextInput::make('inventory_number')
                 ->unique(
                     ignoreRecord: true,
-                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->id),
+                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->getKey()),
                 )
                 ->helperText(__('Leave blank for automatic assignment.'))
                 ->translateLabel(),
             BarcodeScannerInput::make('serial_number')
                 ->unique(
                     ignoreRecord: true,
-                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->id),
+                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->getKey()),
                 )
                 ->translateLabel(),
             Select::make('product_id')
@@ -203,10 +203,10 @@ class InventoryResource extends Resource
             ->persistFiltersInSession()
             ->recordUrl(function ($record) {
                 if (auth()->user()->can('update', Inventory::class)) {
-                    return Pages\EditInventory::getUrl([$record->id]);
+                    return Pages\EditInventory::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewInventory::getUrl([$record->id]);
+                return Pages\ViewInventory::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

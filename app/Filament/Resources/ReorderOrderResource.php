@@ -83,10 +83,10 @@ class ReorderOrderResource extends Resource
             ])
             ->recordUrl(function ($record) {
                 if (static::canEdit($record)) {
-                    return Pages\EditReorderOrder::getUrl([$record->id]);
+                    return Pages\EditReorderOrder::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewReorderOrder::getUrl([$record->id]);
+                return Pages\ViewReorderOrder::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

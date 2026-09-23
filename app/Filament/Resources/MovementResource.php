@@ -203,10 +203,10 @@ class MovementResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', Movement::class)) {
-                    return Pages\EditMovement::getUrl([$record->id]);
+                    return Pages\EditMovement::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewMovement::getUrl([$record->id]);
+                return Pages\ViewMovement::getUrl(['record' => $record]);
             })
             ->actions([ViewAction::make(), EditAction::make()])
             ->bulkActions([

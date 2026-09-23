@@ -50,9 +50,11 @@ return new class extends Migration
                 return collect($scopeIds ?: [self::GLOBAL_TEAM])
                     ->map(fn (int|string $scopeId): array => [...(array) $row, $team => (int) $scopeId])
                     ->all();
-            });
+            })
+            ->values();
         $permissionAssignments = DB::table($tableNames['model_has_permissions'])->get()
-            ->map(fn (object $row): array => [...(array) $row, $team => self::GLOBAL_TEAM]);
+            ->map(fn (object $row): array => [...(array) $row, $team => self::GLOBAL_TEAM])
+            ->values();
 
         $this->recreatePivotTable('model_has_roles', 'role_id', 'roles', $team, $roleAssignments);
         $this->recreatePivotTable('model_has_permissions', 'permission_id', 'permissions', $team, $permissionAssignments);
@@ -96,7 +98,7 @@ return new class extends Migration
      * The team column is part of the primary key: the pivot table is created
      * again, as in the permission tables migration, and refilled.
      *
-     * @param  Collection<int, array<string, mixed>>  $rows
+     * @param  Collection<int, covariant array<array-key, mixed>>  $rows
      */
     private function recreatePivotTable(string $pivot, string $key, string $related, ?string $team, Collection $rows): void
     {

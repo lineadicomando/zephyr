@@ -17,7 +17,7 @@ final class ExportFilename
 
     private static function activeScopeName(): string
     {
-        $scopeName = filament()->getTenant()?->name;
+        $scopeName = filament()->getTenant()?->getAttribute('name');
 
         if (! is_string($scopeName) || $scopeName === '') {
             return 'no-scope';

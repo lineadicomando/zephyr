@@ -227,3 +227,31 @@ it('filters inventories and stocks by the location of their stock', function () 
         ->assertCanSeeTableRecords([$officeStock])
         ->assertCanNotSeeTableRecords([$warehouseStock]);
 });
+
+it('fills the movement data in the edit form of the inventory movements tab', function () {
+    $location = InventoryLocation::factory()->create(['scope_id' => $this->scope->id]);
+    $position = InventoryPosition::factory()->create(['scope_id' => $this->scope->id, 'inventory_location_id' => $location->id]);
+    $inventory = Inventory::factory()->create(['scope_id' => $this->scope->id]);
+    $movement = Movement::factory()->create([
+        'scope_id' => $this->scope->id,
+        'to_inventory_position_id' => $position->id,
+        'description' => 'Delivery to the lab',
+        'note' => 'Signed by Anna',
+    ]);
+    $item = MovementItem::query()->create([
+        'scope_id' => $this->scope->id,
+        'movement_id' => $movement->id,
+        'inventory_id' => $inventory->id,
+        'stock' => 3,
+    ]);
+
+    Livewire::test(MovementsRelationManager::class, ['ownerRecord' => $inventory, 'pageClass' => EditInventory::class])
+        ->mountAction(TestAction::make('edit')->table($item))
+        ->assertSchemaStateSet([
+            'description' => 'Delivery to the lab',
+            'note' => 'Signed by Anna',
+            'movement_type_id' => $movement->movement_type_id,
+            'to_inventory_position_id' => $position->id,
+            'stock' => 3,
+        ]);
+});

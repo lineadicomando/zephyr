@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MovementResource\RelationManagers;
 
+use App\Models\Movement;
 use App\Models\MovementItem;
 use App\Models\Stock;
 use App\Services\Stocks\StockAvailabilityService;
@@ -24,10 +25,25 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 class MovementItemsRelationManager extends RelationManager
 {
     protected static string $relationship = 'movement_items';
+
+    /**
+     * The movement whose items are listed.
+     */
+    protected function movement(): Movement
+    {
+        $movement = $this->getOwnerRecord();
+
+        if (! $movement instanceof Movement) {
+            throw new LogicException('The movement items relation manager belongs to a movement.');
+        }
+
+        return $movement;
+    }
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
@@ -43,19 +59,19 @@ class MovementItemsRelationManager extends RelationManager
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set) {
-                        if (! is_null($this->ownerRecord->from_inventory_position_id)) {
+                        if (! is_null($this->movement()->from_inventory_position_id)) {
                             $availability = Stock::findAvailability(
                                 inventoryId: $state,
-                                positionId: $this->ownerRecord->from_inventory_position_id
+                                positionId: $this->movement()->from_inventory_position_id
                             );
                             $set('availability', $availability);
                         }
                     })
                     ->relationship('inventory', 'summary', modifyQueryUsing: function (Builder $query) {
-                        if (! is_null($this->ownerRecord->from_inventory_position_id)) {
+                        if (! is_null($this->movement()->from_inventory_position_id)) {
                             $query->join('stocks', 'inventories.id', '=', 'stocks.inventory_id');
                             $query->where('stocks.stock', '>', '0');
-                            $query->where('stocks.inventory_position_id', $this->ownerRecord->from_inventory_position_id);
+                            $query->where('stocks.inventory_position_id', $this->movement()->from_inventory_position_id);
                         }
 
                         return $query;
@@ -103,7 +119,7 @@ class MovementItemsRelationManager extends RelationManager
                         action: $action,
                         inventoryId: (int) $data['inventory_id'],
                         quantity: (int) $data['stock'],
-                        callback: fn (): MovementItem => $this->getOwnerRecord()->movement_items()->create($data),
+                        callback: fn (): MovementItem => $this->movement()->movement_items()->create($data),
                     )),
             ])
             ->actions([
@@ -145,7 +161,7 @@ class MovementItemsRelationManager extends RelationManager
 
     protected function withdrawalRule(?int $inventoryId, ?MovementItem $record = null): Closure
     {
-        $positionId = $this->getOwnerRecord()->from_inventory_position_id;
+        $positionId = $this->movement()->from_inventory_position_id;
 
         return function (string $attribute, mixed $value, Closure $fail) use ($inventoryId, $positionId, $record): void {
             if ($inventoryId === null || ! is_numeric($value)) {
@@ -171,7 +187,7 @@ class MovementItemsRelationManager extends RelationManager
         try {
             return app(StockAvailabilityService::class)->withdraw(
                 inventoryId: $inventoryId,
-                positionId: $this->getOwnerRecord()->from_inventory_position_id,
+                positionId: $this->movement()->from_inventory_position_id,
                 quantity: $quantity,
                 callback: $callback,
                 alreadyWithdrawn: $alreadyWithdrawn,

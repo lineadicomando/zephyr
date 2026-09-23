@@ -107,10 +107,10 @@ class TaskTypeResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', TaskType::class)) {
-                    return Pages\EditTaskType::getUrl([$record->id]);
+                    return Pages\EditTaskType::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewTaskType::getUrl([$record->id]);
+                return Pages\ViewTaskType::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

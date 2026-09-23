@@ -81,7 +81,7 @@ class AppPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->renderHook('panels::head.end', fn (): View|string => view('filament.components.brand-assets-head'))
+            ->renderHook('panels::head.end', fn (): View => view('filament.components.brand-assets-head'))
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 CurrentScopeWidget::class,

@@ -57,7 +57,7 @@ class ReorderResource extends Resource
 
         $count = $query->count();
 
-        return $count > 0 ? $count : null;
+        return $count > 0 ? (string) $count : null;
     }
 
     public static function form(Schema $schema): Schema
@@ -195,10 +195,10 @@ class ReorderResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', Reorder::class)) {
-                    return Pages\EditReorder::getUrl([$record->id]);
+                    return Pages\EditReorder::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewReorder::getUrl([$record->id]);
+                return Pages\ViewReorder::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

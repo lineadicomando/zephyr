@@ -35,8 +35,8 @@ class InventoryPositionsRelationManager extends RelationManager
                     ->maxLength(255)
                     ->rule(function (?InventoryPosition $record) {
                         return Rule::unique('inventory_positions', 'name')
-                            ->where('scope_id', $this->getOwnerRecord()->scope_id)
-                            ->where('inventory_location_id', $this->getOwnerRecord()->id)
+                            ->where('scope_id', $this->getOwnerRecord()->getAttribute('scope_id'))
+                            ->where('inventory_location_id', $this->getOwnerRecord()->getKey())
                             ->ignore($record?->id);
                     }),
             ]);

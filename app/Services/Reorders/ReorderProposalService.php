@@ -60,7 +60,7 @@ class ReorderProposalService
         ]);
 
         foreach ($criticalRules as $rule) {
-            $currentStock = (int) ($rule->stock?->stock ?? 0);
+            $currentStock = (int) ($rule->stock->stock ?? 0);
             $fallbackQty = max(1, (int) $rule->reorder_point - $currentStock);
 
             $order->items()->create([

@@ -99,7 +99,7 @@ class TaskResource extends Resource
             }
         }
 
-        return $count > 0 ? $count : null;
+        return $count > 0 ? (string) $count : null;
     }
 
     public static function getFormDefinition(bool $modal = false): array
@@ -138,14 +138,12 @@ class TaskResource extends Resource
                             date($initialDate.' '.config('app.work_schedule.end')),
                         );
                     } else {
-                        if ($task) {
-                            $startsAt->state(
-                                $task->exists
-                                    ? $task->getOriginal('starts_at')
-                                    : $startsAt->getDefaultState(),
-                            );
-                            $endsAt->state($task->getOriginal('ends_at'));
-                        }
+                        $startsAt->state(
+                            $task->exists
+                                ? $task->getOriginal('starts_at')
+                                : $startsAt->getDefaultState(),
+                        );
+                        $endsAt->state($task->getOriginal('ends_at'));
                     }
                 })
                 ->translateLabel()
@@ -322,10 +320,10 @@ class TaskResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', Task::class)) {
-                    return Pages\EditTask::getUrl([$record->id]);
+                    return Pages\EditTask::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewTask::getUrl([$record->id]);
+                return Pages\ViewTask::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

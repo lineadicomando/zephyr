@@ -121,20 +121,9 @@ class TaskStatusResource extends Resource
                     ->searchable(isGlobal: true)
                     ->sortable()
                     ->translateLabel(),
-                TextColumn::make('default')->translateLabel(),
                 IconColumn::make('default')
-                    ->icon(
-                        fn (string $state): string => match ($state) {
-                            '1' => 'heroicon-o-check',
-                            '0' => 'heroicon-o-x-mark',
-                        },
-                    )
-                    ->color(
-                        fn (string $state): string => match ($state) {
-                            '1' => 'success',
-                            '0' => 'gray',
-                        },
-                    ),
+                    ->translateLabel()
+                    ->boolean(),
                 TextColumn::make('created_at')
                     ->translateLabel()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -152,10 +141,10 @@ class TaskStatusResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', TaskStatus::class)) {
-                    return Pages\EditTaskStatus::getUrl([$record->id]);
+                    return Pages\EditTaskStatus::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewTaskStatus::getUrl([$record->id]);
+                return Pages\ViewTaskStatus::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

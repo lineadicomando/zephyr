@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Spatie\Permission\Contracts\Permission as PermissionContract;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -18,7 +19,7 @@ return new class extends Migration
             'view_stats_overview',
             'view_movement_chart',
             'view_task_chart',
-        ])->map(fn (string $name): Permission => Permission::findOrCreate($name, 'web'));
+        ])->map(fn (string $name): PermissionContract => Permission::findOrCreate($name, 'web'));
 
         Role::query()
             ->where('guard_name', 'web')

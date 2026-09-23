@@ -139,10 +139,10 @@ class UserResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', $record)) {
-                    return Pages\EditUser::getUrl([$record->id]);
+                    return Pages\EditUser::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewUser::getUrl([$record->id]);
+                return Pages\ViewUser::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

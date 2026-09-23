@@ -50,7 +50,7 @@ class InventoryLocationResource extends Resource
                 ->translateLabel()
                 ->unique(
                     ignoreRecord: true,
-                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->id),
+                    modifyRuleUsing: fn (Unique $rule) => $rule->where('scope_id', filament()->getTenant()?->getKey()),
                 ),
         ];
     }
@@ -89,10 +89,10 @@ class InventoryLocationResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', InventoryLocation::class)) {
-                    return Pages\EditInventoryLocation::getUrl([$record->id]);
+                    return Pages\EditInventoryLocation::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewInventoryLocation::getUrl([$record->id]);
+                return Pages\ViewInventoryLocation::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

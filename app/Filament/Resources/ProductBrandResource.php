@@ -87,10 +87,10 @@ class ProductBrandResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', ProductBrand::class)) {
-                    return Pages\EditProductBrand::getUrl([$record->id]);
+                    return Pages\EditProductBrand::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewProductBrand::getUrl([$record->id]);
+                return Pages\ViewProductBrand::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

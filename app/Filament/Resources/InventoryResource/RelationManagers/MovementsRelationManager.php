@@ -70,7 +70,7 @@ class MovementsRelationManager extends RelationManager
                         $query = Stock::query()
                             ->select('path', 'inventory_position_id as id')
                             ->where('stock', '>', 0)
-                            ->where('inventory_id', $ownerRecord->id);
+                            ->where('inventory_id', $ownerRecord->getKey());
 
                         return $query->get()->sortBy('path')->pluck('path', 'id');
                     }),
@@ -97,7 +97,7 @@ class MovementsRelationManager extends RelationManager
                     ->rule(fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get, $ownerRecord): void {
                         $positionId = filled($get('from_inventory_position_id')) ? (int) $get('from_inventory_position_id') : null;
 
-                        if (is_numeric($value) && ! app(StockAvailabilityService::class)->canWithdraw($ownerRecord->id, $positionId, (int) $value)) {
+                        if (is_numeric($value) && ! app(StockAvailabilityService::class)->canWithdraw($ownerRecord->getKey(), $positionId, (int) $value)) {
                             $fail(__('Insufficient availability, impossible to proceed'));
                         }
                     }),
@@ -109,15 +109,18 @@ class MovementsRelationManager extends RelationManager
             ]);
     }
 
-    public static function ActionsBeforeFormFilled(array $data, string $model, MovementItem $movementItem)
+    /**
+     * The form shows the movement of the item: its data fills the form
+     * together with the item quantity.
+     *
+     * @return array<string, mixed>
+     */
+    protected static function movementFormData(MovementItem $movementItem): array
     {
-        $movement = Movement::find($movementItem->movement_id);
-        $movementItem->description = $movement->description;
-        $movementItem->date = $movement->date;
-        $movementItem->movement_type_id = $movement->movement_type_id;
-        $movementItem->from_inventory_position_id = $movement->from_inventory_position_id;
-        $movementItem->to_inventory_position_id = $movement->to_inventory_position_id;
-        $movementItem->note = $movement->note;
+        return [
+            ...$movementItem->attributesToArray(),
+            ...$movementItem->movement->only(['description', 'date', 'movement_type_id', 'from_inventory_position_id', 'to_inventory_position_id', 'note']),
+        ];
     }
 
     public function table(Table $table): Table
@@ -215,11 +218,11 @@ class MovementsRelationManager extends RelationManager
                         return MovementResource::getUrl('view', ['record' => $record->movement_id]);
                     })->openUrlInNewTab(),
                 ViewAction::make()
-                    ->beforeFormFilled(fn (array $data, string $model, MovementItem $movementItem) => self::ActionsBeforeFormFilled($data, $model, $movementItem)),
+                    ->fillForm(fn (MovementItem $movementItem): array => self::movementFormData($movementItem)),
                 EditAction::make()
                     // The action updates the Movement of the item.
                     ->visible(fn (MovementItem $movementItem): bool => auth()->user()->can('update', $movementItem->movement))
-                    ->beforeFormFilled(fn (array $data, string $model, MovementItem $movementItem) => self::ActionsBeforeFormFilled($data, $model, $movementItem))
+                    ->fillForm(fn (MovementItem $movementItem): array => self::movementFormData($movementItem))
                     ->using(function (array $data, MovementItem $movementItem): Model {
                         $movementItem->movement->update(Arr::only($data, ['movement_type_id', 'description', 'note']));
 

@@ -150,10 +150,10 @@ class ScopeResource extends Resource
             ])
             ->recordUrl(function ($record) {
                 if (auth()->user()->can('update', $record)) {
-                    return Pages\EditScope::getUrl([$record->id]);
+                    return Pages\EditScope::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewScope::getUrl([$record->id]);
+                return Pages\ViewScope::getUrl(['record' => $record]);
             })
             ->actions([
                 ViewAction::make(),

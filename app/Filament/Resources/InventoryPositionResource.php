@@ -62,7 +62,7 @@ class InventoryPositionResource extends Resource
                 ->translateLabel()
                 ->rule(function (Get $get, ?InventoryPosition $record) {
                     return Rule::unique('inventory_positions', 'name')
-                        ->where('scope_id', filament()->getTenant()?->id)
+                        ->where('scope_id', filament()->getTenant()?->getKey())
                         ->where('inventory_location_id', $get('inventory_location_id'))
                         ->ignore($record?->id);
                 }),

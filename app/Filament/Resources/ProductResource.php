@@ -233,10 +233,10 @@ class ProductResource extends Resource
                 //     return null;
                 // }
                 if (auth()->user()->can('update', $record)) {
-                    return Pages\EditProduct::getUrl([$record->id]);
+                    return Pages\EditProduct::getUrl(['record' => $record]);
                 }
 
-                return Pages\ViewProduct::getUrl([$record->id]);
+                return Pages\ViewProduct::getUrl(['record' => $record]);
             })
             ->actions([ViewAction::make(), EditAction::make()])
             ->bulkActions([

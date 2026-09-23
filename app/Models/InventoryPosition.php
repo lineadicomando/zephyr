@@ -38,7 +38,7 @@ class InventoryPosition extends Model
                 ->value('scope_id');
         }
 
-        $this->path = ($this->inventory_location?->name ?? '').($this->default ? '' : ' \ '.$this->name);
+        $this->path = ($this->inventory_location->name ?? '').($this->default ? '' : ' \ '.$this->name);
         // \Illuminate\Support\Facades\Log::debug($this->path);
         // \Illuminate\Support\Facades\Log::debug('InventoryPosition::onSaving>>');
     }
