@@ -12,12 +12,12 @@ class TaskStatusPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_task_status');
+        return $user->can('ViewAny:TaskStatus');
     }
 
     public function view(User $user, ?TaskStatus $model = null): bool
     {
-        return $user->can('view_task_status');
+        return $user->can('View:TaskStatus');
     }
 
     public function create(User $user): bool

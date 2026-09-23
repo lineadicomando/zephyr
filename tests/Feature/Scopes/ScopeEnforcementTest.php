@@ -18,7 +18,7 @@ it('forbids users without assigned scopes', function (): void {
     $scope = Scope::factory()->create();
 
     $user = User::factory()->create();
-    $user->givePermissionTo(['view_any_inventory', 'view_inventory']);
+    $user->givePermissionTo(['ViewAny:Inventory', 'View:Inventory']);
     $user->scopes()->detach();
 
     $this->actingAs($user)
@@ -32,7 +32,7 @@ it('redirects users without scopes when accessing a tenant url', function (): vo
     Inventory::factory()->create(['scope_id' => $scope->id]);
 
     $user = User::factory()->create();
-    $user->givePermissionTo(['view_any_inventory', 'view_inventory']);
+    $user->givePermissionTo(['ViewAny:Inventory', 'View:Inventory']);
     $user->scopes()->detach();
 
     $this->actingAs($user)

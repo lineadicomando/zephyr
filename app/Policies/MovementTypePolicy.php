@@ -12,51 +12,51 @@ class MovementTypePolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_movement_type');
+        return $user->can('ViewAny:MovementType');
     }
 
     public function view(User $user, ?MovementType $model = null): bool
     {
-        return $user->can('view_movement_type') && $this->canAccessModelScope($user, $model);
+        return $user->can('View:MovementType') && $this->canAccessModelScope($user, $model);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create_movement_type');
+        return $user->can('Create:MovementType');
     }
 
     public function update(User $user, ?MovementType $model = null): bool
     {
-        return $user->can('update_movement_type') && $this->canAccessModelScope($user, $model);
+        return $user->can('Update:MovementType') && $this->canAccessModelScope($user, $model);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_movement_type');
+        return $user->can('DeleteAny:MovementType');
     }
 
     public function delete(User $user, ?MovementType $model = null): bool
     {
-        return $user->can('delete_movement_type') && $this->canAccessModelScope($user, $model);
+        return $user->can('Delete:MovementType') && $this->canAccessModelScope($user, $model);
     }
 
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_movement_type');
+        return $user->can('RestoreAny:MovementType');
     }
 
     public function restore(User $user, ?MovementType $model = null): bool
     {
-        return $user->can('restore_movement_type') && $this->canAccessModelScope($user, $model);
+        return $user->can('Restore:MovementType') && $this->canAccessModelScope($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_movement_type');
+        return $user->can('ForceDeleteAny:MovementType');
     }
 
     public function forceDelete(User $user, ?MovementType $model = null): bool
     {
-        return $user->can('force_delete_movement_type') && $this->canAccessModelScope($user, $model);
+        return $user->can('ForceDelete:MovementType') && $this->canAccessModelScope($user, $model);
     }
 }

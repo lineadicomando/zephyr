@@ -128,7 +128,7 @@ it('denies update when movement item belongs to another scope', function (): voi
     ]);
 
     $user = User::factory()->create();
-    $user->givePermissionTo('update_movement_item');
+    $user->givePermissionTo('Update:MovementItem');
 
     DB::table('scope_user')->insert([
         'scope_id' => $scopeAId,
@@ -155,7 +155,7 @@ it('denies update for users without assigned scopes', function (): void {
     ]);
 
     $user = User::factory()->create();
-    $user->givePermissionTo('update_movement_item');
+    $user->givePermissionTo('Update:MovementItem');
 
     $movementItem = makeMovementItemInScope($scopeId);
 

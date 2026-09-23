@@ -12,12 +12,12 @@ class TaskTypePolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_task_type');
+        return $user->can('ViewAny:TaskType');
     }
 
     public function view(User $user, ?TaskType $model = null): bool
     {
-        return $user->can('view_task_type');
+        return $user->can('View:TaskType');
     }
 
     public function create(User $user): bool

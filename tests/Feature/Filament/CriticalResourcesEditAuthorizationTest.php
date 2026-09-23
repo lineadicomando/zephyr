@@ -187,15 +187,15 @@ it('forbids edit and allows view for read-only users on critical resources', fun
     $this->get("/{$slug}/{$basePath}/{$record->id}/view")->assertOk();
     $this->get("/{$slug}/{$basePath}/{$record->id}/edit")->assertForbidden();
 })->with([
-    ['product', 'view_any_product', 'view_product'],
-    ['inventory', 'view_any_inventory', 'view_inventory'],
-    ['movement', 'view_any_movement', 'view_movement'],
-    ['task', 'view_any_task', 'view_task'],
-    ['inventory-location', 'view_any_inventory_location', 'view_inventory_location'],
-    ['movement-type', 'view_any_movement_type', 'view_movement_type'],
-    ['product-brand', 'view_any_product_brand', 'view_product_brand'],
-    ['reorder', 'view_any_reorder', 'view_reorder'],
-    ['task-status', 'view_any_task_status', 'view_task_status'],
-    ['task-type', 'view_any_task_type', 'view_task_type'],
-    ['user', 'view_any_user', 'view_user'],
+    ['product', 'ViewAny:Product', 'View:Product'],
+    ['inventory', 'ViewAny:Inventory', 'View:Inventory'],
+    ['movement', 'ViewAny:Movement', 'View:Movement'],
+    ['task', 'ViewAny:Task', 'View:Task'],
+    ['inventory-location', 'ViewAny:InventoryLocation', 'View:InventoryLocation'],
+    ['movement-type', 'ViewAny:MovementType', 'View:MovementType'],
+    ['product-brand', 'ViewAny:ProductBrand', 'View:ProductBrand'],
+    ['reorder', 'ViewAny:Reorder', 'View:Reorder'],
+    ['task-status', 'ViewAny:TaskStatus', 'View:TaskStatus'],
+    ['task-type', 'ViewAny:TaskType', 'View:TaskType'],
+    ['user', 'ViewAny:User', 'View:User'],
 ]);

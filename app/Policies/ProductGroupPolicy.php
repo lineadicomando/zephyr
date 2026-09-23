@@ -12,12 +12,12 @@ class ProductGroupPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_product_group');
+        return $user->can('ViewAny:ProductGroup');
     }
 
     public function view(User $user, ?ProductGroup $model = null): bool
     {
-        return $user->can('view_product_group');
+        return $user->can('View:ProductGroup');
     }
 
     public function create(User $user): bool

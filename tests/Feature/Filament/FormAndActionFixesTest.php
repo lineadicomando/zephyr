@@ -149,7 +149,7 @@ it('rejects a second reorder rule for the same stock', function () {
 it('does not let users without update permission toggle the movement type chart', function () {
     $viewer = User::factory()->create();
     $viewer->syncRoles([]);
-    $viewer->givePermissionTo(['view_any_movement_type', 'view_movement_type']);
+    $viewer->givePermissionTo(['ViewAny:MovementType', 'View:MovementType']);
     $viewer->scopes()->attach($this->scope);
 
     $type = MovementType::factory()->create(['scope_id' => $this->scope->id, 'chart' => false, 'chart_color' => '#ffffff']);

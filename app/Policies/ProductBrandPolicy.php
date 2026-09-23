@@ -12,12 +12,12 @@ class ProductBrandPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_product_brand');
+        return $user->can('ViewAny:ProductBrand');
     }
 
     public function view(User $user, ?ProductBrand $model = null): bool
     {
-        return $user->can('view_product_brand');
+        return $user->can('View:ProductBrand');
     }
 
     public function create(User $user): bool

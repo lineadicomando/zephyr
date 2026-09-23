@@ -45,7 +45,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // read-only access to the global catalog, which only super admins may change.
         $adminPermissionIds = Permission::query()
             ->where('guard_name', 'web')
-            ->where('name', 'not like', '%role%')
+            ->where('name', 'not like', '%:Role')
             ->get()
             ->reject(fn (Permission $permission): bool => self::changesGlobalCatalog($permission->name))
             ->pluck('id')
@@ -56,41 +56,41 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // User preset: focused operational permissions.
         $userPermissionNames = [
-            'view_any_task',
-            'view_task',
-            'create_task',
-            'update_task',
-            'view_any_inventory',
-            'view_inventory',
-            'view_any_stock',
-            'view_stock',
-            'view_any_product',
-            'view_product',
-            'view_any_movement',
-            'view_movement',
-            'create_movement',
-            'update_movement',
-            'view_any_reorder',
-            'view_reorder',
-            'view_any_reorder_order',
-            'view_reorder_order',
-            'create_reorder_order',
-            'update_reorder_order',
-            'transition_reorder_order',
-            'view_any_task_status',
-            'view_task_status',
-            'view_any_task_type',
-            'view_task_type',
-            'view_any_inventory_location',
-            'view_inventory_location',
-            'view_any_inventory_position',
-            'view_inventory_position',
-            'view_any_scope',
-            'view_scope',
-            'view_current_scope_widget',
-            'view_stats_overview',
-            'view_movement_chart',
-            'view_task_chart',
+            'ViewAny:Task',
+            'View:Task',
+            'Create:Task',
+            'Update:Task',
+            'ViewAny:Inventory',
+            'View:Inventory',
+            'ViewAny:Stock',
+            'View:Stock',
+            'ViewAny:Product',
+            'View:Product',
+            'ViewAny:Movement',
+            'View:Movement',
+            'Create:Movement',
+            'Update:Movement',
+            'ViewAny:Reorder',
+            'View:Reorder',
+            'ViewAny:ReorderOrder',
+            'View:ReorderOrder',
+            'Create:ReorderOrder',
+            'Update:ReorderOrder',
+            'Transition:ReorderOrder',
+            'ViewAny:TaskStatus',
+            'View:TaskStatus',
+            'ViewAny:TaskType',
+            'View:TaskType',
+            'ViewAny:InventoryLocation',
+            'View:InventoryLocation',
+            'ViewAny:InventoryPosition',
+            'View:InventoryPosition',
+            'ViewAny:Scope',
+            'View:Scope',
+            'View:CurrentScopeWidget',
+            'View:StatsOverview',
+            'View:MovementChart',
+            'View:TaskChart',
         ];
 
         $userPermissionIds = Permission::query()
@@ -106,20 +106,14 @@ class RolesAndPermissionsSeeder extends Seeder
     }
 
     /**
-     * Whether the permission allows changing a global catalog entity.
+     * Whether the permission (Affix:Subject, e.g. Update:Product) allows
+     * changing a global catalog entity.
      */
     public static function changesGlobalCatalog(string $permission): bool
     {
-        if (str_starts_with($permission, 'view_')) {
-            return false;
-        }
+        [$affix, $subject] = array_pad(explode(':', $permission, 2), 2, '');
 
-        foreach (['product', 'product_brand', 'product_group', 'product_model', 'product_type', 'task_status', 'task_type'] as $entity) {
-            if (str_ends_with($permission, "_{$entity}")) {
-                return true;
-            }
-        }
-
-        return false;
+        return ! in_array($affix, ['View', 'ViewAny'], true)
+            && in_array($subject, ['Product', 'ProductBrand', 'ProductGroup', 'ProductModel', 'ProductType', 'TaskStatus', 'TaskType'], true);
     }
 }

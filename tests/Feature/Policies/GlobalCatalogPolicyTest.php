@@ -65,11 +65,11 @@ it('does not let the change permissions bypass the super admin restriction', fun
 it('gives the admin preset read-only permissions on the global catalog', function () {
     $admin = Role::findByName('admin');
 
-    expect($admin->hasPermissionTo('view_any_product'))->toBeTrue()
-        ->and($admin->hasPermissionTo('view_task_type'))->toBeTrue()
-        ->and($admin->hasPermissionTo('create_product'))->toBeFalse()
-        ->and($admin->hasPermissionTo('update_product_brand'))->toBeFalse()
-        ->and($admin->hasPermissionTo('delete_task_status'))->toBeFalse()
-        ->and($admin->hasPermissionTo('create_movement_type'))->toBeTrue()
-        ->and($admin->hasPermissionTo('create_inventory'))->toBeTrue();
+    expect($admin->hasPermissionTo('ViewAny:Product'))->toBeTrue()
+        ->and($admin->hasPermissionTo('View:TaskType'))->toBeTrue()
+        ->and($admin->hasPermissionTo('Create:Product'))->toBeFalse()
+        ->and($admin->hasPermissionTo('Update:ProductBrand'))->toBeFalse()
+        ->and($admin->hasPermissionTo('Delete:TaskStatus'))->toBeFalse()
+        ->and($admin->hasPermissionTo('Create:MovementType'))->toBeTrue()
+        ->and($admin->hasPermissionTo('Create:Inventory'))->toBeTrue();
 });

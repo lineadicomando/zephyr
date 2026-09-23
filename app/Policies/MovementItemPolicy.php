@@ -12,51 +12,51 @@ class MovementItemPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_movement_item');
+        return $user->can('ViewAny:MovementItem');
     }
 
     public function view(User $user, ?MovementItem $model = null): bool
     {
-        return $user->can('view_movement_item') && $this->canAccessModelScope($user, $model);
+        return $user->can('View:MovementItem') && $this->canAccessModelScope($user, $model);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create_movement_item');
+        return $user->can('Create:MovementItem');
     }
 
     public function update(User $user, ?MovementItem $model = null): bool
     {
-        return $user->can('update_movement_item') && $this->canAccessModelScope($user, $model);
+        return $user->can('Update:MovementItem') && $this->canAccessModelScope($user, $model);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_movement_item');
+        return $user->can('DeleteAny:MovementItem');
     }
 
     public function delete(User $user, ?MovementItem $model = null): bool
     {
-        return $user->can('delete_movement_item') && $this->canAccessModelScope($user, $model);
+        return $user->can('Delete:MovementItem') && $this->canAccessModelScope($user, $model);
     }
 
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_movement_item');
+        return $user->can('RestoreAny:MovementItem');
     }
 
     public function restore(User $user, ?MovementItem $model = null): bool
     {
-        return $user->can('restore_movement_item') && $this->canAccessModelScope($user, $model);
+        return $user->can('Restore:MovementItem') && $this->canAccessModelScope($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_movement_item');
+        return $user->can('ForceDeleteAny:MovementItem');
     }
 
     public function forceDelete(User $user, ?MovementItem $model = null): bool
     {
-        return $user->can('force_delete_movement_item') && $this->canAccessModelScope($user, $model);
+        return $user->can('ForceDelete:MovementItem') && $this->canAccessModelScope($user, $model);
     }
 }

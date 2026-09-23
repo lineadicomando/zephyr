@@ -14,12 +14,12 @@ class ScopePolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_scope');
+        return $user->can('ViewAny:Scope');
     }
 
     public function view(User $user, ?Scope $model = null): bool
     {
-        return $user->can('view_scope') && $this->belongsTo($user, $model);
+        return $user->can('View:Scope') && $this->belongsTo($user, $model);
     }
 
     /**
@@ -27,12 +27,12 @@ class ScopePolicy
      */
     public function create(User $user): bool
     {
-        return $user->isRoot() && $user->can('create_scope');
+        return $user->isRoot() && $user->can('Create:Scope');
     }
 
     public function update(User $user, ?Scope $model = null): bool
     {
-        return $user->can('update_scope') && $this->belongsTo($user, $model);
+        return $user->can('Update:Scope') && $this->belongsTo($user, $model);
     }
 
     /**
@@ -48,32 +48,32 @@ class ScopePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->isRoot() && $user->can('delete_any_scope');
+        return $user->isRoot() && $user->can('DeleteAny:Scope');
     }
 
     public function delete(User $user, ?Scope $model = null): bool
     {
-        return $user->isRoot() && $user->can('delete_scope');
+        return $user->isRoot() && $user->can('Delete:Scope');
     }
 
     public function restoreAny(User $user): bool
     {
-        return $user->isRoot() && $user->can('restore_any_scope');
+        return $user->isRoot() && $user->can('RestoreAny:Scope');
     }
 
     public function restore(User $user, ?Scope $model = null): bool
     {
-        return $user->isRoot() && $user->can('restore_scope');
+        return $user->isRoot() && $user->can('Restore:Scope');
     }
 
     public function forceDeleteAny(User $user): bool
     {
-        return $user->isRoot() && $user->can('force_delete_any_scope');
+        return $user->isRoot() && $user->can('ForceDeleteAny:Scope');
     }
 
     public function forceDelete(User $user, ?Scope $model = null): bool
     {
-        return $user->isRoot() && $user->can('force_delete_scope');
+        return $user->isRoot() && $user->can('ForceDelete:Scope');
     }
 
     /**
@@ -81,7 +81,7 @@ class ScopePolicy
      */
     public function manageMembership(User $user, Scope $model): bool
     {
-        return $user->can('update_user') && $user->hasScope($model->getKey());
+        return $user->can('Update:User') && $user->hasScope($model->getKey());
     }
 
     protected function belongsTo(User $user, ?Scope $model): bool

@@ -12,38 +12,38 @@ class ReorderOrderPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_reorder_order');
+        return $user->can('ViewAny:ReorderOrder');
     }
 
     public function view(User $user, ?ReorderOrder $model = null): bool
     {
-        return $user->can('view_reorder_order') && $this->canAccessModelScope($user, $model);
+        return $user->can('View:ReorderOrder') && $this->canAccessModelScope($user, $model);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create_reorder_order');
+        return $user->can('Create:ReorderOrder');
     }
 
     public function update(User $user, ?ReorderOrder $model = null): bool
     {
-        return $user->can('update_reorder_order') && $this->canAccessModelScope($user, $model);
+        return $user->can('Update:ReorderOrder') && $this->canAccessModelScope($user, $model);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_reorder_order');
+        return $user->can('DeleteAny:ReorderOrder');
     }
 
     public function delete(User $user, ?ReorderOrder $model = null): bool
     {
-        return $user->can('delete_reorder_order')
+        return $user->can('Delete:ReorderOrder')
             && $this->canAccessModelScope($user, $model)
             && ($model?->status === ReorderOrder::STATUS_DRAFT);
     }
 
     public function transition(User $user): bool
     {
-        return $user->can('transition_reorder_order');
+        return $user->can('Transition:ReorderOrder');
     }
 }

@@ -34,7 +34,7 @@ it('switches active tenant and updates visible dataset', function (): void {
     ]);
 
     $user = User::factory()->create();
-    $user->givePermissionTo(['view_any_inventory', 'view_inventory']);
+    $user->givePermissionTo(['ViewAny:Inventory', 'View:Inventory']);
     $user->scopes()->attach([$scopeA->id, $scopeB->id]);
 
     $inventoryA = Inventory::factory()->create(['scope_id' => $scopeA->id]);

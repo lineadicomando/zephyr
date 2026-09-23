@@ -37,8 +37,8 @@ it('allows super admin to manage scopes pages', function () {
 });
 
 it('prevents edit for read-only users while allowing scope view', function () {
-    Permission::query()->firstOrCreate(['name' => 'view_any_scope', 'guard_name' => 'web']);
-    Permission::query()->firstOrCreate(['name' => 'view_scope', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'ViewAny:Scope', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'View:Scope', 'guard_name' => 'web']);
 
     $scope = Scope::factory()->create([
         'name' => 'Scope ReadOnly',
@@ -49,8 +49,8 @@ it('prevents edit for read-only users while allowing scope view', function () {
 
     $user = User::factory()->create();
     $user->syncRoles([]);
-    $user->givePermissionTo('view_any_scope');
-    $user->givePermissionTo('view_scope');
+    $user->givePermissionTo('ViewAny:Scope');
+    $user->givePermissionTo('View:Scope');
     $user->scopes()->attach($scope);
 
     $this->actingAs($user);

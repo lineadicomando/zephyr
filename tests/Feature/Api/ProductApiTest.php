@@ -65,8 +65,8 @@ it('requires authentication to show a product via api', function () {
 });
 
 it('lists products when user has view permissions', function () {
-    Permission::query()->firstOrCreate(['name' => 'view_any_product', 'guard_name' => 'web']);
-    Permission::query()->firstOrCreate(['name' => 'view_product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'ViewAny:Product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'View:Product', 'guard_name' => 'web']);
 
     $catalog = makeProductCatalogForApi((string) str()->uuid());
     Product::query()->create([
@@ -81,8 +81,8 @@ it('lists products when user has view permissions', function () {
     ]);
 
     $user = User::factory()->inScope()->create();
-    $user->givePermissionTo('view_any_product');
-    $user->givePermissionTo('view_product');
+    $user->givePermissionTo('ViewAny:Product');
+    $user->givePermissionTo('View:Product');
     Sanctum::actingAs($user, ['products:read']);
 
     $response = $this->getJson('/api/products');
@@ -93,8 +93,8 @@ it('lists products when user has view permissions', function () {
 });
 
 it('shows a single product when user has view permissions', function () {
-    Permission::query()->firstOrCreate(['name' => 'view_any_product', 'guard_name' => 'web']);
-    Permission::query()->firstOrCreate(['name' => 'view_product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'ViewAny:Product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'View:Product', 'guard_name' => 'web']);
 
     $catalog = makeProductCatalogForApi((string) str()->uuid());
     $product = Product::query()->create([
@@ -104,8 +104,8 @@ it('shows a single product when user has view permissions', function () {
     ]);
 
     $user = User::factory()->inScope()->create();
-    $user->givePermissionTo('view_any_product');
-    $user->givePermissionTo('view_product');
+    $user->givePermissionTo('ViewAny:Product');
+    $user->givePermissionTo('View:Product');
     Sanctum::actingAs($user, ['products:read']);
 
     $this->getJson("/api/products/{$product->id}")
@@ -254,12 +254,12 @@ it('forbids update when user has no permission', function () {
 });
 
 it('denies api access when user has no assigned scopes', function () {
-    Permission::query()->firstOrCreate(['name' => 'view_any_product', 'guard_name' => 'web']);
-    Permission::query()->firstOrCreate(['name' => 'view_product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'ViewAny:Product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'View:Product', 'guard_name' => 'web']);
 
     $user = User::factory()->inScope()->create();
-    $user->givePermissionTo('view_any_product');
-    $user->givePermissionTo('view_product');
+    $user->givePermissionTo('ViewAny:Product');
+    $user->givePermissionTo('View:Product');
     $user->scopes()->detach();
     Sanctum::actingAs($user, ['products:read']);
 
@@ -267,10 +267,10 @@ it('denies api access when user has no assigned scopes', function () {
 });
 
 it('forbids product reads when the token lacks the products:read ability', function () {
-    Permission::query()->firstOrCreate(['name' => 'view_any_product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'ViewAny:Product', 'guard_name' => 'web']);
 
     $user = User::factory()->inScope()->create();
-    $user->givePermissionTo('view_any_product');
+    $user->givePermissionTo('ViewAny:Product');
     Sanctum::actingAs($user, ['products:write']);
 
     $this->getJson('/api/products')->assertForbidden();
@@ -298,10 +298,10 @@ it('forbids product writes when the token lacks the products:write ability', fun
 });
 
 it('checks the abilities of real personal access tokens', function (array $abilities, int $status) {
-    Permission::query()->firstOrCreate(['name' => 'view_any_product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'ViewAny:Product', 'guard_name' => 'web']);
 
     $user = User::factory()->inScope()->create();
-    $user->givePermissionTo('view_any_product');
+    $user->givePermissionTo('ViewAny:Product');
     $token = $user->createToken('integration', $abilities);
 
     $this->withToken($token->plainTextToken)
@@ -314,8 +314,8 @@ it('checks the abilities of real personal access tokens', function (array $abili
 ]);
 
 it('forbids product writes to users that are not super admins even with the permissions', function () {
-    Permission::query()->firstOrCreate(['name' => 'create_product', 'guard_name' => 'web']);
-    Permission::query()->firstOrCreate(['name' => 'update_product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'Create:Product', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'Update:Product', 'guard_name' => 'web']);
 
     $catalog = makeProductCatalogForApi((string) str()->uuid());
     $product = Product::query()->create([
@@ -325,7 +325,7 @@ it('forbids product writes to users that are not super admins even with the perm
     ]);
 
     $user = User::factory()->inScope()->create();
-    $user->givePermissionTo(['create_product', 'update_product']);
+    $user->givePermissionTo(['Create:Product', 'Update:Product']);
     Sanctum::actingAs($user, ['products:write']);
 
     $this->postJson('/api/products', [

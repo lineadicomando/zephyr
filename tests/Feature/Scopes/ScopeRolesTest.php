@@ -48,12 +48,12 @@ it('applies a role only in the scope it was assigned in', function () {
 
     activateFilamentTenant($this->scopeA);
     expect($user->isAdmin())->toBeTrue()
-        ->and($user->can('delete_any_inventory'))->toBeTrue();
+        ->and($user->can('DeleteAny:Inventory'))->toBeTrue();
 
     activateFilamentTenant($this->scopeB);
     expect($user->isAdmin())->toBeFalse()
-        ->and($user->can('delete_any_inventory'))->toBeFalse()
-        ->and($user->can('view_any_inventory'))->toBeTrue();
+        ->and($user->can('DeleteAny:Inventory'))->toBeFalse()
+        ->and($user->can('ViewAny:Inventory'))->toBeTrue();
 });
 
 it('keeps super admins super admin in every scope', function () {
@@ -64,7 +64,7 @@ it('keeps super admins super admin in every scope', function () {
     activateFilamentTenant($this->scopeB);
 
     expect($root->isRoot())->toBeTrue()
-        ->and($root->can('create_scope'))->toBeTrue()
+        ->and($root->can('Create:Scope'))->toBeTrue()
         ->and($root->isAdminInAnyScope())->toBeTrue();
 });
 

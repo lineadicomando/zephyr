@@ -93,7 +93,7 @@ it('denies update when stock belongs to another scope', function (): void {
     ]);
 
     $user = User::factory()->create();
-    $user->givePermissionTo('update_stock');
+    $user->givePermissionTo('Update:Stock');
 
     DB::table('scope_user')->insert([
         'scope_id' => $scopeAId,
@@ -120,7 +120,7 @@ it('denies update for users without assigned scopes', function (): void {
     ]);
 
     $user = User::factory()->create();
-    $user->givePermissionTo('update_stock');
+    $user->givePermissionTo('Update:Stock');
 
     $stock = makeStockInScope($scopeId);
 

@@ -189,6 +189,8 @@ docker compose exec app php artisan migrate:seed_demo
 
 **Back up the database before upgrading.** Some migrations change existing data and cannot be rolled back: for example `2026_09_22_060415_merge_duplicate_stocks` merges duplicate stock rows into a single one before adding a unique index, and `2026_09_23_063627_add_product_and_inventory_foreign_keys_to_inventories_and_stocks` deletes inventories of missing products and stocks of missing inventories (with their movement items, reorder rules and task links; the counts are logged) before adding the foreign keys, and `2026_09_23_063856_give_every_stock_a_position` moves the movement items of stocks without position to the stock of their position, deleting the stocks without position and their reorder rules. Run `php artisan db:check` afterwards to recalculate the stocks.
 
+Permissions use the Filament Shield `Affix:Subject` format (`ViewAny:Product`, `Transition:ReorderOrder`): `2026_09_23_082302_rename_permissions_to_the_shield_format` renames the former snake_case names (`view_any_product`) keeping their role and user assignments. Custom roles and code checking permissions by name must use the new names.
+
 ```bash
 # Manual installation
 php artisan backup:run --only-db

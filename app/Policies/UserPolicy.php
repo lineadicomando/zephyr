@@ -13,53 +13,53 @@ class UserPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_user');
+        return $user->can('ViewAny:User');
     }
 
     public function view(User $user, ?User $model = null): bool
     {
-        return $user->can('view_user') && $this->canSeeAccount($user, $model);
+        return $user->can('View:User') && $this->canSeeAccount($user, $model);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create_user');
+        return $user->can('Create:User');
     }
 
     public function update(User $user, ?User $model = null): bool
     {
-        return $user->can('update_user')
+        return $user->can('Update:User')
             && ($model?->is($user) || $this->canManageAccount($user, $model));
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_user');
+        return $user->can('DeleteAny:User');
     }
 
     public function delete(User $user, ?User $model = null): bool
     {
-        return $user->can('delete_user') && $this->canManageAccount($user, $model);
+        return $user->can('Delete:User') && $this->canManageAccount($user, $model);
     }
 
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_user');
+        return $user->can('RestoreAny:User');
     }
 
     public function restore(User $user, ?User $model = null): bool
     {
-        return $user->can('restore_user') && $this->canManageAccount($user, $model);
+        return $user->can('Restore:User') && $this->canManageAccount($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_user');
+        return $user->can('ForceDeleteAny:User');
     }
 
     public function forceDelete(User $user, ?User $model = null): bool
     {
-        return $user->can('force_delete_user') && $this->canManageAccount($user, $model);
+        return $user->can('ForceDelete:User') && $this->canManageAccount($user, $model);
     }
 
     /**

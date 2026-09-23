@@ -12,51 +12,51 @@ class StockPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_stock');
+        return $user->can('ViewAny:Stock');
     }
 
     public function view(User $user, ?Stock $model = null): bool
     {
-        return $user->can('view_stock') && $this->canAccessModelScope($user, $model);
+        return $user->can('View:Stock') && $this->canAccessModelScope($user, $model);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create_stock');
+        return $user->can('Create:Stock');
     }
 
     public function update(User $user, ?Stock $model = null): bool
     {
-        return $user->can('update_stock') && $this->canAccessModelScope($user, $model);
+        return $user->can('Update:Stock') && $this->canAccessModelScope($user, $model);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_stock');
+        return $user->can('DeleteAny:Stock');
     }
 
     public function delete(User $user, ?Stock $model = null): bool
     {
-        return $user->can('delete_stock') && $this->canAccessModelScope($user, $model);
+        return $user->can('Delete:Stock') && $this->canAccessModelScope($user, $model);
     }
 
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_stock');
+        return $user->can('RestoreAny:Stock');
     }
 
     public function restore(User $user, ?Stock $model = null): bool
     {
-        return $user->can('restore_stock') && $this->canAccessModelScope($user, $model);
+        return $user->can('Restore:Stock') && $this->canAccessModelScope($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_stock');
+        return $user->can('ForceDeleteAny:Stock');
     }
 
     public function forceDelete(User $user, ?Stock $model = null): bool
     {
-        return $user->can('force_delete_stock') && $this->canAccessModelScope($user, $model);
+        return $user->can('ForceDelete:Stock') && $this->canAccessModelScope($user, $model);
     }
 }

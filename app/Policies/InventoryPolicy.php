@@ -12,51 +12,51 @@ class InventoryPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_inventory');
+        return $user->can('ViewAny:Inventory');
     }
 
     public function view(User $user, ?Inventory $model = null): bool
     {
-        return $user->can('view_inventory') && $this->canAccessModelScope($user, $model);
+        return $user->can('View:Inventory') && $this->canAccessModelScope($user, $model);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create_inventory');
+        return $user->can('Create:Inventory');
     }
 
     public function update(User $user, ?Inventory $model = null): bool
     {
-        return $user->can('update_inventory') && $this->canAccessModelScope($user, $model);
+        return $user->can('Update:Inventory') && $this->canAccessModelScope($user, $model);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_inventory');
+        return $user->can('DeleteAny:Inventory');
     }
 
     public function delete(User $user, ?Inventory $model = null): bool
     {
-        return $user->can('delete_inventory') && $this->canAccessModelScope($user, $model);
+        return $user->can('Delete:Inventory') && $this->canAccessModelScope($user, $model);
     }
 
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_inventory');
+        return $user->can('RestoreAny:Inventory');
     }
 
     public function restore(User $user, ?Inventory $model = null): bool
     {
-        return $user->can('restore_inventory') && $this->canAccessModelScope($user, $model);
+        return $user->can('Restore:Inventory') && $this->canAccessModelScope($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_inventory');
+        return $user->can('ForceDeleteAny:Inventory');
     }
 
     public function forceDelete(User $user, ?Inventory $model = null): bool
     {
-        return $user->can('force_delete_inventory') && $this->canAccessModelScope($user, $model);
+        return $user->can('ForceDelete:Inventory') && $this->canAccessModelScope($user, $model);
     }
 }

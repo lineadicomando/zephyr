@@ -25,7 +25,6 @@
 
 The items of the September 2026 code reviews are fixed: see the git history.
 
-- [ ] Upgrade `bezhansalleh/filament-shield` to 4.3+ (pinned to 4.2): it rejects the `_` separator with the `snake` case, so every permission (`view_any_product`...) must be renamed in the database, policies and seeders
 
 ---
 

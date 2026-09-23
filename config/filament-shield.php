@@ -105,8 +105,8 @@ return [
     */
 
     'permissions' => [
-        'separator' => '_',
-        'case' => 'snake',
+        'separator' => ':',
+        'case' => 'pascal',
         'generate' => true,
     ],
 
@@ -233,7 +233,7 @@ return [
     */
 
     'custom_permissions' => [
-        'transition_reorder_order' => 'Transition reorder orders',
+        'Transition:ReorderOrder' => 'Transition reorder orders',
     ],
 
     /*

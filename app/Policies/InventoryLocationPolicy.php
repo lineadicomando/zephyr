@@ -12,51 +12,51 @@ class InventoryLocationPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_inventory_location');
+        return $user->can('ViewAny:InventoryLocation');
     }
 
     public function view(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('view_inventory_location') && $this->canAccessModelScope($user, $model);
+        return $user->can('View:InventoryLocation') && $this->canAccessModelScope($user, $model);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create_inventory_location');
+        return $user->can('Create:InventoryLocation');
     }
 
     public function update(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('update_inventory_location') && $this->canAccessModelScope($user, $model);
+        return $user->can('Update:InventoryLocation') && $this->canAccessModelScope($user, $model);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_inventory_location');
+        return $user->can('DeleteAny:InventoryLocation');
     }
 
     public function delete(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('delete_inventory_location') && $this->canAccessModelScope($user, $model);
+        return $user->can('Delete:InventoryLocation') && $this->canAccessModelScope($user, $model);
     }
 
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_inventory_location');
+        return $user->can('RestoreAny:InventoryLocation');
     }
 
     public function restore(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('restore_inventory_location') && $this->canAccessModelScope($user, $model);
+        return $user->can('Restore:InventoryLocation') && $this->canAccessModelScope($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_inventory_location');
+        return $user->can('ForceDeleteAny:InventoryLocation');
     }
 
     public function forceDelete(User $user, ?InventoryLocation $model = null): bool
     {
-        return $user->can('force_delete_inventory_location') && $this->canAccessModelScope($user, $model);
+        return $user->can('ForceDelete:InventoryLocation') && $this->canAccessModelScope($user, $model);
     }
 }

@@ -10,10 +10,10 @@ use Spatie\Permission\Models\Permission;
 uses(RefreshDatabase::class);
 
 it('allows delete only for draft status when user has delete permission', function () {
-    Permission::query()->firstOrCreate(['name' => 'delete_reorder_order', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'Delete:ReorderOrder', 'guard_name' => 'web']);
 
     $user = User::factory()->create();
-    $user->givePermissionTo('delete_reorder_order');
+    $user->givePermissionTo('Delete:ReorderOrder');
 
     $policy = new ReorderOrderPolicy;
 
@@ -28,13 +28,13 @@ it('allows delete only for draft status when user has delete permission', functi
 });
 
 it('requires transition permission for reorder order transitions', function () {
-    Permission::query()->firstOrCreate(['name' => 'transition_reorder_order', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'Transition:ReorderOrder', 'guard_name' => 'web']);
 
     $user = User::factory()->create();
     $policy = new ReorderOrderPolicy;
 
     expect($policy->transition($user))->toBeFalse();
 
-    $user->givePermissionTo('transition_reorder_order');
+    $user->givePermissionTo('Transition:ReorderOrder');
     expect($policy->transition($user))->toBeTrue();
 });

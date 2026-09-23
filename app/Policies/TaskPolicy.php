@@ -12,22 +12,22 @@ class TaskPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_task');
+        return $user->can('ViewAny:Task');
     }
 
     public function view(User $user, ?Task $model = null): bool
     {
-        return $user->can('view_task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
+        return $user->can('View:Task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create_task');
+        return $user->can('Create:Task');
     }
 
     public function update(User $user, ?Task $model = null): bool
     {
-        return $user->can('update_task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
+        return $user->can('Update:Task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
     }
 
     /**
@@ -41,37 +41,37 @@ class TaskPolicy
 
     public function detachAny(User $user): bool
     {
-        return $user->can('update_task');
+        return $user->can('Update:Task');
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_task');
+        return $user->can('DeleteAny:Task');
     }
 
     public function delete(User $user, ?Task $model = null): bool
     {
-        return $user->can('delete_task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
+        return $user->can('Delete:Task') && $this->canAccessModelScope($user, $model) && $this->canAccessTask($user, $model);
     }
 
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_task');
+        return $user->can('RestoreAny:Task');
     }
 
     public function restore(User $user, ?Task $model = null): bool
     {
-        return $user->can('restore_task') && $this->canAccessModelScope($user, $model);
+        return $user->can('Restore:Task') && $this->canAccessModelScope($user, $model);
     }
 
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_task');
+        return $user->can('ForceDeleteAny:Task');
     }
 
     public function forceDelete(User $user, ?Task $model = null): bool
     {
-        return $user->can('force_delete_task') && $this->canAccessModelScope($user, $model);
+        return $user->can('ForceDelete:Task') && $this->canAccessModelScope($user, $model);
     }
 
     /**

@@ -67,9 +67,9 @@ it('shows reorder table actions according to order status', function () {
 });
 
 it('shows view action to a read-only user and edit action to an update-capable user', function () {
-    Permission::query()->firstOrCreate(['name' => 'view_any_reorder_order', 'guard_name' => 'web']);
-    Permission::query()->firstOrCreate(['name' => 'view_reorder_order', 'guard_name' => 'web']);
-    Permission::query()->firstOrCreate(['name' => 'update_reorder_order', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'ViewAny:ReorderOrder', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'View:ReorderOrder', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'Update:ReorderOrder', 'guard_name' => 'web']);
 
     $readOnly = User::factory()->create();
     $readOnly->syncRoles([]);
@@ -78,8 +78,8 @@ it('shows view action to a read-only user and edit action to an update-capable u
 
     $order = ReorderOrder::query()->create(['scope_id' => $scope->id, 'status' => ReorderOrder::STATUS_DRAFT]);
 
-    $readOnly->givePermissionTo('view_any_reorder_order');
-    $readOnly->givePermissionTo('view_reorder_order');
+    $readOnly->givePermissionTo('ViewAny:ReorderOrder');
+    $readOnly->givePermissionTo('View:ReorderOrder');
     expect($readOnly->can('update', $order))->toBeFalse();
 
     Livewire::test(ListReorderOrders::class)
@@ -94,9 +94,9 @@ it('shows view action to a read-only user and edit action to an update-capable u
     $updater = User::factory()->create();
     $updater->syncRoles([]);
     $updater->scopes()->attach($scope->id);
-    $updater->givePermissionTo('view_any_reorder_order');
-    $updater->givePermissionTo('view_reorder_order');
-    $updater->givePermissionTo('update_reorder_order');
+    $updater->givePermissionTo('ViewAny:ReorderOrder');
+    $updater->givePermissionTo('View:ReorderOrder');
+    $updater->givePermissionTo('Update:ReorderOrder');
 
     $this->actingAs($updater);
     activateFilamentTenant($scope, [ReorderOrderResource::class]);

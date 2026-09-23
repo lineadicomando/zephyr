@@ -35,7 +35,7 @@ it('denies update when record belongs to another scope', function (): void {
     ]);
 
     $user = User::factory()->create();
-    $user->givePermissionTo('update_inventory');
+    $user->givePermissionTo('Update:Inventory');
 
     DB::table('scope_user')->insert([
         'scope_id' => $scopeAId,
@@ -62,7 +62,7 @@ it('denies update for users without assigned scopes', function (): void {
     ]);
 
     $user = User::factory()->create();
-    $user->givePermissionTo('update_inventory');
+    $user->givePermissionTo('Update:Inventory');
 
     $inventory = Inventory::factory()->create(['scope_id' => $scopeId]);
 

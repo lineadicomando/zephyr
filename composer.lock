@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e4ef05253b5051a100e1df51623eed91",
+    "content-hash": "80120304f12004d7b9f7f506046b8979",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -227,16 +227,16 @@
         },
         {
             "name": "bezhansalleh/filament-shield",
-            "version": "4.2.0",
+            "version": "4.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bezhanSalleh/filament-shield.git",
-                "reference": "a48ea9ca115c644ce40380b853142afcd65e38d1"
+                "reference": "1ff51f53985275f5bd37e9277cf810d391e7c3ca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bezhanSalleh/filament-shield/zipball/a48ea9ca115c644ce40380b853142afcd65e38d1",
-                "reference": "a48ea9ca115c644ce40380b853142afcd65e38d1",
+                "url": "https://api.github.com/repos/bezhanSalleh/filament-shield/zipball/1ff51f53985275f5bd37e9277cf810d391e7c3ca",
+                "reference": "1ff51f53985275f5bd37e9277cf810d391e7c3ca",
                 "shasum": ""
             },
             "require": {
@@ -246,7 +246,7 @@
                 "illuminate/support": "^11.28|^12.0|^13.0",
                 "php": "^8.2|^8.3",
                 "spatie/laravel-package-tools": "^1.0",
-                "spatie/laravel-permission": "^6.0|^7.0"
+                "spatie/laravel-permission": "^6.0|^7.0|^8.0"
             },
             "require-dev": {
                 "larastan/larastan": "^3.0",
@@ -310,7 +310,7 @@
             ],
             "support": {
                 "issues": "https://github.com/bezhanSalleh/filament-shield/issues",
-                "source": "https://github.com/bezhanSalleh/filament-shield/tree/4.2.0"
+                "source": "https://github.com/bezhanSalleh/filament-shield/tree/4.3.1"
             },
             "funding": [
                 {
@@ -318,7 +318,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-03-22T08:31:44+00:00"
+            "time": "2026-07-25T03:31:26+00:00"
         },
         {
             "name": "blade-ui-kit/blade-heroicons",

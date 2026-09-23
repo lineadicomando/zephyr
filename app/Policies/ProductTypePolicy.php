@@ -12,12 +12,12 @@ class ProductTypePolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_product_type');
+        return $user->can('ViewAny:ProductType');
     }
 
     public function view(User $user, ?ProductType $model = null): bool
     {
-        return $user->can('view_product_type');
+        return $user->can('View:ProductType');
     }
 
     public function create(User $user): bool
