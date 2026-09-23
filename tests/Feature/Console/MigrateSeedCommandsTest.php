@@ -87,3 +87,11 @@ it('seeds with --if-not-seeded only while the database has no users', function (
     'already seeded' => [true, false],
 ]);
 
+it('does not migrate nor seed demo data when Faker is not installed', function () {
+    $command = Mockery::mock(MigrateSeedDemo::class)->makePartial()->shouldAllowMockingProtectedMethods();
+    $command->shouldReceive('demoDataCanBeGenerated')->once()->andReturnFalse();
+    $command->shouldReceive('error')->once();
+    $command->shouldNotReceive('call');
+
+    expect($command->handle())->toBe(MigrateSeedDemo::FAILURE);
+});

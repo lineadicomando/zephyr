@@ -24,9 +24,13 @@ rsync -a --delete /var/www/html/public/ /var/www/html/public-vol/
 # The baseline data is seeded until the database has a user, so a first boot
 # whose seed failed (e.g. placeholder admin password) is retried on restart.
 echo "[entrypoint] Running migrations (seeding when the database has no users)..."
-if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
+# Demo data needs Faker, which the production image (--no-dev) does not include.
+if [ "${SEED_DEMO_DATA:-false}" = "true" ] && php -r 'require "vendor/autoload.php"; exit(class_exists(Faker\Generator::class) ? 0 : 1);'; then
     php artisan migrate:seed_demo --no-fresh --if-not-seeded
 else
+    if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
+        echo "[entrypoint] SEED_DEMO_DATA=true ignored: Faker is not installed (see \"Loading demo data manually\" in the README)."
+    fi
     php artisan migrate:seed --no-fresh --if-not-seeded
 fi
 

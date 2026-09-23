@@ -100,7 +100,6 @@ echo "base64:$(openssl rand -base64 32)"
 #    DB_PASSWORD, DB_ROOT_PASSWORD, BOOTSTRAP_ADMIN_PASSWORD
 #    (to use an existing database instead of the bundled one, see "Existing database")
 #    APP_URL=http://your-host:8080
-#    SEED_DEMO_DATA=true  # set to true to load demo data on first boot
 
 # 4. Build and start all services
 docker compose up -d --build
@@ -172,7 +171,7 @@ Requirements:
 
 ### Loading demo data manually
 
-The image is built without dev dependencies (`composer install --no-dev`), so demo seeders that rely on Faker are not available by default. To load demo data into a running container without rebuilding:
+The image is built without dev dependencies (`composer install --no-dev`), so demo seeders that rely on Faker are not available by default: `SEED_DEMO_DATA=true` is ignored on first boot and `migrate:seed_demo` refuses to run. To load demo data into a running container without rebuilding:
 
 ```bash
 # temporarily install dev dependencies (ephemeral — lost on container restart)

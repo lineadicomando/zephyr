@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\User;
+use Faker\Generator;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Support\Facades\Schema;
@@ -19,6 +20,12 @@ class MigrateSeedDemo extends Command
 
     public function handle(): int
     {
+        if (! $this->demoDataCanBeGenerated()) {
+            $this->error('Demo data needs Faker, a development dependency: run `composer install` with dev dependencies first.');
+
+            return self::FAILURE;
+        }
+
         $fresh = ! $this->option('no-fresh');
 
         if ($fresh && ! $this->confirmToProceed('This will drop all tables of the database.')) {
@@ -50,5 +57,10 @@ class MigrateSeedDemo extends Command
     protected function isSeeded(): bool
     {
         return Schema::hasTable('users') && User::withTrashed()->exists();
+    }
+
+    protected function demoDataCanBeGenerated(): bool
+    {
+        return class_exists(Generator::class);
     }
 }
