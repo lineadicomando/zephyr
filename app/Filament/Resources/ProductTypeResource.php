@@ -7,10 +7,13 @@ use App\Models\ProductType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class ProductTypeResource extends Resource
@@ -77,9 +80,13 @@ class ProductTypeResource extends Resource
             ])
             ->persistSearchInSession()
             ->filters([
-                //
+                TrashedFilter::make(),
             ])
-            ->actions([EditAction::make()])
+            ->actions([
+                EditAction::make()->hidden(fn (ProductType $record) => $record->trashed()),
+                RestoreAction::make(),
+                ForceDeleteAction::make()->hidden(fn (ProductType $record) => $record->hasRelated()),
+            ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),

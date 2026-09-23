@@ -9,6 +9,7 @@ use App\Filament\Resources\MovementResource;
 use App\Filament\Resources\MovementResource\Pages\CreateMovement;
 use App\Filament\Resources\MovementTypeResource;
 use App\Filament\Resources\MovementTypeResource\Pages\ListMovementTypes;
+use App\Filament\Resources\ProductGroupResource\Pages\ListProductGroups;
 use App\Filament\Resources\ReorderOrderResource;
 use App\Filament\Resources\ReorderOrderResource\Pages\EditReorderOrder;
 use App\Filament\Resources\ReorderOrderResource\RelationManagers\ItemsRelationManager;
@@ -22,6 +23,7 @@ use App\Models\InventoryPosition;
 use App\Models\Movement;
 use App\Models\MovementItem;
 use App\Models\MovementType;
+use App\Models\ProductGroup;
 use App\Models\Reorder;
 use App\Models\ReorderOrder;
 use App\Models\Scope;
@@ -181,4 +183,20 @@ it('routes tenant slugs ending with api to the panel and api paths to the api', 
     expect($panelRoute->getName())->toStartWith('filament.app.')
         ->and($panelRoute->parameter('tenant'))->toBe('sapi')
         ->and($apiRoute->uri())->toBe('api/products');
+});
+
+it('restores a deleted product group so its name can be used again', function () {
+    $root = User::factory()->create();
+    $root->assignRole('super_admin');
+    $this->actingAs($root);
+
+    $group = ProductGroup::query()->create(['name' => 'Laptop']);
+    $group->delete();
+
+    Livewire::test(ListProductGroups::class)
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$group])
+        ->callAction(TestAction::make('restore')->table($group));
+
+    expect($group->fresh()->trashed())->toBeFalse();
 });
