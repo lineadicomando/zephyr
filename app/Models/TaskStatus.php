@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TaskStatus extends Model
 {
@@ -51,7 +52,10 @@ class TaskStatus extends Model
         return (int) $status->id;
     }
 
-    public function tasks()
+    /**
+     * @return HasMany<Task, $this>
+     */
+    public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
     }
@@ -59,10 +63,5 @@ class TaskStatus extends Model
     public function preventDeletionBy()
     {
         return ['tasks'];
-    }
-
-    public function permission_entities()
-    {
-        return $this->morphMany(PermissionEntity::class, 'entity');
     }
 }

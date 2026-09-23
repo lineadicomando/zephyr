@@ -50,7 +50,7 @@ class StatsOverview extends BaseWidget
                 ->query($movementQuery)
                 ->dateColumn('date')
                 ->between(
-                    start: now()->subMonth(12),
+                    start: now()->subMonths(12),
                     end: now(),
                 )
                 ->perMonth()
@@ -87,7 +87,7 @@ class StatsOverview extends BaseWidget
                 ->query($taskQuery)
                 ->dateColumn("{$taskTable}.created_at")
                 ->between(
-                    start: now()->subMonth($subMonts),
+                    start: now()->subMonths($subMonts),
                     end: now(),
                 )
                 ->perDay()

@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToScope;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MovementType extends Model
@@ -21,7 +22,10 @@ class MovementType extends Model
         'name',
     ];
 
-    public function movements()
+    /**
+     * @return HasMany<Movement, $this>
+     */
+    public function movements(): HasMany
     {
         return $this->hasMany(Movement::class);
     }

@@ -59,3 +59,17 @@ it('shows dashboard widgets only to users with their shield permission', functio
     MovementChart::class,
     TaskChart::class,
 ]);
+
+it('charts the movements of the last twelve months on the dashboard', function () {
+    $scope = Scope::factory()->create(['is_active' => true]);
+    $user = User::factory()->create();
+    $user->assignRole('super_admin');
+    $user->scopes()->attach($scope);
+
+    $this->actingAs($user);
+    activateFilamentTenant($scope);
+
+    $stats = (new ReflectionMethod(StatsOverview::class, 'getStats'))->invoke(new StatsOverview);
+
+    expect($stats[0]->getChart())->toHaveCount(13);
+});

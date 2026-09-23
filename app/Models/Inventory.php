@@ -8,6 +8,9 @@ use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Inventory extends Model
 {
@@ -112,27 +115,42 @@ class Inventory extends Model
         'note',
     ];
 
-    public function product()
+    /**
+     * @return BelongsTo<Product, $this>
+     */
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function movement_items()
+    /**
+     * @return HasMany<MovementItem, $this>
+     */
+    public function movement_items(): HasMany
     {
         return $this->hasMany(MovementItem::class);
     }
 
-    public function stocks()
+    /**
+     * @return HasMany<Stock, $this>
+     */
+    public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
     }
 
-    public function non_zero_stocks()
+    /**
+     * @return HasMany<Stock, $this>
+     */
+    public function non_zero_stocks(): HasMany
     {
         return $this->hasMany(Stock::class)->where('stock', '<>', '0');
     }
 
-    public function tasks()
+    /**
+     * @return BelongsToMany<Task, $this>
+     */
+    public function tasks(): BelongsToMany
     {
         return $this->belongsToMany(Task::class, 'task_inventory')->withTimestamps();
     }

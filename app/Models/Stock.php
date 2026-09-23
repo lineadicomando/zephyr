@@ -8,6 +8,9 @@ use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -142,62 +145,98 @@ class Stock extends Model
         }
     }
 
-    public function product_group()
+    /**
+     * @return BelongsTo<ProductGroup, $this>
+     */
+    public function product_group(): BelongsTo
     {
         return $this->belongsTo(ProductGroup::class);
     }
 
-    public function product_type()
+    /**
+     * @return BelongsTo<ProductType, $this>
+     */
+    public function product_type(): BelongsTo
     {
         return $this->belongsTo(ProductType::class);
     }
 
-    public function product_brand()
+    /**
+     * @return BelongsTo<ProductBrand, $this>
+     */
+    public function product_brand(): BelongsTo
     {
         return $this->belongsTo(ProductBrand::class);
     }
 
-    public function product_model()
+    /**
+     * @return BelongsTo<ProductModel, $this>
+     */
+    public function product_model(): BelongsTo
     {
         return $this->belongsTo(ProductModel::class);
     }
 
-    public function product()
+    /**
+     * @return BelongsTo<Product, $this>
+     */
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function inventory()
+    /**
+     * @return BelongsTo<Inventory, $this>
+     */
+    public function inventory(): BelongsTo
     {
         return $this->belongsTo(Inventory::class);
     }
 
-    public function inventory_location()
+    /**
+     * @return BelongsTo<InventoryLocation, $this>
+     */
+    public function inventory_location(): BelongsTo
     {
         return $this->belongsTo(InventoryLocation::class);
     }
 
-    public function inventory_position()
+    /**
+     * @return BelongsTo<InventoryPosition, $this>
+     */
+    public function inventory_position(): BelongsTo
     {
         return $this->belongsTo(InventoryPosition::class);
     }
 
-    public function incoming_movement_items()
+    /**
+     * @return HasMany<MovementItem, $this>
+     */
+    public function incoming_movement_items(): HasMany
     {
         return $this->hasMany(MovementItem::class, 'incoming_stock_id');
     }
 
-    public function outcoming_movement_items()
+    /**
+     * @return HasMany<MovementItem, $this>
+     */
+    public function outcoming_movement_items(): HasMany
     {
         return $this->hasMany(MovementItem::class, 'outcoming_stock_id');
     }
 
-    public function reorder()
+    /**
+     * @return HasOne<Reorder, $this>
+     */
+    public function reorder(): HasOne
     {
         return $this->hasOne(Reorder::class);
     }
 
-    public function reorder_order_items()
+    /**
+     * @return HasMany<ReorderOrderItem, $this>
+     */
+    public function reorder_order_items(): HasMany
     {
         return $this->hasMany(ReorderOrderItem::class);
     }

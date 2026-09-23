@@ -6,6 +6,8 @@ use App\Models\Concerns\BelongsToScope;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
 class InventoryPosition extends Model
@@ -58,22 +60,34 @@ class InventoryPosition extends Model
         ]);
     }
 
-    public function inventory_location()
+    /**
+     * @return BelongsTo<InventoryLocation, $this>
+     */
+    public function inventory_location(): BelongsTo
     {
         return $this->belongsTo(InventoryLocation::class);
     }
 
-    public function stocks()
+    /**
+     * @return HasMany<Stock, $this>
+     */
+    public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
     }
 
-    public function from_movements()
+    /**
+     * @return HasMany<Movement, $this>
+     */
+    public function from_movements(): HasMany
     {
         return $this->hasMany(Movement::class, 'from_inventory_position_id');
     }
 
-    public function to_movements()
+    /**
+     * @return HasMany<Movement, $this>
+     */
+    public function to_movements(): HasMany
     {
         return $this->hasMany(Movement::class, 'to_inventory_position_id');
     }

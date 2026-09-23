@@ -6,6 +6,8 @@ use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -51,32 +53,50 @@ class Product extends Model
         ];
     }
 
-    public function stocks()
+    /**
+     * @return HasMany<Stock, $this>
+     */
+    public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
     }
 
-    public function inventories()
+    /**
+     * @return HasMany<Inventory, $this>
+     */
+    public function inventories(): HasMany
     {
         return $this->hasMany(Inventory::class);
     }
 
-    public function product_group()
+    /**
+     * @return BelongsTo<ProductGroup, $this>
+     */
+    public function product_group(): BelongsTo
     {
         return $this->belongsTo(ProductGroup::class);
     }
 
-    public function product_type()
+    /**
+     * @return BelongsTo<ProductType, $this>
+     */
+    public function product_type(): BelongsTo
     {
         return $this->belongsTo(ProductType::class);
     }
 
-    public function product_brand()
+    /**
+     * @return BelongsTo<ProductBrand, $this>
+     */
+    public function product_brand(): BelongsTo
     {
         return $this->belongsTo(ProductBrand::class);
     }
 
-    public function product_model()
+    /**
+     * @return BelongsTo<ProductModel, $this>
+     */
+    public function product_model(): BelongsTo
     {
         return $this->belongsTo(ProductModel::class);
     }

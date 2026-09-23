@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductType extends Model
@@ -16,12 +17,18 @@ class ProductType extends Model
         'name',
     ];
 
-    public function products()
+    /**
+     * @return HasMany<Product, $this>
+     */
+    public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
-    public function stocks()
+    /**
+     * @return HasMany<Stock, $this>
+     */
+    public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
     }

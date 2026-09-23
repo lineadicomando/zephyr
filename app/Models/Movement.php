@@ -6,6 +6,8 @@ use App\Models\Concerns\BelongsToScope;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
 class Movement extends Model
@@ -90,12 +92,18 @@ class Movement extends Model
         });
     }
 
-    public function movement_type()
+    /**
+     * @return BelongsTo<MovementType, $this>
+     */
+    public function movement_type(): BelongsTo
     {
         return $this->belongsTo(MovementType::class);
     }
 
-    public function movement_items()
+    /**
+     * @return HasMany<MovementItem, $this>
+     */
+    public function movement_items(): HasMany
     {
         return $this->hasMany(MovementItem::class);
     }
@@ -119,22 +127,34 @@ class Movement extends Model
             ->exists();
     }
 
-    public function from_inventory_location()
+    /**
+     * @return BelongsTo<InventoryLocation, $this>
+     */
+    public function from_inventory_location(): BelongsTo
     {
         return $this->belongsTo(InventoryLocation::class, 'from_inventory_location_id');
     }
 
-    public function from_inventory_position()
+    /**
+     * @return BelongsTo<InventoryPosition, $this>
+     */
+    public function from_inventory_position(): BelongsTo
     {
         return $this->belongsTo(InventoryPosition::class, 'from_inventory_position_id');
     }
 
-    public function to_inventory_location()
+    /**
+     * @return BelongsTo<InventoryLocation, $this>
+     */
+    public function to_inventory_location(): BelongsTo
     {
         return $this->belongsTo(InventoryLocation::class, 'to_inventory_location_id');
     }
 
-    public function to_inventory_position()
+    /**
+     * @return BelongsTo<InventoryPosition, $this>
+     */
+    public function to_inventory_position(): BelongsTo
     {
         return $this->belongsTo(InventoryPosition::class, 'to_inventory_position_id');
         // return $this->belongsTo(InventoryPosition::class, 'to_inventory_position_id')->where('default', false);

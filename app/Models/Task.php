@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Auth;
 
 class Task extends Model
@@ -36,22 +38,34 @@ class Task extends Model
         }
     }
 
-    public function inventories()
+    /**
+     * @return BelongsToMany<Inventory, $this>
+     */
+    public function inventories(): BelongsToMany
     {
         return $this->belongsToMany(Inventory::class, 'task_inventory')->withTimestamps();
     }
 
-    public function task_type()
+    /**
+     * @return BelongsTo<TaskType, $this>
+     */
+    public function task_type(): BelongsTo
     {
         return $this->belongsTo(TaskType::class);
     }
 
-    public function task_status()
+    /**
+     * @return BelongsTo<TaskStatus, $this>
+     */
+    public function task_status(): BelongsTo
     {
         return $this->belongsTo(TaskStatus::class);
     }
 
-    public function user()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

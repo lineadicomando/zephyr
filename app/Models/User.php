@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -215,11 +216,17 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
             ->where(config('permission.column_names.model_morph_key'), $this->getKey());
     }
 
-    public function tasks()
+    /**
+     * @return HasMany<Task, $this>
+     */
+    public function tasks(): HasMany
     {
         return $this->hasMany(Task::class, 'user_id');
     }
 
+    /**
+     * @return BelongsToMany<Scope, $this>
+     */
     public function scopes(): BelongsToMany
     {
         return $this->belongsToMany(Scope::class)->withTimestamps();

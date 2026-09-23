@@ -31,9 +31,9 @@ class MovementFactory extends Factory
     {
         return $this->state(fn () => [
             'from_inventory_location_id' => $from->id,
-            'from_inventory_position_id' => $from->inventoryPositions()->inRandomOrder()->first()?->id,
+            'from_inventory_position_id' => $from->inventory_positions()->inRandomOrder()->first()?->id,
             'to_inventory_location_id' => $to->id,
-            'to_inventory_position_id' => $to->inventoryPositions()->inRandomOrder()->first()?->id,
+            'to_inventory_position_id' => $to->inventory_positions()->inRandomOrder()->first()?->id,
         ]);
     }
 }

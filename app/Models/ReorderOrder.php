@@ -49,16 +49,25 @@ class ReorderOrder extends Model
         'cancelled_at' => 'datetime',
     ];
 
+    /**
+     * @return HasMany<ReorderOrderItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(ReorderOrderItem::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');

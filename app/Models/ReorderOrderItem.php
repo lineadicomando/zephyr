@@ -29,16 +29,25 @@ class ReorderOrderItem extends Model
         'last_reorder_date' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<ReorderOrder, $this>
+     */
     public function reorderOrder(): BelongsTo
     {
         return $this->belongsTo(ReorderOrder::class);
     }
 
+    /**
+     * @return BelongsTo<Stock, $this>
+     */
     public function stock(): BelongsTo
     {
         return $this->belongsTo(Stock::class);
     }
 
+    /**
+     * @return BelongsTo<Reorder, $this>
+     */
     public function reorder(): BelongsTo
     {
         return $this->belongsTo(Reorder::class);

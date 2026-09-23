@@ -224,6 +224,8 @@ Tokens expire after `SANCTUM_TOKEN_EXPIRATION` minutes (default 525600, one year
 
 ```bash
 composer test
+# static analysis (Larastan, level 5; known errors are in phpstan-baseline.neon)
+composer analyse
 ```
 
 ## Versioning

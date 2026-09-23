@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToScope;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InventoryLocation extends Model
 {
@@ -41,7 +42,10 @@ class InventoryLocation extends Model
         'name',
     ];
 
-    public function inventory_positions()
+    /**
+     * @return HasMany<InventoryPosition, $this>
+     */
+    public function inventory_positions(): HasMany
     {
         return $this->hasMany(InventoryPosition::class);
     }
@@ -55,17 +59,26 @@ class InventoryLocation extends Model
         return $this->inventory_positions()->where('default', false);
     }
 
-    public function stocks()
+    /**
+     * @return HasMany<Stock, $this>
+     */
+    public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
     }
 
-    public function from_movements()
+    /**
+     * @return HasMany<Movement, $this>
+     */
+    public function from_movements(): HasMany
     {
         return $this->hasMany(Movement::class, 'from_inventory_location_id');
     }
 
-    public function to_movements()
+    /**
+     * @return HasMany<Movement, $this>
+     */
+    public function to_movements(): HasMany
     {
         return $this->hasMany(Movement::class, 'to_inventory_location_id');
     }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\PreventRelatedDeletion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TaskType extends Model
 {
@@ -17,7 +18,10 @@ class TaskType extends Model
         'chart_color',
     ];
 
-    public function tasks()
+    /**
+     * @return HasMany<Task, $this>
+     */
+    public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
     }

@@ -38,7 +38,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### Performance
 
 ### Code quality
-- [ ] Add Larastan (new dependency, needs approval): plain PHPStan reports ~290 mostly false positive errors on Eloquent magic
 - [ ] Remove dead code: `UserResource\RelationManagers\GroupsRelationManager` (no `groups` relation), unused static helpers in `InventoryResource` (lines ~62-94)
 - [ ] Deduplicate the inventory table/filters (`InventoryResource`, `TaskResource\InventoriesRelationManager`, `StockResource`) and the `requestDeletion` action (`ScopeResource`, `EditScope`)
 

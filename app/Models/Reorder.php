@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Validation\ValidationException;
 
 class Reorder extends Model
@@ -37,12 +39,18 @@ class Reorder extends Model
         });
     }
 
-    public function stock()
+    /**
+     * @return BelongsTo<Stock, $this>
+     */
+    public function stock(): BelongsTo
     {
         return $this->belongsTo(Stock::class);
     }
 
-    public function reorder_order_items()
+    /**
+     * @return HasMany<ReorderOrderItem, $this>
+     */
+    public function reorder_order_items(): HasMany
     {
         return $this->hasMany(ReorderOrderItem::class);
     }

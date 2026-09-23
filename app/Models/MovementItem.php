@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 
 class MovementItem extends Model
@@ -101,12 +102,7 @@ class MovementItem extends Model
             $stockRecord['scope_id'] = $scopeId;
         }
 
-        $stock = Stock::firstOrCreate($stockRecord);
-        if ($stock) {
-            return $stock->id;
-        }
-
-        return null;
+        return Stock::firstOrCreate($stockRecord)->id;
     }
 
     public function syncStocks()
@@ -165,12 +161,18 @@ class MovementItem extends Model
         return true;
     }
 
-    public function movement()
+    /**
+     * @return BelongsTo<Movement, $this>
+     */
+    public function movement(): BelongsTo
     {
         return $this->belongsTo(Movement::class);
     }
 
-    public function inventory()
+    /**
+     * @return BelongsTo<Inventory, $this>
+     */
+    public function inventory(): BelongsTo
     {
         return $this->belongsTo(Inventory::class);
     }
@@ -196,12 +198,18 @@ class MovementItem extends Model
             ->each(fn (Stock $stock) => $stock->updateStockByMovementItems());
     }
 
-    public function incoming_stock()
+    /**
+     * @return BelongsTo<Stock, $this>
+     */
+    public function incoming_stock(): BelongsTo
     {
         return $this->belongsTo(Stock::class, 'incoming_stock_id');
     }
 
-    public function outcoming_stock()
+    /**
+     * @return BelongsTo<Stock, $this>
+     */
+    public function outcoming_stock(): BelongsTo
     {
         return $this->belongsTo(Stock::class, 'outcoming_stock_id');
     }

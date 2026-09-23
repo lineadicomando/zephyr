@@ -23,6 +23,7 @@
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "filament/upgrade": "^5.0",
+        "larastan/larastan": "^3.9",
         "laravel/boost": "^2.2",
         "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.27",
@@ -82,6 +83,9 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "analyse": [
+            "@php -d memory_limit=2G vendor/bin/phpstan analyse"
         ]
     },
     "extra": {
