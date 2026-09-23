@@ -25,7 +25,7 @@
 
 The items of the September 2026 code reviews are fixed: see the git history.
 
-- [ ] `composer audit` reports security advisories for several installed packages: review them and update the affected dependencies
+- [ ] Upgrade `bezhansalleh/filament-shield` to 4.3+ (pinned to 4.2): it rejects the `_` separator with the `snake` case, so every permission (`view_any_product`...) must be renamed in the database, policies and seeders
 - [ ] Larastan (`composer analyse`, level 5) still has 67 known errors in `phpstan-baseline.neon`: fix them and shrink the baseline
 
 ---

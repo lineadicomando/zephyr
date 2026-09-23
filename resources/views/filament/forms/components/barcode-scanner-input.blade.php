@@ -1,4 +1,5 @@
-@include('filament-forms::components.text-input')
+{{-- The text input itself, rendered by Filament (TextInput has no Blade view since Filament 5.8) --}}
+{!! $field->toEmbeddedHtml() !!}
 
 @php
     $statePath = $getStatePath();

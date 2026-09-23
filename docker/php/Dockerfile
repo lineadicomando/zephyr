@@ -48,12 +48,15 @@ WORKDIR /var/www/html
 
 COPY composer.json composer.lock ./
 RUN <<EOF
+# phpoffice/phpspreadsheet 1.30.x (required by maatwebsite/excel) caps PHP
+# below 8.5, where it works: ignore only the upper bound of the PHP version
 composer install \
     --no-dev \
     --no-scripts \
     --no-autoloader \
     --prefer-dist \
-    --no-interaction
+    --no-interaction \
+    --ignore-platform-req=php+
 EOF
 
 COPY . .

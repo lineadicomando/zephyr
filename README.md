@@ -38,12 +38,12 @@ An open-source IT asset management system built with Laravel and Filament.
 
 ### Installation
 
-Clone the repository and install dependencies:
+Clone the repository and install dependencies (`--ignore-platform-req=php+` is needed on PHP 8.5: `phpoffice/phpspreadsheet` 1.30, required by the Excel exports, declares PHP below 8.5 but works on it):
 
 ```bash
 git clone https://github.com/lineadicomando/zephyr.git
 cd zephyr
-composer install
+composer install --ignore-platform-req=php+
 npm install
 ```
 
@@ -179,7 +179,7 @@ The image is built without dev dependencies (`composer install --no-dev`), so de
 
 ```bash
 # temporarily install dev dependencies (ephemeral — lost on container restart)
-docker compose exec -u root app composer install
+docker compose exec -u root app composer install --ignore-platform-req=php+
 
 # run the demo seeder
 docker compose exec app php artisan migrate:seed_demo
@@ -192,7 +192,7 @@ docker compose exec app php artisan migrate:seed_demo
 ```bash
 # Manual installation
 php artisan backup:run --only-db
-git pull && composer install --no-dev && npm ci && npm run build
+git pull && composer install --no-dev --ignore-platform-req=php+ && npm ci && npm run build
 php artisan migrate --force
 
 # Docker: the app container runs the pending migrations at startup
