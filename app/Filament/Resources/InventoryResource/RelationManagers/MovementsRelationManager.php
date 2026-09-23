@@ -174,6 +174,8 @@ class MovementsRelationManager extends RelationManager
             ])->filtersFormColumns(2)
             ->headerActions([
                 CreateAction::make()
+                    // The action creates a Movement too, not only the MovementItem checked by the relation manager.
+                    ->visible(fn (): bool => auth()->user()->can('create', Movement::class))
                     ->using(function (array $data, CreateAction $action, string $model): Model {
                         $data['inventory_id'] = $this->getOwnerRecord()->getKey();
                         $positionId = filled($data['from_inventory_position_id'] ?? null) ? (int) $data['from_inventory_position_id'] : null;
@@ -213,6 +215,8 @@ class MovementsRelationManager extends RelationManager
                 ViewAction::make()
                     ->beforeFormFilled(fn (array $data, string $model, MovementItem $movementItem) => self::ActionsBeforeFormFilled($data, $model, $movementItem)),
                 EditAction::make()
+                    // The action updates the Movement of the item.
+                    ->visible(fn (MovementItem $movementItem): bool => auth()->user()->can('update', $movementItem->movement))
                     ->beforeFormFilled(fn (array $data, string $model, MovementItem $movementItem) => self::ActionsBeforeFormFilled($data, $model, $movementItem))
                     ->using(function (array $data, MovementItem $movementItem): Model {
                         $movementItem->movement->update(Arr::only($data, ['movement_type_id', 'description', 'note']));

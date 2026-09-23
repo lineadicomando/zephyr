@@ -30,7 +30,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P2 - Medium
 
 ### P3 - Low
-- [ ] `InventoryResource\RelationManagers\MovementsRelationManager` creates/updates `Movement` records while authorized with MovementItem permissions
 - [ ] `InventoryLocationPolicy`, `InventoryPositionPolicy`, `MovementTypePolicy` do not check scope membership (`ChecksScopeAccess`); isolation relies only on the Filament tenant scope
 - [ ] Scope slug can be changed to `api` (rejected by the tenant route pattern): the scope becomes unreachable
 - [ ] `GET /api/user` has no token ability check
