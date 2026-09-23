@@ -34,7 +34,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### Data integrity (structural)
 
 ### Operations and setup
-- [ ] API tokens can only be created through tinker: add a command or a panel page to issue/revoke tokens with abilities
 
 ### Performance
 - [ ] Cascading saves: `Inventory`, `InventoryLocation`, `ProductType` re-save every related stock/movement item on save; replace with bulk updates of the changed columns

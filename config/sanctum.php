@@ -92,6 +92,21 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Token Abilities
+    |--------------------------------------------------------------------------
+    |
+    | Abilities checked by the API routes, offered by api-tokens:create.
+    |
+    */
+
+    'abilities' => [
+        'products:read' => 'Read the products (GET /api/products)',
+        'products:write' => 'Create and update the products (POST/PUT/PATCH /api/products)',
+        'user:read' => 'Read the token owner (GET /api/user)',
+    ],
+
     'middleware' => [
         'authenticate_session' => AuthenticateSession::class,
         'encrypt_cookies' => EncryptCookies::class,

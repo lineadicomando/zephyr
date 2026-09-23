@@ -211,7 +211,11 @@ The archive is written to `storage/app/private/<APP_NAME>/` (in Docker, inside t
 The REST API (`/api/products`) authenticates with Sanctum personal access tokens. Tokens need an ability for each group of endpoints: `products:read` for `GET` and `products:write` for `POST`/`PUT`/`PATCH` (the user permissions still apply, and writing the global catalog requires a super admin), `user:read` for `GET /api/user` (the token owner):
 
 ```bash
-php artisan tinker --execute '$user = App\Models\User::where("email", "ansible@example.com")->first(); echo $user->createToken("ansible", ["products:read", "products:write"])->plainTextToken;'
+# create a token (printed once) for an existing user
+php artisan api-tokens:create ansible@example.com --name=ansible --ability=products:read --ability=products:write
+# list the tokens, optionally of one user, and revoke one by id
+php artisan api-tokens:list ansible@example.com
+php artisan api-tokens:revoke 3
 ```
 
 Tokens expire after `SANCTUM_TOKEN_EXPIRATION` minutes (default 525600, one year; `0` disables the expiration). Requests are limited to `API_RATE_LIMIT_PER_MINUTE` per user/IP.
