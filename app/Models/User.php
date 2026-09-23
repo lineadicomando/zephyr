@@ -93,6 +93,16 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
     }
 
     /**
+     * Determine whether $other belongs to at least one scope and every scope
+     * of $other is also a scope of the user.
+     */
+    public function coversScopesOf(User $other): bool
+    {
+        return $other->scopes()->exists()
+            && $other->scopes()->whereNotIn('scopes.id', $this->scopes()->select('scopes.id'))->doesntExist();
+    }
+
+    /**
      * Limit the query to the users visible to $viewer: super admins see every
      * user, everybody else only the users sharing at least one scope.
      */

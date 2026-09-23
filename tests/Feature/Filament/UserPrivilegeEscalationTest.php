@@ -123,3 +123,19 @@ it('does not let an admin see or detach a scope they do not belong to', function
 
     expect($this->admin->can('manageMembership', $this->foreignScope))->toBeFalse();
 });
+
+it('does not let an admin manage an account that also belongs to scopes outside their own', function () {
+    $sharedUser = User::factory()->create();
+    $sharedUser->syncRoles(['user']);
+    $sharedUser->scopes()->attach([$this->ownScope->id, $this->foreignScope->id]);
+
+    $localUser = User::factory()->create();
+    $localUser->syncRoles(['user']);
+    $localUser->scopes()->sync([$this->ownScope->id]);
+
+    expect($this->admin->can('view', $sharedUser))->toBeTrue()
+        ->and($this->admin->can('update', $sharedUser))->toBeFalse()
+        ->and($this->admin->can('delete', $sharedUser))->toBeFalse()
+        ->and($this->admin->can('update', $localUser))->toBeTrue()
+        ->and($this->admin->can('delete', $localUser))->toBeTrue();
+});
