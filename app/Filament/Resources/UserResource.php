@@ -13,12 +13,14 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
 {
@@ -78,11 +80,24 @@ class UserResource extends Resource
                     ->confirmed(),
                 TextInput::make('password_confirmation')
                     ->password(),
-                Select::make('roles')
-                    ->translateLabel()
+                Select::make('scope_roles')
+                    ->label(__('Roles in this scope'))
                     ->multiple()
                     ->preload()
-                    ->relationship('roles', 'name')
+                    ->options(fn (): array => Role::query()->where('name', '!=', 'super_admin')->orderBy('name')->pluck('name', 'id')->all())
+                    ->afterStateHydrated(fn (Select $component, ?User $record) => $component->state(
+                        $record ? $record->rolesInScope(filament()->getTenant()->getKey())->modelKeys() : [],
+                    ))
+                    ->dehydrated(false)
+                    ->saveRelationshipsUsing(fn (User $record, ?array $state) => $record->syncRolesInScope(filament()->getTenant()->getKey(), $state ?? []))
+                    ->visible(fn (): bool => (bool) auth()->user()?->isRoot()),
+                Toggle::make('is_super_admin')
+                    ->label(__('Super admin in every scope'))
+                    ->afterStateHydrated(fn (Toggle $component, ?User $record) => $component->state((bool) $record?->isRoot()))
+                    ->dehydrated(false)
+                    ->saveRelationshipsUsing(fn (User $record, ?bool $state) => $record->setRoot((bool) $state))
+                    // Super admins cannot demote themselves and lock everybody out.
+                    ->disabled(fn (?User $record): bool => (bool) $record?->is(auth()->user()))
                     ->visible(fn (): bool => (bool) auth()->user()?->isRoot()),
             ]);
     }

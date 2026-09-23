@@ -96,7 +96,7 @@ it('assigns users created by an admin to the current scope with the user role', 
     actAsVisibilityUser($this, $this->admin);
 
     Livewire::test(CreateUser::class)
-        ->assertFormFieldHidden('roles')
+        ->assertFormFieldHidden('scope_roles')
         ->fillForm([
             'name' => 'New colleague',
             'email' => 'new-colleague@example.com',
@@ -118,7 +118,8 @@ it('lets super admins choose the roles of new users', function () {
     actAsVisibilityUser($this, $root);
 
     Livewire::test(CreateUser::class)
-        ->assertFormFieldVisible('roles');
+        ->assertFormFieldVisible('scope_roles')
+        ->assertFormFieldVisible('is_super_admin');
 });
 
 it('shows admins and users only their own scopes', function (string $role) {

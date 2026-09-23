@@ -152,5 +152,7 @@
     "You cannot assign this scope.": "Non puoi assegnare questo scope.",
     "No critical items to reorder": "Nessun articolo critico da riordinare",
     "Transition reorder orders": "Cambiare stato agli ordini di riordino",
-    "Lowercase letters, numbers, dashes and underscores; \"api\" is reserved.": "Lettere minuscole, numeri, trattini e underscore; \"api\" è riservato."
+    "Lowercase letters, numbers, dashes and underscores; \"api\" is reserved.": "Lettere minuscole, numeri, trattini e underscore; \"api\" è riservato.",
+    "Roles in this scope": "Ruoli in questo ambito",
+    "Super admin in every scope": "Super admin in tutti gli ambiti"
 }

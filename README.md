@@ -245,7 +245,9 @@ See [docs/architecture/global-scopes.md](docs/architecture/global-scopes.md) for
 - `admin`: full operational access to the scopes it belongs to. It sees only the users and scopes it shares, manages only the non-admin users of its scopes (new users get the `user` role), cannot manage roles and has read-only access to the global catalog (products and product/task dictionaries, shared by every scope).
 - `user`: day-to-day operations (tasks, movements, reorder orders) and read access to inventory, stocks and catalog.
 
-Roles are global: an admin is admin in every scope it belongs to.
+Roles are assigned per scope (spatie/permission teams, the team being the scope): a user can be admin in one scope and user in another, and has no role in a scope until one is assigned. Super admins edit the roles of the current scope from the user form; `super_admin` is the only global role. Users attached to a scope get the `user` role there and lose their roles in a scope when detached from it. Outside the panel (API, console) the permissions of all the scopes of the user apply to the global catalog.
+
+Upgrading to per scope roles (migration `2026_09_23_062607_add_scope_teams_to_permission_tables`) keeps `super_admin` global and copies every other role of a user into each of their scopes.
 
 ### Scope deletion workflow
 

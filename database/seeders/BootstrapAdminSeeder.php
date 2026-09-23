@@ -28,10 +28,8 @@ class BootstrapAdminSeeder extends Seeder
             $user->restore();
         }
 
-        $superAdminRole = Role::query()->where('name', 'super_admin')->where('guard_name', 'web')->first();
-
-        if ($superAdminRole) {
-            $user->syncRoles([$superAdminRole]);
+        if (Role::query()->where('name', 'super_admin')->where('guard_name', 'web')->exists()) {
+            $user->setRoot(true);
         }
 
         $defaultScope = Scope::query()->firstOrCreate(

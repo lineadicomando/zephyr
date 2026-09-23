@@ -34,7 +34,8 @@ it('does not let an admin grant the super_admin role', function () {
 
     Livewire::test(EditUser::class, ['record' => $target->getRouteKey()])
         ->fillForm([
-            'roles' => [Role::findByName('super_admin')->id],
+            'scope_roles' => [Role::findByName('super_admin')->id],
+            'is_super_admin' => true,
         ])
         ->call('save');
 
@@ -47,8 +48,8 @@ it('does not let an admin promote a user to admin', function () {
     $target->scopes()->attach($this->ownScope);
 
     Livewire::test(EditUser::class, ['record' => $target->getRouteKey()])
-        ->assertFormFieldHidden('roles')
-        ->fillForm(['roles' => [Role::findByName('admin')->id]])
+        ->assertFormFieldHidden('scope_roles')
+        ->fillForm(['scope_roles' => [Role::findByName('admin')->id]])
         ->call('save');
 
     expect($target->fresh()->hasRole('admin'))->toBeFalse();

@@ -7,6 +7,7 @@ use App\Filament\Resources\RoleResource;
 use App\Filament\Resources\TaskResource\Widgets\TaskChart;
 use App\Filament\Widgets\CurrentScopeWidget;
 use App\Filament\Widgets\StatsOverview;
+use App\Http\Middleware\SetPermissionsTeamFromTenant;
 use App\Models\Scope;
 use App\View\Components\CreditsDialog;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -45,6 +46,7 @@ class AppPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->profile()
             ->tenant(Scope::class, slugAttribute: 'slug', ownershipRelationship: 'scope')
+            ->tenantMiddleware([SetPermissionsTeamFromTenant::class], isPersistent: true)
             // Closures: the URLs must be generated per request, after the trusted proxies are applied.
             ->favicon(fn (): string => asset(config('app.branding.favicon')))
             ->brandLogo(fn (): string => asset(config('app.branding.logo')))

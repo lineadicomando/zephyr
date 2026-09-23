@@ -14,6 +14,12 @@ class Scope extends Model implements HasCurrentTenantLabel
     use HasFactory;
 
     /**
+     * spatie/permission team of the role assignments valid in every scope
+     * (super admins); the other assignments use the scope id as team.
+     */
+    public const GLOBAL_PERMISSIONS_TEAM = 0;
+
+    /**
      * Slugs usable in the tenant URL segment: lowercase, and never exactly
      * "api", which is reserved to the API routes. The negative lookahead
      * works without anchors, as Symfony route requirements strip them.

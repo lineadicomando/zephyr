@@ -7,7 +7,7 @@ namespace App\Support\Scope;
 final class ScopePurgeRegistry
 {
     /**
-     * Tables with a scope_id FK that must be purged before deleting scopes.
+     * Tables with a scope_id column that must be purged before deleting scopes.
      *
      * @return list<string>
      */
@@ -25,6 +25,9 @@ final class ScopePurgeRegistry
             'reorders',
             'stocks',
             'tasks',
+            // role and permission assignments of the scope (spatie/permission teams)
+            'model_has_roles',
+            'model_has_permissions',
         ];
     }
 }

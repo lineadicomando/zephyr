@@ -13,6 +13,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Permission\Models\Role;
 
 class ScopesRelationManager extends RelationManager
 {
@@ -69,7 +70,16 @@ class ScopesRelationManager extends RelationManager
                             if (! $this->canManageScopeMembership(Scope::query()->find($value))) {
                                 $fail(__('You cannot assign this scope.'));
                             }
-                        })),
+                        }))
+                    // Roles are per scope: without one the user could do nothing in it.
+                    ->after(function (array $data): void {
+                        $user = $this->getOwnerRecord();
+                        $scopeId = (int) $data['recordId'];
+
+                        if ($user instanceof User && $user->rolesInScope($scopeId)->isEmpty()) {
+                            $user->syncRolesInScope($scopeId, [Role::findByName('user', 'web')->getKey()]);
+                        }
+                    }),
             ])
             ->actions([
                 DetachAction::make()
@@ -87,6 +97,13 @@ class ScopesRelationManager extends RelationManager
                             ->send();
 
                         $action->halt();
+                    })
+                    ->after(function (Scope $record): void {
+                        $user = $this->getOwnerRecord();
+
+                        if ($user instanceof User) {
+                            $user->syncRolesInScope($record->getKey(), []);
+                        }
                     }),
             ])
             ->bulkActions([]);

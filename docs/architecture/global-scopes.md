@@ -28,6 +28,8 @@ Zephyr supports multiple flat operational scopes (for example `company`, `school
 
 - Record-level policies enforce scope ownership for view/update/delete operations.
 - Root users can bypass scope checks explicitly.
+- Roles are assigned per scope with spatie/permission teams (`model_has_roles.scope_id`); the `SetPermissionsTeamFromTenant` tenant middleware selects the team of the current scope.
+- Team `0` (`Scope::GLOBAL_PERMISSIONS_TEAM`) holds the global assignments (`super_admin`), valid in every scope and used outside the panel. Role definitions are global (`roles.scope_id` is always null).
 
 ## UI
 

@@ -13,13 +13,13 @@ class ProductPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_product')
+        return app(ScopeAccessResolver::class)->hasPermissionInContext($user, 'view_any_product')
             && app(ScopeAccessResolver::class)->userHasAssignedScopes($user);
     }
 
     public function view(User $user, ?Product $model = null): bool
     {
-        return $user->can('view_product')
+        return app(ScopeAccessResolver::class)->hasPermissionInContext($user, 'view_product')
             && app(ScopeAccessResolver::class)->userHasAssignedScopes($user);
     }
 

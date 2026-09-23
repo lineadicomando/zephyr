@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
          * the bootstrap admin before use.
          */
         $password = Hash::make(app()->isProduction() ? Str::random(40) : 'password');
-        $demoUserIds = collect();
+        $demoUserRoles = collect();
 
         $admins = [
             ['Marco Bianchi', 'marco.bianchi@example.local'],
@@ -40,11 +40,7 @@ class UserSeeder extends Seeder
                 ],
             );
 
-            $demoUserIds->push($user->id);
-
-            if (! $user->hasRole($adminRole)) {
-                $user->assignRole($adminRole);
-            }
+            $demoUserRoles->put($user->id, $adminRole->id);
         }
 
         $regularUsers = [
@@ -67,21 +63,25 @@ class UserSeeder extends Seeder
                 ],
             );
 
-            $demoUserIds->push($user->id);
-
-            if (! $user->hasRole($userRole)) {
-                $user->assignRole($userRole);
-            }
+            $demoUserRoles->put($user->id, $userRole->id);
         }
 
         $scopeIds = DB::table('scopes')->where('is_active', true)->pluck('id');
 
-        User::query()->whereKey($demoUserIds)->each(function (User $user) use ($scopeIds): void {
+        // Roles are per scope: the demo users get theirs in every active scope
+        // where they have none yet.
+        User::query()->whereKey($demoUserRoles->keys())->each(function (User $user) use ($scopeIds, $demoUserRoles): void {
             $missingScopeIds = $scopeIds->diff(
                 $user->scopes()->pluck('scopes.id'),
             );
             if ($missingScopeIds->isNotEmpty()) {
                 $user->scopes()->attach($missingScopeIds->values()->all());
+            }
+
+            foreach ($scopeIds as $scopeId) {
+                if ($user->rolesInScope($scopeId)->isEmpty()) {
+                    $user->syncRolesInScope($scopeId, [$demoUserRoles[$user->id]]);
+                }
             }
         });
     }

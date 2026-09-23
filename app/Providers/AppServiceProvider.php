@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureTrustedProxies();
+        $this->configurePermissionTeams();
 
         RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(config('sanctum.rate_limit_per_minute'))
             ->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
@@ -80,6 +83,20 @@ class AppServiceProvider extends ServiceProvider
                     $asImage = false,
                 )
                 ->renderHook('panels::global-search.after');
+        });
+    }
+
+    /**
+     * Roles are assigned per scope (the spatie/permission team). Outside a
+     * tenant (console, API) only the global assignments apply, and role
+     * definitions are always global, even when created inside a scope.
+     */
+    public function configurePermissionTeams(): void
+    {
+        setPermissionsTeamId(Scope::GLOBAL_PERMISSIONS_TEAM);
+
+        Role::creating(function (Role $role): void {
+            $role->{app(PermissionRegistrar::class)->teamsKey} = null;
         });
     }
 

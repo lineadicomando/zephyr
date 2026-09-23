@@ -74,11 +74,11 @@ class UserPolicy
     }
 
     /**
-     * Admin and super admin accounts are managed only by super admins; other
-     * accounts by the users belonging to every scope of the account, so that
-     * an admin cannot take over an account used in scopes they cannot see.
-     * Nobody but a super admin can manage their own account through these
-     * abilities.
+     * Accounts that are admin or super admin in any scope are managed only by
+     * super admins; other accounts by the users belonging to every scope of
+     * the account, so that an admin cannot take over an account used in
+     * scopes they cannot see. Nobody but a super admin can manage their own
+     * account through these abilities.
      */
     protected function canManageAccount(User $user, ?User $model): bool
     {
@@ -87,7 +87,7 @@ class UserPolicy
         }
 
         return ! $model->is($user)
-            && ! $model->isAdmin()
+            && ! $model->isAdminInAnyScope()
             && $user->coversScopesOf($model);
     }
 }

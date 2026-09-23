@@ -75,4 +75,8 @@ function activateFilamentTenant(Scope $scope, array $resources = []): void
     }
 
     Filament\Facades\Filament::setTenant($scope);
+
+    // As the SetPermissionsTeamFromTenant middleware.
+    setPermissionsTeamId($scope->getKey());
+    auth()->user()?->unsetRelation('roles')->unsetRelation('permissions');
 }
