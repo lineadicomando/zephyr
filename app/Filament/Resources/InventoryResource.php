@@ -10,7 +10,6 @@ use App\Filament\Resources\InventoryResource\RelationManagers\TasksRelationManag
 use App\Filament\Resources\ProductResource\Pages\ListProducts;
 use App\Filament\Resources\StockResource\Pages\ListStocks;
 use App\Models\Inventory;
-use App\Models\InventoryPosition;
 use App\Models\Product;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -18,8 +17,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -58,40 +55,6 @@ class InventoryResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('Inventory');
-    }
-
-    public static function InventoryLocationAfterStateUpdated(string $positionField, Set &$set, ?string $state)
-    {
-        $set($positionField, '');
-    }
-
-    public static function InventoryPositionHelperText(Get &$get, ?bool &$activeSelection)
-    {
-        if ($activeSelection) {
-            return __('Active selection.');
-        }
-
-        return '';
-    }
-
-    public static function InventoryPositionModifyQueryUsing(string $locationField, string $positionField, Builder &$query, Set &$set, Get &$get, ?bool &$activeSelection)
-    {
-        $inventoryLocationId = $get($locationField);
-        $inventoryPositionId = $get($positionField);
-        if (! empty($inventoryLocationId) && empty($inventoryPositionId)) {
-            $activeSelection = true;
-
-            return $query->where('inventory_location_id', $inventoryLocationId);
-        }
-        if (! empty($inventoryPositionId)) {
-            $inventoryPosition = InventoryPosition::find($inventoryPositionId);
-            if ($inventoryPosition) {
-                $set($locationField, $inventoryPosition->inventory_location_id);
-            }
-        }
-        $activeSelection = false;
-
-        return $query;
     }
 
     public static function getFormDefinition()
