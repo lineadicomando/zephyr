@@ -1,5 +1,8 @@
 <?php
 
+use App\Filament\Resources\InventoryResource;
+use App\Filament\Resources\MovementItemResource;
+use App\Filament\Resources\StockResource;
 use App\Models\Inventory;
 use App\Models\InventoryLocation;
 use App\Models\InventoryPosition;
@@ -13,6 +16,7 @@ use App\Models\ProductModel;
 use App\Models\ProductType;
 use App\Models\Scope;
 use App\Models\Stock;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 
@@ -186,3 +190,45 @@ it('repairs stored stock that does not match the movement history instead of abo
         ->and(Stock::find($transferItem->incoming_stock_id)->stock)->toBe(5);
 });
 
+it('refreshes the product data copied in every scope when a product changes inside the panel', function () {
+    [
+        'scope' => $scope,
+        'inventory' => $inventory,
+        'locationA' => $locationA,
+        'positionA' => $positionA,
+        'movementType' => $movementType,
+    ] = makeMovementDomain();
+
+    $load = Movement::factory()->create([
+        'scope_id' => $scope->id,
+        'movement_type_id' => $movementType->id,
+        'to_inventory_location_id' => $locationA->id,
+        'to_inventory_position_id' => $positionA->id,
+    ]);
+    $item = MovementItem::query()->create([
+        'scope_id' => $scope->id,
+        'movement_id' => $load->id,
+        'inventory_id' => $inventory->id,
+        'stock' => 1,
+    ]);
+
+    $otherScope = Scope::factory()->create();
+    $otherInventory = Inventory::factory()->create(['scope_id' => $otherScope->id, 'product_id' => $inventory->product_id]);
+    $otherStock = Stock::factory()->create(['scope_id' => $otherScope->id, 'inventory_id' => $otherInventory->id]);
+
+    $this->actingAs(User::factory()->create());
+    activateFilamentTenant($scope, [InventoryResource::class, StockResource::class, MovementItemResource::class]);
+
+    $newGroup = ProductGroup::query()->create(['name' => 'New group']);
+    $inventory->product->update(['name' => 'Renamed product', 'product_group_id' => $newGroup->id]);
+
+    $stock = Stock::withoutGlobalScopes()->find($item->incoming_stock_id);
+    $otherStock = Stock::withoutGlobalScopes()->find($otherStock->id);
+
+    expect($stock->product_group_id)->toBe($newGroup->id)
+        ->and($stock->inventory_summary)->toContain('Renamed product')
+        ->and(MovementItem::withoutGlobalScopes()->find($item->id)->inventory_summary)->toContain('Renamed product')
+        ->and($otherStock->product_group_id)->toBe($newGroup->id)
+        ->and($otherStock->inventory_summary)->toContain('Renamed product')
+        ->and(Inventory::withoutGlobalScopes()->find($otherInventory->id)->summary)->toContain('Renamed product');
+});

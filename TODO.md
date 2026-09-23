@@ -28,7 +28,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P1 - High
 
 ### P2 - Medium
-- [ ] Product edits: `Product::onSaved` goes through the Filament tenant scope, so stocks/inventories of other scopes keep stale product columns; renaming a product leaves the old name on stocks and movement items (stocks re-saved before `syncSummary()`, which saves quietly). Fix together with the cascading saves item below
 - [ ] Docker entrypoint: if the first-boot seed fails after the migrations (e.g. placeholder `BOOTSTRAP_ADMIN_PASSWORD`), the restart sees migrations as `Ran` and never seeds again: no admin
 - [ ] Docker: `SEED_DEMO_DATA=true` always fails (Faker is dev-only, image built with `--no-dev`) but the README suggests it
 - [ ] Demo seed creates admin users with password `password` and attaches every user to every scope; `zephyr:setup` offers it in production too
@@ -59,7 +58,7 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 - [ ] API tokens can only be created through tinker: add a command or a panel page to issue/revoke tokens with abilities
 
 ### Performance
-- [ ] Cascading saves: `Inventory`, `InventoryLocation`, `Product`, `ProductType` re-save every related stock/movement item on save; replace with bulk updates of the changed columns
+- [ ] Cascading saves: `Inventory`, `InventoryLocation`, `ProductType` re-save every related stock/movement item on save; replace with bulk updates of the changed columns
 - [ ] `MovementItem::isLast()` runs one query per table row (twice in `MovementItemsRelationManager`): compute it with a subquery
 - [ ] Missing indexes: `tasks` (`task_type_id`, `task_status_id`, `user_id`, `starts_at`), movement foreign keys, `inventories.product_id`, product foreign keys
 
