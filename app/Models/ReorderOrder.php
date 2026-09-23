@@ -23,6 +23,13 @@ class ReorderOrder extends Model
 
     public const STATUS_CANCELLED = 'cancelled';
 
+    /**
+     * Statuses of the orders still to be received.
+     *
+     * @var list<string>
+     */
+    public const OPEN_STATUSES = [self::STATUS_DRAFT, self::STATUS_REQUESTED, self::STATUS_ORDERED];
+
     protected $fillable = [
         'scope_id',
         'status',

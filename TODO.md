@@ -32,7 +32,6 @@ Items left open after the September 2026 code reviews, ordered by priority. Fixe
 ### P3 - Low
 
 ### Data integrity (structural)
-- [ ] Reorder proposals: every click creates a new draft even if an open order already contains the same stocks; outside the panel the order scope is taken from the first rule
 
 ### Operations and setup
 - [ ] API tokens can only be created through tinker: add a command or a panel page to issue/revoke tokens with abilities

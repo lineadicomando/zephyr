@@ -140,3 +140,30 @@ it('rolls back the received status when a reorder rule cannot be updated', funct
     expect($order->fresh()->status)->toBe(ReorderOrder::STATUS_ORDERED)
         ->and($rule->fresh()->last_reorder_date)->toBeNull();
 });
+
+it('does not propose again stocks already in an open order', function () {
+    makeRuleForOrderFlow();
+    $proposals = app(ReorderProposalService::class);
+
+    $order = $proposals->createDraftFromCritical();
+
+    expect($proposals->createDraftFromCritical())->toBeNull();
+
+    app(ReorderOrderService::class)->cancel($order);
+
+    expect($proposals->createDraftFromCritical())->not->toBeNull();
+});
+
+it('creates proposals only in the given scope', function () {
+    $ruleA = makeRuleForOrderFlow();
+    $ruleB = makeRuleForOrderFlow();
+    $proposals = app(ReorderProposalService::class);
+
+    expect(fn () => $proposals->createDraftFromCritical())->toThrow(InvalidArgumentException::class);
+
+    $order = $proposals->createDraftFromCritical(scopeId: $ruleB->scope_id);
+
+    expect($order->scope_id)->toBe($ruleB->scope_id)
+        ->and($order->items->pluck('reorder_id')->all())->toBe([$ruleB->id])
+        ->and($ruleA->scope_id)->not->toBe($ruleB->scope_id);
+});

@@ -4,24 +4,42 @@ namespace App\Services\Reorders;
 
 use App\Models\Reorder;
 use App\Models\ReorderOrder;
+use App\Models\ReorderOrderItem;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 class ReorderProposalService
 {
     public function __construct(private readonly ReorderEvaluatorService $evaluator) {}
 
     /**
-     * Create a draft order with the critical reorder rules, or return null
-     * when no rule is critical.
+     * Create a draft order in the scope (by default the current tenant) with
+     * the critical reorder rules whose stock is not already in an open order,
+     * or return null when there is none.
+     *
+     * @throws InvalidArgumentException when no scope is given and the critical rules belong to several scopes
      */
-    public function createDraftFromCritical(?int $userId = null): ?ReorderOrder
+    public function createDraftFromCritical(?int $userId = null, ?int $scopeId = null): ?ReorderOrder
     {
+        $scopeId ??= filament()->getTenant()?->getKey();
+
         /** @var Collection<int, Reorder> $criticalRules */
-        $criticalRules = $this->evaluator->critical()->with('stock')->get();
+        $criticalRules = $this->evaluator->critical()
+            ->with('stock')
+            ->when($scopeId !== null, fn (Builder $query) => $query->where('reorders.scope_id', $scopeId))
+            ->whereNotIn('reorders.stock_id', ReorderOrderItem::query()
+                ->whereHas('reorderOrder', fn (Builder $query) => $query->whereIn('status', ReorderOrder::OPEN_STATUSES))
+                ->select('stock_id'))
+            ->get();
 
         if ($criticalRules->isEmpty()) {
             return null;
+        }
+
+        if ($criticalRules->pluck('scope_id')->unique()->count() > 1) {
+            throw new InvalidArgumentException('The critical reorder rules belong to several scopes: pass the scope of the order.');
         }
 
         return DB::transaction(fn (): ReorderOrder => $this->createDraft($criticalRules, $userId));
